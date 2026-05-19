@@ -4,28 +4,28 @@ import { AuthService } from './auth.service';
 export type AppRole = 'User' | 'Admin';
 export type FeatureId =
   | 'dashboard'
-  | 'movimientos'
-  | 'calendario'
-  | 'cuentas'
-  | 'tarjetas'
-  | 'cuotas'
-  | 'prestamos'
-  | 'reportes'
-  | 'categorias'
-  | 'configuracion'
+  | 'movements'
+  | 'calendar'
+  | 'accounts'
+  | 'cards'
+  | 'installments'
+  | 'loans'
+  | 'reports'
+  | 'categories'
+  | 'settings'
   | 'admin';
 
 const FEATURE_ROLES: Record<FeatureId, AppRole[]> = {
   dashboard: ['User', 'Admin'],
-  movimientos: ['User', 'Admin'],
-  calendario: ['User', 'Admin'],
-  cuentas: ['User', 'Admin'],
-  tarjetas: ['User', 'Admin'],
-  cuotas: ['User', 'Admin'],
-  prestamos: ['User', 'Admin'],
-  reportes: ['User', 'Admin'],
-  categorias: ['User', 'Admin'],
-  configuracion: ['User', 'Admin'],
+  movements: ['User', 'Admin'],
+  calendar: ['User', 'Admin'],
+  accounts: ['User', 'Admin'],
+  cards: ['User', 'Admin'],
+  installments: ['User', 'Admin'],
+  loans: ['User', 'Admin'],
+  reports: ['User', 'Admin'],
+  categories: ['User', 'Admin'],
+  settings: ['User', 'Admin'],
   admin: ['Admin'],
 };
 

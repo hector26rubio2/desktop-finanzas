@@ -11,54 +11,8 @@ declare const google: any;
   selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule, RouterModule],
-  template: `
-    <div class="auth-page">
-      <div class="auth-card">
-        <div class="auth-logo">
-          <h1>{{ i18n.t('app.title') }}</h1>
-          <p class="eyebrow" style="margin-top: 6px; text-align:center">{{ i18n.t('app.subtitle') }}</p>
-        </div>
-
-        <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:1rem"></div>
-        @if (googleClientId) {
-          <div class="row-flex" style="margin:0 0 1rem;gap:8px">
-            <div style="flex:1;height:1px;background:var(--line)"></div>
-            <span class="eyebrow">o</span>
-            <div style="flex:1;height:1px;background:var(--line)"></div>
-          </div>
-        }
-
-        <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
-          <label>
-            {{ i18n.t('auth.email') }}
-            <input type="email" formControlName="email" autocomplete="email" placeholder="vos@ejemplo.com" />
-            @if (form.get('email')?.invalid && form.get('email')?.touched) {
-              <span class="field-error">{{ i18n.t('auth.invalid_email') }}</span>
-            }
-          </label>
-          <label>
-            {{ i18n.t('auth.password') }}
-            <input type="password" formControlName="password" autocomplete="current-password" placeholder="••••••••" />
-            @if (form.get('password')?.invalid && form.get('password')?.touched) {
-              <span class="field-error">{{ i18n.t('auth.required') }}</span>
-            }
-          </label>
-
-          @if (error) {
-            <div class="auth-error">{{ error }}</div>
-          }
-
-          <button type="submit" class="auth-submit" [disabled]="loading">
-            {{ loading ? i18n.t('auth.signing_in') : i18n.t('auth.sign_in') }}
-          </button>
-        </form>
-
-        <p class="auth-link">
-          {{ i18n.t('auth.no_account') }} <a routerLink="/register">{{ i18n.t('auth.create_one') }}</a>
-        </p>
-      </div>
-    </div>
-  `,
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -126,3 +80,4 @@ export class LoginComponent implements OnInit {
     });
   }
 }
+

@@ -1,0 +1,129 @@
+<div class="view">
+  <div class="dash-nav">
+    <div class="seg-ctrl">
+      @for (opt of granularities; track opt.key) {
+        <button
+          class="seg-ctrl__btn"
+          [class.seg-ctrl__btn--active]="ds.granularity() === opt.key"
+          (click)="ds.setGranularity(opt.key)"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+    <div class="period-nav">
+      <button class="period-nav__btn" (click)="ds.prev()">◀</button>
+      <span class="period-nav__label">{{ ds.currentLabel() }}</span>
+      <button class="period-nav__btn" (click)="ds.next()">▶</button>
+    </div>
+  </div>
+
+  @if (ds.loading()) {
+    <div class="skeleton-kpis">
+      <div class="skeleton skeleton--card h-78"></div>
+      <div class="skeleton skeleton--card h-78"></div>
+      <div class="skeleton skeleton--card h-78"></div>
+      <div class="skeleton skeleton--card h-78"></div>
+    </div>
+    <div class="chart-skel-grid">
+      <div class="skeleton skeleton--card h-280"></div>
+      <div class="skeleton skeleton--card h-280"></div>
+    </div>
+    <div class="skeleton skeleton--card h-200"></div>
+  } @else {
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="eyebrow">{{ i18n.t('dashboard.balance_total') }}</div>
+        <div class="num-lg mt-8">{{ ds.totalIncome() - ds.totalExpense() | number: '1.0-0' }}</div>
+        <div class="num-sm">{{ baseCurrency }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="eyebrow">{{ i18n.t('dashboard.ingresos_12m') }}</div>
+        <div class="num-md mt-8 clr-pos">{{ ds.totalIncome() | number: '1.0-0' }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="eyebrow">{{ i18n.t('dashboard.gastos_12m') }}</div>
+        <div class="num-md mt-8 clr-neg">{{ ds.totalExpense() | number: '1.0-0' }}</div>
+      </div>
+      @if (ds.topLabel()) {
+        <div class="kpi-card">
+          <div class="eyebrow">{{ topLabelKey() }}</div>
+          <div class="num-md mono mt-8">{{ ds.topLabel() }}</div>
+          <div class="num-sm">{{ ds.topAmount() | number: '1.0-0' }} {{ baseCurrency }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card__h">
+          <span class="card__title">{{ i18n.t('dashboard.cashflow_title') }}</span>
+          <div class="legend-inline">
+            <span class="legend-dot clr-pos">● {{ i18n.t('dashboard.ingresos') }}</span>
+            <span class="legend-dot clr-neg">● {{ i18n.t('dashboard.gastos') }}</span>
+          </div>
+        </div>
+        <div class="card__body">
+          <canvas #lineCanvas height="200"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__h">
+          <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
+          <span class="eyebrow">{{ i18n.t('dashboard.este_mes') }}</span>
+        </div>
+        <div class="card__body card__body--center">
+          @if (ds.categoryExpenses().length > 0) {
+            <canvas #pieCanvas width="260" height="260"></canvas>
+          } @else {
+            <div class="empty-state p-40">
+              <p>{{ i18n.t('dashboard.sin_datos') }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__h">
+        <span class="card__title">{{ i18n.t('dashboard.movimientos_recientes') }}</span>
+        <button class="btn btn--ghost btn--sm" (click)="router.navigate(['/movements'])">
+          {{ i18n.t('dashboard.ver_todos') }}
+        </button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="th-date">{{ i18n.t('dashboard.fecha') }}</th>
+            <th>{{ i18n.t('dashboard.concepto') }}</th>
+            <th>{{ i18n.t('dashboard.tipo') }}</th>
+            <th class="num">{{ i18n.t('dashboard.monto') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of ds.recentMovements(); track m.id) {
+            <tr>
+              <td class="mono subtle td-date">{{ m.date }}</td>
+              <td>{{ m.description ?? '—' }}</td>
+              <td>
+                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+                  {{ m.type === 'Income' ? i18n.t('dashboard.ingresos') : i18n.t('dashboard.gastos') }}
+                </span>
+              </td>
+              <td class="num mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
+                {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+              </td>
+            </tr>
+          }
+          @if (ds.recentMovements().length === 0) {
+            <tr>
+              <td colspan="4" class="empty-state ta-center p-40">
+                {{ i18n.t('dashboard.sin_movimientos') }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

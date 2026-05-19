@@ -1,0 +1,81 @@
+.chart-skel-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+.card__body {
+  padding: 16px;
+}
+
+.card__body--center {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.legend-inline {
+  display: flex;
+  gap: 10px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+}
+
+.legend-dot.clr-pos {
+  color: var(--positive);
+}
+
+.legend-dot.clr-neg {
+  color: var(--negative);
+}
+
+.h-78 {
+  height: 78px;
+}
+
+.h-200 {
+  height: 200px;
+}
+
+.h-280 {
+  height: 280px;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+.p-40 {
+  padding: 40px;
+}
+
+.ta-center {
+  text-align: center;
+}
+
+.clr-pos {
+  color: var(--positive);
+}
+
+.clr-neg {
+  color: var(--negative);
+}
+
+.th-date {
+  width: 90px;
+}
+
+.td-date {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+:host .btn--sm {
+  font-size: 11px;
+}

@@ -1,0 +1,13 @@
+
+      .muted {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      .actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+      td.actions {
+        padding: 0.25rem 0.5rem;
+      }
+    

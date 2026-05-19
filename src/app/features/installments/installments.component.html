@@ -1,0 +1,164 @@
+
+    <div class="view">
+      <div class="row-flex">
+        <h3 class="serif" style="font-size:22px;font-weight:400;flex:1">{{ i18n.t('installments.title') }}</h3>
+        <button class="btn btn--primary" (click)="showForm = !showForm">{{ i18n.t('installments.nueva_compra') }}</button>
+      </div>
+
+      @if (showForm) {
+        <div class="card" style="padding:var(--pad-x)">
+          <form [formGroup]="form" (ngSubmit)="save()">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="grid-column:1/-1">
+                {{ i18n.t('installments.descripcion') }}
+                <input formControlName="description" [placeholder]="i18n.t('installments.descripcion_placeholder')" />
+              </label>
+              <label>
+                {{ i18n.t('installments.monto_total') }}
+                <input type="number" formControlName="totalAmount" min="1" />
+              </label>
+              <label>
+                {{ i18n.t('installments.moneda') }}
+                <select formControlName="currency">
+                  <option value="ARS">ARS</option>
+                  <option value="USD">USD</option>
+                  <option value="COP">COP</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </label>
+              <label>
+                {{ i18n.t('installments.trm') }}
+                <input type="number" formControlName="trmApplied" min="0.000001" step="0.01" />
+              </label>
+              <label>
+                {{ i18n.t('installments.cantidad_cuotas') }}
+                <input type="number" formControlName="installmentsCount" min="1" max="120" />
+              </label>
+              <label>
+                {{ i18n.t('installments.cuotas_pagadas') }}
+                <input type="number" formControlName="paidCount" min="0" />
+              </label>
+              <label>
+                {{ i18n.t('installments.fecha_primera') }}
+                <input type="date" formControlName="startDate" />
+              </label>
+              <label>
+                {{ i18n.t('installments.tarjeta_cuenta') }}
+                <select formControlName="accountId">
+                  <option value="">{{ i18n.t('installments.ninguna') }}</option>
+                  @for (a of accounts(); track a.id) {
+                    <option [value]="a.id">{{ a.name }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+              <button type="button" class="btn btn--ghost" (click)="showForm = false">
+                {{ i18n.t('common.cancel') }}
+              </button>
+              <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
+                {{ saving() ? '…' : i18n.t('common.save') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      @if (loading()) {
+        <div class="empty-state">
+          <p>{{ i18n.t('installments.cargando') }}</p>
+        </div>
+      } @else if (installments().length === 0) {
+        <div class="empty-state">
+          <div class="serif">{{ i18n.t('installments.sin_compras') }}</div>
+          <p>{{ i18n.t('installments.sin_compras_desc') }}</p>
+        </div>
+      } @else {
+        <!-- KPI strip -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="eyebrow">{{ i18n.t('installments.compras_activas') }}</div>
+            <div class="num-md" style="margin-top:8px">{{ activeCount() }}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="eyebrow">{{ i18n.t('installments.total_comprometido') }}</div>
+            <div class="num-md" style="margin-top:8px;color:var(--negative)">
+              {{ totalRemaining() | number: '1.0-0' }}
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="eyebrow">{{ i18n.t('installments.cuotas_este_mes') }}</div>
+            <div class="num-md" style="margin-top:8px">{{ monthlyTotal() | number: '1.0-0' }}</div>
+          </div>
+        </div>
+
+        <!-- Installment cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--gutter)">
+          @for (inst of installments(); track inst.id) {
+            <div class="card" style="padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                <div>
+                  <div style="font-weight:500;color:var(--fg-0)">{{ inst.description }}</div>
+                  <div class="mono subtle" style="font-size:11px;margin-top:2px">
+                    {{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <span class="tag tag--accent" style="font-size:10px"
+                    >{{ inst.paidCount }}/{{ inst.installmentsCount }}</span
+                  >
+                  <button class="btn btn--ghost btn--icon" style="color:var(--negative)" (click)="deleteInst(inst.id)">
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    >
+                      <path d="M1 1l14 14M15 1L1 15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Progress bar -->
+              <div class="progress" style="margin-bottom:8px">
+                <div class="progress__fill" [style.width]="pct(inst) + '%'"></div>
+              </div>
+
+              <!-- Dot calendar -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+                @for (i of range(inst.installmentsCount); track i) {
+                  <div
+                    style="width:10px;height:10px;border-radius:2px"
+                    [style.background]="
+                      i < inst.paidCount ? 'var(--positive)' : i === inst.paidCount ? 'var(--accent)' : 'var(--bg-3)'
+                    "
+                  ></div>
+                }
+              </div>
+
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--fg-2)">
+                <span
+                  >{{ i18n.t('installments.restante') }}
+                  <span class="mono" style="color:var(--negative)"
+                    >{{ inst.currency }} {{ inst.remainingAmount | number: '1.0-0' }}</span
+                  ></span
+                >
+                <button
+                  class="btn btn--ghost"
+                  style="font-size:10px;padding:2px 8px"
+                  [disabled]="inst.paidCount >= inst.installmentsCount"
+                  (click)="markPaid(inst)"
+                >
+                  {{ i18n.t('installments.marcar_cuota') }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  
