@@ -8,12 +8,12 @@ const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' https://accounts.google.com 'unsafe-inline'",
+  `script-src 'self' https://accounts.google.com 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
   "frame-src https://accounts.google.com",
-  "connect-src 'self' http://localhost:5063 ws://localhost:4200 ws://localhost:5063",
+  `connect-src 'self' http://localhost:5063${isDev ? ' ws://localhost:4200 ws://localhost:5063' : ''}`,
   "object-src 'none'",
   "base-uri 'self'",
 ].join('; ');

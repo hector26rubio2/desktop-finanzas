@@ -52,29 +52,51 @@
   border-radius: 0.75rem;
   padding: 0.5rem;
   box-shadow: 0 8px 32px color-mix(in srgb, var(--accent) 15%, transparent);
-  min-width: 200px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .theme-option {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
   border-radius: 0.5rem;
   border: none;
   background: transparent;
   color: var(--fg-1);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
   transition:
     background var(--duration-fast) var(--ease-btn),
     color var(--duration-fast) var(--ease-btn);
-  white-space: nowrap;
   text-align: left;
+  width: 100%;
+}
+
+.theme-option__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.theme-option__name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-0);
+  line-height: 1.3;
+}
+
+.theme-option__desc {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--fg-3);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .theme-option:hover {

@@ -106,9 +106,9 @@
   --bg-3: oklch(86% 0.01 80);
   --fg-0: oklch(14% 0.01 70);
   --fg-1: oklch(30% 0.012 70);
-  --fg-2: oklch(48% 0.012 70);
-  --fg-3: oklch(48% 0.012 70);
-  --fg-4: oklch(60% 0.01 70);
+  --fg-2: oklch(44% 0.012 70);
+  --fg-3: oklch(54% 0.01 70);
+  --fg-4: oklch(64% 0.008 70);
   --line: oklch(0% 0 0 / 0.09);
   --line-1: oklch(0% 0 0 / 0.13);
   --line-2: oklch(0% 0 0 / 0.2);
@@ -502,10 +502,12 @@ table th.num {
 .muted {
   color: var(--fg-2);
 }
-.pos-text {
+.pos-text,
+.clr-pos {
   color: var(--positive);
 }
-.neg-text {
+.neg-text,
+.clr-neg {
   color: var(--negative);
 }
 
@@ -1614,40 +1616,103 @@ label {
   background: var(--bg-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  padding: 14px var(--pad-x);
+  padding: 16px var(--pad-x);
+  box-shadow: var(--shadow-1);
+  position: relative;
+  overflow: hidden;
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.kpi-card:hover {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-2);
+}
+
+.kpi-card:hover::before {
+  opacity: 1;
 }
 
 .kpi-card .eyebrow {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-card .eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
 }
 
 .num-lg {
   font-family: 'Instrument Serif', serif;
-  font-size: 40px;
+  font-size: 44px;
   font-weight: 400;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   line-height: 1;
   color: var(--accent);
 }
 
 .num-md {
   font-family: 'Geist Mono', monospace;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 500;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   line-height: 1;
   color: var(--fg-0);
 }
 
 .num-sm {
   font-size: 11px;
-  color: var(--fg-2);
-  margin-top: 4px;
+  color: var(--fg-3);
+  margin-top: 6px;
+  font-family: 'Geist Mono', monospace;
 }
 
 /* ============================================================
    SEGMENTED CONTROL
    ============================================================ */
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+@media (max-width: 900px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.legend-inline {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  font-family: 'Geist Mono', monospace;
+}
+
+.legend-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 
 .seg-ctrl {
   display: inline-flex;

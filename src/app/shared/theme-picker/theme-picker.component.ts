@@ -51,7 +51,10 @@ const THEME_OPTIONS: ThemeOption[] = [
           @for (opt of THEME_OPTIONS; track opt.id) {
             <button type="button" class="theme-option" [class.active]="currentTheme() === opt.id" (click)="select(opt)">
               <span class="theme-swatch" [style.background]="opt.accent"></span>
-              {{ formatLabel()(opt.id) }}
+              <span class="theme-option__txt">
+                <span class="theme-option__name">{{ formatLabel()(opt.id) }}</span>
+                <span class="theme-option__desc">{{ formatLabel()(opt.id + '_desc') }}</span>
+              </span>
             </button>
           }
         </div>

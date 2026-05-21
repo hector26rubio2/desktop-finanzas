@@ -67,10 +67,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.pieChart?.destroy();
   }
 
+  private cssVar(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
   private renderCharts() {
     try {
-      const textColor = 'oklch(40% 0.008 80)';
-      const gridColor = 'oklch(100% 0 0 / 0.08)';
+      const textColor = this.cssVar('--fg-3') || 'oklch(40% 0.008 80)';
+      const gridColor = this.cssVar('--line-1') || 'oklch(100% 0 0 / 0.08)';
+      const positive = this.cssVar('--positive') || 'oklch(76% 0.14 145)';
+      const negative = this.cssVar('--negative') || 'oklch(70% 0.16 25)';
+      const accent = this.cssVar('--accent') || 'oklch(80% 0.12 78)';
 
       if (this.lineCanvasRef) {
         this.lineChart?.destroy();
@@ -83,16 +90,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
               {
                 label: this.i18n.t('dashboard.ingresos'),
                 data: data.map((d) => d.income),
-                borderColor: 'oklch(76% 0.14 145)',
-                backgroundColor: 'oklch(76% 0.14 145 / 0.08)',
+                borderColor: positive,
+                backgroundColor: positive + '1A',
                 tension: 0.3,
                 fill: true,
               },
               {
                 label: this.i18n.t('dashboard.gastos'),
                 data: data.map((d) => d.expense),
-                borderColor: 'oklch(70% 0.16 25)',
-                backgroundColor: 'oklch(70% 0.16 25 / 0.08)',
+                borderColor: negative,
+                backgroundColor: negative + '1A',
                 tension: 0.3,
                 fill: true,
               },
@@ -114,11 +121,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.pieChart?.destroy();
         const cats = this.ds.categoryExpenses();
         const palette = [
-          'oklch(80% 0.12 78)',
-          'oklch(70% 0.16 25)',
-          'oklch(72% 0.13 235)',
-          'oklch(76% 0.14 145)',
-          'oklch(80% 0.14 60)',
+          accent,
+          negative,
+          this.cssVar('--info') || 'oklch(72% 0.13 235)',
+          positive,
+          this.cssVar('--warning') || 'oklch(78% 0.12 72)',
           'oklch(75% 0.13 320)',
           'oklch(72% 0.13 162)',
           'oklch(70% 0.14 280)',
