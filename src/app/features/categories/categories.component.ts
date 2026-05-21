@@ -24,7 +24,8 @@ export class CategoriesComponent implements OnInit {
   form = this.fb.group({
     name: ['', Validators.required],
     color: ['#6366f1'],
-    budget: [null as number | null],
+    icon: ['tag'],
+    type: ['Expense' as 'Income' | 'Expense'],
   });
 
   ngOnInit() {
@@ -33,7 +34,10 @@ export class CategoriesComponent implements OnInit {
         this.categories.set(list);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        console.error('[categories] load error:', err);
+        this.loading.set(false);
+      },
     });
   }
 
@@ -42,15 +46,14 @@ export class CategoriesComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     const v = this.form.value;
-    this.api.createCategory({ name: v.name!, color: v.color! }).subscribe({
+    this.api.createCategory({ name: v.name!, color: v.color!, icon: v.icon!, type: v.type! }).subscribe({
       next: () => {
         this.saving.set(false);
         this.showForm = false;
-        this.form.reset({ color: '#6366f1' });
+        this.form.reset({ color: '#6366f1', icon: 'tag', type: 'Expense' as const });
         this.api.getCategories().subscribe((list) => this.categories.set(list));
       },
       error: () => this.saving.set(false),
     });
   }
 }
-

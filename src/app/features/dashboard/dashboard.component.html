@@ -16,6 +16,14 @@
       <span class="period-nav__label">{{ ds.currentLabel() }}</span>
       <button class="period-nav__btn" (click)="ds.next()">▶</button>
     </div>
+    <div class="dash-controls">
+      <app-lang-picker [currentLocale]="i18n.currentLocale()" (localeChange)="i18n.setLocale($event)" />
+      <app-theme-picker
+        [currentTheme]="theme.theme()"
+        [formatLabel]="formatThemeLabel"
+        (themeChange)="theme.setTheme($event)"
+      />
+    </div>
   </div>
 
   @if (ds.loading()) {
@@ -31,7 +39,7 @@
     </div>
     <div class="skeleton skeleton--card h-200"></div>
   } @else {
-    <div class="kpi-grid">
+    <div class="kpi-grid stagger">
       <div class="kpi-card">
         <div class="eyebrow">{{ i18n.t('dashboard.balance_total') }}</div>
         <div class="num-lg mt-8">{{ ds.totalIncome() - ds.totalExpense() | number: '1.0-0' }}</div>
@@ -54,7 +62,7 @@
       }
     </div>
 
-    <div class="chart-grid">
+    <div class="chart-grid stagger">
       <div class="card">
         <div class="card__h">
           <span class="card__title">{{ i18n.t('dashboard.cashflow_title') }}</span>
@@ -64,13 +72,37 @@
           </div>
         </div>
         <div class="card__body">
-          <canvas #lineCanvas height="200"></canvas>
+          @if (ds.lineData().length > 0 && (ds.totalIncome() > 0 || ds.totalExpense() > 0)) {
+            <canvas #lineCanvas height="200"></canvas>
+          } @else {
+            <div class="empty-state p-40">
+              <p>{{ i18n.t('dashboard.sin_datos') }}</p>
+            </div>
+          }
         </div>
       </div>
       <div class="card">
         <div class="card__h">
           <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
-          <span class="eyebrow">{{ i18n.t('dashboard.este_mes') }}</span>
+          <span class="eyebrow">{{ ds.currentLabel() }}</span>
+        </div>
+        <div style="display: flex; gap: 8px; padding: 0 16px 12px">
+          <select class="select" style="flex: 1" [ngModel]="ds.typeFilter()" (ngModelChange)="ds.setTypeFilter($event)">
+            <option value="all">Todo</option>
+            <option value="Income">Ingresos</option>
+            <option value="Expense">Gastos</option>
+          </select>
+          <select
+            class="select"
+            style="flex: 1"
+            [ngModel]="ds.currencyFilter()"
+            (ngModelChange)="ds.setCurrencyFilter($event)"
+          >
+            <option value="">Todas las monedas</option>
+            @for (ccy of ds.availableCurrencies(); track ccy) {
+              <option [value]="ccy">{{ ccy }}</option>
+            }
+          </select>
         </div>
         <div class="card__body card__body--center">
           @if (ds.categoryExpenses().length > 0) {

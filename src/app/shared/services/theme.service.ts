@@ -1,6 +1,17 @@
 import { Injectable, signal, computed } from '@angular/core';
 
-export type Theme = 'obsidian' | 'midnight' | 'emerald' | 'claro' | 'custom';
+export type Theme =
+  | 'obsidian'
+  | 'midnight'
+  | 'emerald'
+  | 'claro'
+  | 'institutional'
+  | 'institutional-light'
+  | 'espresso'
+  | 'espresso-light'
+  | 'pulse'
+  | 'pulse-light'
+  | 'custom';
 export type Density = 'dense' | 'comfy' | 'airy';
 export type Shape = 'rounded' | 'sharp';
 
@@ -22,7 +33,13 @@ export class ThemeService {
     obsidian: true,
     midnight: true,
     emerald: true,
+    institutional: true,
+    espresso: true,
+    pulse: true,
     claro: false,
+    'institutional-light': false,
+    'espresso-light': false,
+    'pulse-light': false,
   };
 
   readonly isDarkTheme = computed(() => {
@@ -62,7 +79,18 @@ export class ThemeService {
   }
 
   cycleTheme() {
-    const themes: Theme[] = ['obsidian', 'midnight', 'emerald', 'claro'];
+    const themes: Theme[] = [
+      'obsidian',
+      'midnight',
+      'emerald',
+      'institutional',
+      'espresso',
+      'pulse',
+      'claro',
+      'institutional-light',
+      'espresso-light',
+      'pulse-light',
+    ];
     const idx = themes.indexOf(this.theme() as Theme);
     this.setTheme(themes[(idx + 1) % themes.length]);
   }
@@ -146,22 +174,41 @@ export class ThemeService {
   }
 
   private hexToOklch(hex: string): { l: number; c: string; h: string } {
-    // Simple approximation: convert hex → rough oklch for theming
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    const maxC = Math.max(r, g, b),
-      minC = Math.min(r, g, b);
-    const chroma = ((maxC - minC) * 0.18).toFixed(3);
-    let hue = 0;
-    if (maxC !== minC) {
-      if (maxC === r) hue = ((g - b) / (maxC - minC)) * 60;
-      else if (maxC === g) hue = (2 + (b - r) / (maxC - minC)) * 60;
-      else hue = (4 + (r - g) / (maxC - minC)) * 60;
-      if (hue < 0) hue += 360;
-    }
-    return { l, c: chroma, h: hue.toFixed(0) };
+    const r1 = parseInt(hex.slice(1, 3), 16) / 255;
+    const g1 = parseInt(hex.slice(3, 5), 16) / 255;
+    const b1 = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const srgbToLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+
+    const r = srgbToLinear(r1);
+    const g = srgbToLinear(g1);
+    const b = srgbToLinear(b1);
+
+    // sRGB → OKLab (Bottos 2021)
+    const l_ = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    const m_ = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    const s_ = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+    const l3 = Math.cbrt(l_);
+    const m3 = Math.cbrt(m_);
+    const s3 = Math.cbrt(s_);
+
+    const L = 0.2104542553 * l3 + 0.793617785 * m3 - 0.0040720468 * s3;
+    const a = 1.9779984951 * l3 - 2.428592205 * m3 + 0.4505937099 * s3;
+    const bb = 0.0259040371 * l3 + 0.7827717662 * m3 - 0.808675766 * s3;
+
+    const hue = (Math.atan2(bb, a) * 180) / Math.PI;
+    const chroma = Math.sqrt(a * a + bb * bb);
+
+    const maxC = Math.max(r1, g1, b1);
+    const minC = Math.min(r1, g1, b1);
+    const naiveChroma = ((maxC - minC) * 0.18).toFixed(3);
+
+    return {
+      l: L,
+      c: chroma > 0.01 ? chroma.toFixed(3) : naiveChroma,
+      h: ((hue + 360) % 360).toFixed(0),
+    };
   }
 
   private applyAll() {

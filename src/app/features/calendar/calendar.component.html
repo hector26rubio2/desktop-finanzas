@@ -1,146 +1,165 @@
+<div class="view">
+  <!-- Month nav -->
+  <div class="row-flex">
+    <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <path d="M10 3L5 8l5 5" />
+      </svg>
+    </button>
+    <h3 class="serif" style="font-size: 24px; font-weight: 400; min-width: 240px; text-align: center">
+      {{ monthName() }} {{ year() }}
+    </h3>
+    <button class="btn btn--ghost btn--icon" (click)="nextMonth()">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <path d="M6 3l5 5-5 5" />
+      </svg>
+    </button>
+    <div style="margin-left: auto">
+      <button class="btn btn--ghost" style="font-size: 11px" (click)="goToToday()">
+        {{ i18n.t('calendar.hoy') }}
+      </button>
+    </div>
+  </div>
 
-    <div class="view">
-      <!-- Month nav -->
-      <div class="row-flex">
-        <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M10 3L5 8l5 5" />
-          </svg>
-        </button>
-        <h3 class="serif" style="font-size:24px;font-weight:400;min-width:240px;text-align:center">
-          {{ monthName() }} {{ year() }}
-        </h3>
-        <button class="btn btn--ghost btn--icon" (click)="nextMonth()">
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M6 3l5 5-5 5" />
-          </svg>
-        </button>
-        <div style="margin-left:auto">
-          <button class="btn btn--ghost" style="font-size:11px" (click)="goToToday()">
-            {{ i18n.t('calendar.hoy') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- KPI strip -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('calendar.pagos_mes') }}</div>
-          <div class="num-md" style="margin-top:8px">{{ eventsThisMonth().length }}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('calendar.total_comprometido') }}</div>
-          <div class="num-md" style="margin-top:8px;color:var(--negative)">
-            $ {{ totalCommitted() | number: '1.0-0' }}
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('calendar.proximo_pago') }}</div>
-          <div class="num-md" style="margin-top:8px">{{ nextEvent() }}</div>
-        </div>
-      </div>
-
-      <!-- Calendar grid -->
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line)">
-          @for (d of days; track d) {
-            <div
-              style="padding:8px;text-align:center;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--fg-3)"
-            >
-              {{ d }}
-            </div>
-          }
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr)">
-          @for (cell of calendarCells(); track $index) {
-            <div
-              style="min-height:100px;padding:8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)"
-              [style.background]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent-soft)' : ''"
-              [style.opacity]="cell.day === 0 ? '0' : '1'"
-            >
-              @if (cell.day > 0) {
-                <div
-                  class="mono"
-                  style="font-size:12px;margin-bottom:4px"
-                  [style.color]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent)' : 'var(--fg-2)'"
-                >
-                  {{ cell.day }}
-                </div>
-                @for (ev of cell.events; track ev.payee) {
-                  <div
-                    style="margin-bottom:3px;padding:2px 5px;border-radius:var(--radius-sm);background:var(--bg-2);border-left:2px solid"
-                    [style.border-left-color]="
-                      ev.kind === 'card' ? 'var(--accent)' : ev.kind === 'loan' ? 'var(--info)' : 'var(--negative)'
-                    "
-                  >
-                    <div
-                      style="font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg-0)"
-                    >
-                      {{ ev.payee }}
-                    </div>
-                    <div class="mono" style="font-size:9px;color:var(--fg-3)">$ {{ ev.amount | number: '1.0-0' }}</div>
-                  </div>
-                }
-              }
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Upcoming list -->
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="card__h">
-          <span class="card__title">{{ i18n.t('calendar.proximos_dias') }}</span>
-        </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width:80px">{{ i18n.t('calendar.table_dia') }}</th>
-              <th>{{ i18n.t('calendar.table_concepto') }}</th>
-              <th>{{ i18n.t('calendar.table_tipo') }}</th>
-              <th class="num">{{ i18n.t('calendar.table_monto') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (ev of upcoming(); track ev.payee + ev.day) {
-              <tr>
-                <td class="mono" style="font-size:16px;color:var(--fg-0);letter-spacing:-.02em">{{ ev.day }}</td>
-                <td style="color:var(--fg-0)">{{ ev.payee }}</td>
-                <td>
-                  <span
-                    class="tag"
-                    [class]="ev.kind === 'card' ? 'tag--accent' : ev.kind === 'loan' ? 'tag--info' : ''"
-                  >
-                    {{
-                      ev.kind === 'card'
-                        ? i18n.t('calendar.tag_tarjeta')
-                        : ev.kind === 'loan'
-                          ? i18n.t('calendar.tag_prestamo')
-                          : i18n.t('calendar.tag_cuota')
-                    }}
-                  </span>
-                </td>
-                <td class="num mono" style="color:var(--negative)">− $ {{ ev.amount | number: '1.0-0' }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+  <!-- KPI strip -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="eyebrow">{{ i18n.t('calendar.pagos_mes') }}</div>
+      <div class="num-md" style="margin-top: 8px">{{ eventsThisMonth().length }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="eyebrow">{{ i18n.t('calendar.total_comprometido') }}</div>
+      <div class="num-md" style="margin-top: 8px; color: var(--negative)">
+        $ {{ totalCommitted() | number: '1.0-0' }}
       </div>
     </div>
-  
+    <div class="kpi-card">
+      <div class="eyebrow">{{ i18n.t('calendar.proximo_pago') }}</div>
+      <div class="num-md" style="margin-top: 8px">{{ nextEvent() }}</div>
+    </div>
+  </div>
+
+  <!-- Calendar grid -->
+  <div class="card" style="padding: 0; overflow: hidden">
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line)">
+      @for (d of days; track d) {
+        <div
+          style="
+            padding: 8px;
+            text-align: center;
+            font-family: 'Geist Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            color: var(--fg-3);
+          "
+        >
+          {{ d }}
+        </div>
+      }
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr)">
+      @for (cell of calendarCells(); track $index) {
+        <div
+          style="
+            min-height: 100px;
+            padding: 8px;
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+          "
+          [style.background]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent-soft)' : ''"
+          [style.opacity]="cell.day === 0 ? '0' : '1'"
+        >
+          @if (cell.day > 0) {
+            <div
+              class="mono"
+              style="font-size: 12px; margin-bottom: 4px"
+              [style.color]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent)' : 'var(--fg-2)'"
+            >
+              {{ cell.day }}
+            </div>
+            @for (ev of cell.events; track ev.payee) {
+              <div
+                style="
+                  margin-bottom: 3px;
+                  padding: 2px 5px;
+                  border-radius: var(--radius-sm);
+                  background: var(--bg-2);
+                  border-left: 2px solid;
+                "
+                [style.border-left-color]="
+                  ev.kind === 'card' ? 'var(--accent)' : ev.kind === 'loan' ? 'var(--info)' : 'var(--negative)'
+                "
+              >
+                <div
+                  style="
+                    font-size: 10px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    color: var(--fg-0);
+                  "
+                >
+                  {{ ev.payee }}
+                </div>
+                <div class="mono" style="font-size: 9px; color: var(--fg-3)">$ {{ ev.amount | number: '1.0-0' }}</div>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Upcoming list -->
+  <div class="card" style="padding: 0; overflow: hidden">
+    <div class="card__h">
+      <span class="card__title">{{ i18n.t('calendar.proximos_dias') }}</span>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 80px">{{ i18n.t('calendar.table_dia') }}</th>
+          <th>{{ i18n.t('calendar.table_concepto') }}</th>
+          <th>{{ i18n.t('calendar.table_tipo') }}</th>
+          <th class="num">{{ i18n.t('calendar.table_monto') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ev of upcoming(); track ev.payee + ev.day) {
+          <tr>
+            <td class="mono" style="font-size: 16px; color: var(--fg-0); letter-spacing: -0.02em">{{ ev.day }}</td>
+            <td style="color: var(--fg-0)">{{ ev.payee }}</td>
+            <td>
+              <span class="tag" [class]="ev.kind === 'card' ? 'tag--accent' : ev.kind === 'loan' ? 'tag--info' : ''">
+                {{
+                  ev.kind === 'card'
+                    ? i18n.t('calendar.tag_tarjeta')
+                    : ev.kind === 'loan'
+                      ? i18n.t('calendar.tag_prestamo')
+                      : i18n.t('calendar.tag_cuota')
+                }}
+              </span>
+            </td>
+            <td class="num mono" style="color: var(--negative)">− $ {{ ev.amount | number: '1.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

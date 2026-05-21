@@ -2,8 +2,16 @@ import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
-import { authInterceptor } from './shared/interceptors/auth.interceptor';
+import { authTokenInterceptor } from './shared/interceptors/auth/token.interceptor';
+import { authRefreshInterceptor } from './shared/interceptors/auth/refresh.interceptor';
+import { encryptionInterceptor } from './shared/interceptors/crypto/encryption.interceptor';
+import { csrfInterceptor } from './shared/interceptors/csrf.interceptor';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), provideHttpClient(withInterceptors([authInterceptor]))],
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(
+      withInterceptors([csrfInterceptor, authTokenInterceptor, authRefreshInterceptor, encryptionInterceptor]),
+    ),
+  ],
 };

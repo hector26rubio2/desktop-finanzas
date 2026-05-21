@@ -1,5 +1,5 @@
 import { Injectable, inject, computed } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthService } from './auth/auth.service';
 
 export type AppRole = 'User' | 'Admin';
 export type FeatureId =

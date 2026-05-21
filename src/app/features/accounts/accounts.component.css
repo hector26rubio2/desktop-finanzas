@@ -1,1 +1,68 @@
+.account-form-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
 
+.account-form-h h3 {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.form-row label {
+  flex: 1;
+  min-width: 120px;
+}
+
+.form-row label.wide {
+  flex: 2;
+  min-width: 160px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.account-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-2);
+}
+
+.account-name {
+  color: var(--fg-0);
+}
+
+.account-last-four {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-3);
+}
+
+.action-cell {
+  display: flex;
+  gap: 4px;
+}
+
+.empty-card {
+  padding: var(--pad-x);
+}

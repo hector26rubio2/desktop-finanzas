@@ -195,6 +195,22 @@ export class ApiService {
     return this.http.post<void>(`${this.base}/auth/logout`, { refreshToken });
   }
 
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/auth/reset-password`, { token, password });
+  }
+
+  verifyEmail(token: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/auth/verify-email`, { token });
+  }
+
+  resendVerification(email: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/auth/resend-verification`, { email });
+  }
+
   // ── Admin ──────────────────────────────────────────────────────────────
   getAdminUsers(): Observable<AdminUserDto[]> {
     return this.http.get<AdminUserDto[]>(`${this.base}/admin/users`);
@@ -230,7 +246,12 @@ export class ApiService {
     return this.http.get<CategoryResponse[]>(`${this.base}/categories`);
   }
 
-  createCategory(req: { name: string; color: string }): Observable<CategoryResponse> {
+  createCategory(req: {
+    name: string;
+    color: string;
+    icon: string;
+    type: 'Income' | 'Expense';
+  }): Observable<CategoryResponse> {
     return this.http.post<CategoryResponse>(`${this.base}/categories`, req);
   }
 

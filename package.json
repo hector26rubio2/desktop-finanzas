@@ -2,8 +2,10 @@
   "name": "finanzas-desktop",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.0.0",
   "main": "electron/main.js",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "start": "ng serve",
     "build": "ng build",
     "electron": "ng build && electron .",
@@ -36,6 +38,7 @@
     "@angular-eslint/template-parser": "^21.4.0",
     "@angular/cli": "^21.2.11",
     "@angular/compiler-cli": "^21.2.13",
+    "@tailwindcss/postcss": "^4.3.0",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
     "angular-eslint": "^21.4.0",
@@ -45,13 +48,19 @@
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "postcss": "^8.5.15",
     "prettier": "^3.8.3",
+    "tailwindcss": "^4.3.0",
     "typescript": "5.9",
     "wait-on": "^8.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "electron"
+      "@parcel/watcher",
+      "electron",
+      "esbuild",
+      "lmdb",
+      "msgpackr-extract"
     ],
     "overrides": {
       "uuid": "^14.0.0"

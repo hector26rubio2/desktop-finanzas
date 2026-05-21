@@ -77,4 +77,3 @@ export class CardsComponent implements OnInit {
     return limit > 0 ? Math.min(100, Math.round((this.totalUsed() / limit) * 100)) : 0;
   }
 }
-

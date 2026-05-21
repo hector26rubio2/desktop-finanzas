@@ -1,10 +1,10 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ApiService, AdminUserDto } from '../shared/services/api.service';
-import { AuthService } from '../shared/services/auth.service';
-import { I18nService } from '../shared/i18n/i18n.service';
-import { ThemeService } from '../shared/services/theme.service';
+import { ApiService, AdminUserDto } from '../../shared/services/api.service';
+import { AuthService } from '../../shared/services/auth/auth.service';
+import { I18nService } from '../../shared/i18n/i18n.service';
+import { ThemeService } from '../../shared/services/theme.service';
 
 @Component({
   selector: 'app-admin',
@@ -47,4 +47,3 @@ export class AdminComponent implements OnInit {
     this.api.setUserActive(u.id, !u.isActive).subscribe(() => this.load());
   }
 }
-

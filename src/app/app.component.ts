@@ -2,15 +2,17 @@ import { Component, computed, HostListener, signal, inject } from '@angular/core
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
-import { AuthService } from './shared/services/auth.service';
+import { AuthService } from './shared/services/auth/auth.service';
 import { RoleService } from './shared/services/role.service';
 import { ThemeService } from './shared/services/theme.service';
 import { PlatformService } from './shared/services/platform.service';
 import { I18nService } from './shared/i18n/i18n.service';
 import type { TranslationKey } from './shared/i18n/locale.types';
 import { ICONS } from './shared/icons';
+import { LangPickerComponent } from '@shared/lang-picker';
+import { ThemePickerComponent } from '@shared/theme-picker';
 
 interface NavItem {
   id: string;
@@ -56,7 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, FormsModule],
+  imports: [RouterOutlet, CommonModule, FormsModule, LangPickerComponent, ThemePickerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -72,6 +74,16 @@ export class AppComponent {
   public os = inject(PlatformService);
   public i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
+
+  formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
+
+  private iconCache = computed(() => {
+    const cache: Record<string, string> = {};
+    for (const [name, svg] of Object.entries(ICONS)) {
+      cache[name] = this.sanitizer.bypassSecurityTrustHtml(svg) as unknown as string;
+    }
+    return cache;
+  });
 
   constructor() {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
@@ -167,10 +179,13 @@ export class AppComponent {
     this.cmdkQuery = '';
   }
 
-  filterCmdk() {}
+  filterCmdk() {
+    void this.cmdkQuery;
+    // (input) event triggers change detection, template re-evaluates matchesCmdk
+  }
 
-  iconSvg(name: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(ICONS[name] ?? '');
+  iconSvg(name: string): string {
+    return (this.iconCache() as Record<string, string>)[name] ?? ICONS[name] ?? '';
   }
 
   matchesCmdk(label: string): boolean {
@@ -205,4 +220,3 @@ export class AppComponent {
     }
   }
 }
-

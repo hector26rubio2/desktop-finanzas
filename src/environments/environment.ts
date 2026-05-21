@@ -2,4 +2,5 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:5063',
   googleClientId: '',
+  encryptionKey: 'cl4v3-sup3r-s3gur4-f1n4nc3r4-2026!!',
 };

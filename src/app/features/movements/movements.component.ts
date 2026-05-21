@@ -9,7 +9,7 @@ import {
   AccountResponse,
   PagedResult,
 } from '../../shared/services/api.service';
-import { AuthService } from '../../shared/services/auth.service';
+import { AuthService } from '../../shared/services/auth/auth.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 
 @Component({
@@ -63,14 +63,26 @@ export class MovementsComponent implements OnInit {
 
   ngOnInit() {
     this.loadPage(1);
-    this.api.getCategories().subscribe((c) => this.categories.set(c));
-    this.api.getAccounts().subscribe((a) => this.accounts.set(a));
+    this.api.getCategories().subscribe({
+      next: (c) => this.categories.set(c),
+      error: (err) => console.error('[movements] load categories error:', err),
+    });
+    this.api.getAccounts().subscribe({
+      next: (a) => this.accounts.set(a),
+      error: (err) => console.error('[movements] load accounts error:', err),
+    });
   }
 
   loadPage(p: number) {
     this.currentPage.set(p);
-    this.api.getMovements(this.currentMonth(), p).subscribe((r) => this.page.set(r));
-    this.api.getMovementSummary(this.currentMonth()).subscribe((s) => this.summary.set(s));
+    this.api.getMovements(this.currentMonth(), p).subscribe({
+      next: (r) => this.page.set(r),
+      error: (err) => console.error('[movements] load page error:', err),
+    });
+    this.api.getMovementSummary(this.currentMonth()).subscribe({
+      next: (s) => this.summary.set(s),
+      error: (err) => console.error('[movements] load summary error:', err),
+    });
   }
 
   onMonthChange(e: Event) {
@@ -126,7 +138,8 @@ export class MovementsComponent implements OnInit {
           this.showForm = false;
           this.loadPage(this.currentPage());
         },
-        error: () => {
+        error: (err) => {
+          console.error('[movements] create error:', err);
           this.saving = false;
         },
       });
@@ -148,4 +161,3 @@ export class MovementsComponent implements OnInit {
     return map[st] ?? st;
   }
 }
-

@@ -1,0 +1,223 @@
+<main class="auth-main">
+  <!-- Left: Branding -->
+  <div class="auth-brand-panel">
+    <div class="auth-brand-dots"></div>
+    <div class="auth-brand-content">
+      <svg
+        class="auth-brand-icon"
+        width="56"
+        height="56"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="1" y="4" width="22" height="16" rx="2" />
+        <path d="M1 10h22" />
+        <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
+      </svg>
+      <h1 class="auth-brand-title">{{ i18n.t('auth.brand_future_title') }}</h1>
+      <p class="auth-brand-subtitle">{{ i18n.t('auth.brand_future_desc') }}</p>
+      <div class="auth-brand-features">
+        <div class="auth-brand-feature">
+          <div class="auth-brand-feature-icon">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          </div>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_multicurrency') }}</span>
+        </div>
+        <div class="auth-brand-feature">
+          <div class="auth-brand-feature-icon">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 21V3" />
+              <path d="M7 21V9" />
+              <path d="M11 21V13" />
+              <path d="M15 21V5" />
+              <path d="M19 21V9" />
+              <circle cx="19" cy="5" r="2" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_reports') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Form Panel -->
+  <div class="auth-form-panel">
+    <div class="auth-top-bar">
+      <app-lang-picker [currentLocale]="i18n.currentLocale()" (localeChange)="i18n.setLocale($event)" />
+      <app-theme-picker
+        [currentTheme]="theme.theme()"
+        [formatLabel]="formatThemeLabel"
+        (themeChange)="theme.setTheme($event)"
+      />
+    </div>
+
+    <div class="auth-form-container">
+      <div class="auth-mobile-brand">
+        <svg
+          class="auth-mobile-brand-icon"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="1" y="4" width="22" height="16" rx="2" />
+          <path d="M1 10h22" />
+          <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+        <span class="auth-mobile-brand-text">{{ i18n.t('auth.brand_name') }}</span>
+      </div>
+
+      <div class="auth-form-header">
+        <h2 class="auth-form-title">{{ i18n.t('auth.register') }}</h2>
+        <p class="auth-form-subtitle">{{ i18n.t('auth.register_desc') }}</p>
+      </div>
+
+      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="auth-field-group">
+          <label class="auth-field-label">{{ i18n.t('auth.name') }}</label>
+          <input class="auth-input" formControlName="name" [placeholder]="i18n.t('auth.name')" />
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('auth.required') }}</span>
+          }
+        </div>
+
+        <div class="auth-field-group">
+          <label class="auth-field-label">{{ i18n.t('auth.email') }}</label>
+          <div class="auth-input-wrapper">
+            <input
+              class="auth-input"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="vos@ejemplo.com"
+            />
+            <svg
+              class="auth-input-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M2 6l10 7 10-7" />
+            </svg>
+          </div>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('auth.invalid_email') }}</span>
+          }
+        </div>
+
+        <div class="auth-field-group">
+          <label class="auth-field-label">{{ i18n.t('auth.password') }}</label>
+          <div class="auth-input-wrapper">
+            <input
+              class="auth-input"
+              type="password"
+              formControlName="password"
+              autocomplete="new-password"
+              [placeholder]="i18n.t('auth.min_length')"
+            />
+          </div>
+          @if (form.get('password')?.errors?.['required'] && form.get('password')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('auth.required') }}</span>
+          }
+          @if (form.get('password')?.errors?.['minlength'] && form.get('password')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('auth.min_length') }}</span>
+          }
+          @if (form.get('password')?.errors?.['pattern'] && form.get('password')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('auth.need_number') }}</span>
+          }
+        </div>
+
+        <div class="auth-field-group">
+          <label class="auth-field-label">{{ i18n.t('auth.base_currency') }}</label>
+          <select class="auth-input" formControlName="baseCurrency">
+            <option value="ARS">ARS — Peso argentino</option>
+            <option value="USD">USD — Dólar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="COP">COP — Peso colombiano</option>
+          </select>
+        </div>
+
+        @if (error) {
+          <div class="auth-error-banner">{{ error }}</div>
+        }
+
+        <button type="submit" class="auth-submit-btn" [disabled]="loading">
+          @if (loading) {
+            <svg
+              class="auth-spinner"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path
+                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+              />
+            </svg>
+          } @else {
+            <span>{{ i18n.t('auth.register') }}</span>
+            <svg
+              class="auth-submit-arrow"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          }
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p class="auth-footer-text">
+          {{ i18n.t('auth.have_account') }}
+          <a routerLink="/login" class="auth-footer-link">{{ i18n.t('auth.login_link') }}</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>

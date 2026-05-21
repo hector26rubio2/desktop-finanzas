@@ -1,9 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { ApiService, MovementResponse } from './api.service';
 
 export type Granularity = 'day' | 'week' | 'month' | 'year';
+export type TypeFilter = 'all' | 'Income' | 'Expense';
 
 export interface DataPoint {
   label: string;
@@ -11,46 +12,33 @@ export interface DataPoint {
   expense: number;
 }
 
-function isoWeek(d: Date): string {
-  const temp = new Date(d.valueOf());
-  const dayNum = (d.getDay() + 6) % 7;
-  temp.setDate(temp.getDate() - dayNum + 3);
-  const firstThursday = temp.valueOf();
-  temp.setMonth(0, 1);
-  if (temp.getDay() !== 4) {
-    temp.setMonth(0, 1 + ((4 - temp.getDay() + 7) % 7));
-  }
-  const weekNum = 1 + Math.ceil((firstThursday - temp.valueOf()) / 604800000);
-  return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-}
-
 function getMonthKey(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}`;
 }
 
-const MONTHS_ES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
+function getWeekRange(date: Date): { start: Date; end: Date; label: string } {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  const fmt = (dt: Date) => dt.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  return { start: monday, end: sunday, label: `${fmt(monday)} – ${fmt(sunday)}` };
+}
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private api = inject(ApiService);
-  private abortCtrl?: AbortController;
 
   readonly granularity = signal<Granularity>('month');
   readonly offset = signal(0);
+  readonly typeFilter = signal<TypeFilter>('all');
+  readonly currencyFilter = signal('');
   readonly loading = signal(true);
+
   readonly lineData = signal<DataPoint[]>([]);
   readonly categoryExpenses = signal<{ name: string; total: number }[]>([]);
   readonly recentMovements = signal<MovementResponse[]>([]);
@@ -59,21 +47,34 @@ export class DashboardService {
   readonly topLabel = signal('');
   readonly topAmount = signal(0);
 
-  readonly currentLabel = computed(() => {
-    const g = this.granularity();
-    const off = this.offset();
-    const now = new Date();
-    if (g === 'year') {
-      const y = now.getFullYear() + off;
-      return `Año ${y}`;
+  readonly availableCurrencies = computed(() => {
+    const ccs = new Set<string>();
+    for (const m of this.cache) {
+      if (m.currency) ccs.add(m.currency);
     }
-    const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
-    if (g === 'week') return `Sem ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
-    if (g === 'day') return `${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
-    return `${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+    return [...ccs].sort();
   });
 
-  private allMovementsCache = new Map<string, MovementResponse[]>();
+  readonly currentLabel = computed(() => {
+    const now = new Date();
+    const off = this.offset();
+    const g = this.granularity();
+    if (g === 'year') {
+      return `Año ${now.getFullYear() + off}`;
+    }
+    if (g === 'day') {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off);
+      return d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    if (g === 'week') {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
+      return getWeekRange(d).label;
+    }
+    const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+    return d.toLocaleDateString('es', { month: 'long', year: 'numeric' });
+  });
+
+  private cache: MovementResponse[] = [];
 
   prev() {
     this.offset.update((n) => n - 1);
@@ -85,16 +86,6 @@ export class DashboardService {
     this.load();
   }
 
-  load() {
-    this.abortCtrl?.abort();
-    this.loading.set(true);
-    const g = this.granularity();
-    if (g === 'month') this.loadMonthly();
-    else if (g === 'year') this.loadYearly();
-    else if (g === 'week') this.loadWeekly();
-    else this.loadDaily();
-  }
-
   setGranularity(g: Granularity) {
     if (this.granularity() === g) return;
     this.granularity.set(g);
@@ -102,34 +93,144 @@ export class DashboardService {
     this.load();
   }
 
-  private baseDate(): Date {
-    const now = new Date();
-    const g = this.granularity();
-    const off = this.offset();
-    if (g === 'year') {
-      return new Date(now.getFullYear() + off, 0, 1);
-    }
-    return new Date(now.getFullYear(), now.getMonth() + off, 1);
+  setTypeFilter(t: TypeFilter) {
+    this.typeFilter.set(t);
+    this.recompute();
   }
 
-  private fetchMovements(ym: string, pageSize = 500): Promise<MovementResponse[]> {
-    const cached = this.allMovementsCache.get(ym);
-    if (cached) return Promise.resolve(cached);
-    return new Promise((resolve) => {
-      this.api
-        .getMovements(ym, 1, pageSize)
-        .pipe(
-          tap((page) => {
-            this.allMovementsCache.set(ym, page.items);
-            resolve(page.items);
-          }),
-          catchError(() => {
-            resolve([]);
+  setCurrencyFilter(ccy: string) {
+    this.currencyFilter.set(ccy);
+    this.recompute();
+  }
+
+  load() {
+    this.loading.set(true);
+    this.cache = [];
+    const g = this.granularity();
+    const off = this.offset();
+    const now = new Date();
+
+    if (g === 'year') {
+      const year = now.getFullYear() + off;
+      const yms: string[] = [];
+      for (let m = 0; m < 12; m++) yms.push(getMonthKey(year, m));
+      this.fetchAll(yms);
+    } else if (g === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      this.fetchAll([getMonthKey(d.getFullYear(), d.getMonth())]);
+    } else if (g === 'week') {
+      const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
+      const range = getWeekRange(base);
+      const months = new Set<string>();
+      const tmp = new Date(range.start);
+      while (tmp <= range.end) {
+        months.add(getMonthKey(tmp.getFullYear(), tmp.getMonth()));
+        tmp.setDate(tmp.getDate() + 1);
+      }
+      this.fetchAll([...months]);
+    } else {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off);
+      this.fetchAll([getMonthKey(d.getFullYear(), d.getMonth())]);
+    }
+  }
+
+  private fetchAll(yms: string[]) {
+    forkJoin(
+      yms.map((ym) =>
+        this.api.getMovements(ym, 1, 1000).pipe(
+          catchError((err) => {
+            console.error(`[dashboard] error fetching ${ym}:`, err);
             return of({ items: [], total: 0, page: 1, pageSize: 0 });
           }),
-        )
-        .subscribe();
+        ),
+      ),
+    ).subscribe({
+      next: (pages) => {
+        this.cache = pages.flatMap((p) => p.items ?? []);
+        this.recompute();
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('[dashboard] fetchAll failed:', err);
+        this.loading.set(false);
+      },
     });
+  }
+
+  private recompute() {
+    const now = new Date();
+    const off = this.offset();
+    const g = this.granularity();
+
+    // ── Period filter (ALL data — type/currency filters NOT applied here) ──
+    let periodData: MovementResponse[];
+    if (g === 'year') {
+      const year = now.getFullYear() + off;
+      periodData = this.cache.filter((m) => new Date(m.date).getFullYear() === year);
+    } else if (g === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      periodData = this.cache.filter((m) => {
+        const md = new Date(m.date);
+        return md.getFullYear() === d.getFullYear() && md.getMonth() === d.getMonth();
+      });
+    } else if (g === 'week') {
+      const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
+      const range = getWeekRange(base);
+      periodData = this.cache.filter((m) => {
+        const md = new Date(m.date);
+        return md >= range.start && md <= range.end;
+      });
+    } else {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off);
+      const dayStr = d.toISOString().slice(0, 10);
+      periodData = this.cache.filter((m) => m.date.slice(0, 10) === dayStr);
+    }
+
+    // ── Line chart + KPI (from period data, no type/currency filter) ──
+    let lineData: DataPoint[];
+    if (g === 'year') {
+      lineData = this.aggregateByMonth(periodData);
+    } else if (g === 'day') {
+      lineData = this.aggregateByHour(periodData);
+    } else {
+      lineData = this.aggregateByDay(periodData);
+    }
+
+    this.lineData.set(lineData);
+    this.totalIncome.set(lineData.reduce((a, d) => a + d.income, 0));
+    this.totalExpense.set(lineData.reduce((a, d) => a + d.expense, 0));
+    const top = lineData.reduce((a, b) => (b.expense > a.expense ? b : a), lineData[0]);
+    this.topLabel.set(top?.label ?? '');
+    this.topAmount.set(top?.expense ?? 0);
+
+    // ── Category expenses (typeFilter + currencyFilter apply ONLY here) ──
+    let catData = this.cache;
+    const t = this.typeFilter();
+    if (t !== 'all') catData = catData.filter((m) => m.type === t);
+    const ccy = this.currencyFilter();
+    if (ccy) catData = catData.filter((m) => m.currency === ccy);
+    this.categoryExpenses.set(this.buildCategoryMap(catData));
+
+    // ── Recent movements (from period data) ──
+    this.recentMovements.set(periodData.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8));
+  }
+
+  private aggregateByHour(movements: MovementResponse[]): DataPoint[] {
+    const slots = new Map<number, { income: number; expense: number }>();
+    for (let h = 0; h < 24; h++) slots.set(h, { income: 0, expense: 0 });
+
+    for (const m of movements) {
+      const hour = new Date(m.createdAt).getHours();
+      const e = slots.get(hour)!;
+      if (m.type === 'Income') e.income += m.amountBase;
+      else e.expense += m.amountBase;
+    }
+
+    return [...slots.entries()].map(([hour, v]) => ({
+      label: `${String(hour).padStart(2, '0')}:00`,
+      income: v.income,
+      expense: v.expense,
+    }));
   }
 
   private aggregateByDay(movements: MovementResponse[]): DataPoint[] {
@@ -140,20 +241,6 @@ export class DashboardService {
       if (m.type === 'Income') e.income += m.amountBase;
       else e.expense += m.amountBase;
       map.set(day, e);
-    }
-    return [...map.entries()]
-      .map(([label, v]) => ({ label, income: v.income, expense: v.expense }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  private aggregateByWeek(movements: MovementResponse[]): DataPoint[] {
-    const map = new Map<string, { income: number; expense: number }>();
-    for (const m of movements) {
-      const wk = isoWeek(new Date(m.date));
-      const e = map.get(wk) ?? { income: 0, expense: 0 };
-      if (m.type === 'Income') e.income += m.amountBase;
-      else e.expense += m.amountBase;
-      map.set(wk, e);
     }
     return [...map.entries()]
       .map(([label, v]) => ({ label, income: v.income, expense: v.expense }))
@@ -172,131 +259,6 @@ export class DashboardService {
     return [...map.entries()]
       .map(([label, v]) => ({ label, income: v.income, expense: v.expense }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  private async loadDaily() {
-    const base = this.baseDate();
-    const ym = getMonthKey(base.getFullYear(), base.getMonth());
-    const items = await this.fetchMovements(ym);
-    const data = this.aggregateByDay(items);
-    this.lineData.set(data);
-    this.totalIncome.set(data.reduce((a, d) => a + d.income, 0));
-    this.totalExpense.set(data.reduce((a, d) => a + d.expense, 0));
-    const top = data.reduce((a, b) => (b.expense > a.expense ? b : a), data[0]);
-    this.topLabel.set(top?.label ?? '');
-    this.topAmount.set(top?.expense ?? 0);
-
-    const catMap = this.buildCategoryMap(items);
-    this.categoryExpenses.set(catMap);
-    this.recentMovements.set(items.slice(0, 8));
-    this.loading.set(false);
-  }
-
-  private async loadWeekly() {
-    const base = this.baseDate();
-    const yms: string[] = [];
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
-      yms.push(getMonthKey(d.getFullYear(), d.getMonth()));
-    }
-    const all = (await Promise.all(yms.map((ym) => this.fetchMovements(ym)))).flat();
-    const data = this.aggregateByWeek(all);
-    this.lineData.set(data);
-    this.totalIncome.set(data.reduce((a, d) => a + d.income, 0));
-    this.totalExpense.set(data.reduce((a, d) => a + d.expense, 0));
-    const top = data.reduce((a, b) => (b.expense > a.expense ? b : a), data[0]);
-    this.topLabel.set(top?.label ?? '');
-    this.topAmount.set(top?.expense ?? 0);
-
-    const catMap = this.buildCategoryMap(all);
-    this.categoryExpenses.set(catMap);
-    this.recentMovements.set(all.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8));
-    this.loading.set(false);
-  }
-
-  private loadMonthly() {
-    const base = this.baseDate();
-    const requests: { ym: string; d: Date }[] = [];
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(base.getFullYear(), base.getMonth() - (11 - i), 1);
-      requests.push({ ym: getMonthKey(d.getFullYear(), d.getMonth()), d });
-    }
-
-    forkJoin(requests.map((r) => this.api.getMovementSummary(r.ym))).subscribe({
-      next: (summaries) => {
-        const stats: DataPoint[] = summaries.map((s, i) => ({
-          label: requests[i].ym,
-          income: s?.totalIncome ?? 0,
-          expense: s?.totalExpense ?? 0,
-        }));
-        this.lineData.set(stats);
-        this.totalIncome.set(stats.reduce((a, s) => a + s.income, 0));
-        this.totalExpense.set(stats.reduce((a, s) => a + s.expense, 0));
-        const top = stats.reduce((a, b) => (b.expense > a.expense ? b : a), stats[0]);
-        this.topLabel.set(top?.label ?? '');
-        this.topAmount.set(top?.expense ?? 0);
-
-        this.loading.set(false);
-
-        this.api.getMovements(requests[requests.length - 1].ym, 1, 200).subscribe({
-          next: (page) => {
-            this.recentMovements.set(page?.items?.slice(0, 8) ?? []);
-            const catMap = this.buildCategoryMap(page?.items ?? []);
-            this.categoryExpenses.set(catMap);
-          },
-          error: () => this.loading.set(false),
-        });
-      },
-      error: () => this.loading.set(false),
-    });
-  }
-
-  private loadYearly() {
-    const base = this.baseDate();
-    const requests: { ym: string; year: number }[] = [];
-    for (let y = base.getFullYear() - 4; y <= base.getFullYear(); y++) {
-      for (let m = 0; m < 12; m++) {
-        requests.push({ ym: getMonthKey(y, m), year: y });
-      }
-    }
-
-    forkJoin(requests.map((r) => this.api.getMovementSummary(r.ym).pipe(catchError(() => of(null))))).subscribe({
-      next: (summaries) => {
-        const yearMap = new Map<number, { income: number; expense: number }>();
-        for (let i = 0; i < summaries.length; i++) {
-          const s = summaries[i];
-          if (!s) continue;
-          const y = requests[i].year;
-          const e = yearMap.get(y) ?? { income: 0, expense: 0 };
-          e.income += s.totalIncome ?? 0;
-          e.expense += s.totalExpense ?? 0;
-          yearMap.set(y, e);
-        }
-        const data: DataPoint[] = [...yearMap.entries()]
-          .map(([year, v]) => ({ label: String(year), income: v.income, expense: v.expense }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-
-        this.lineData.set(data);
-        this.totalIncome.set(data.reduce((a, d) => a + d.income, 0));
-        this.totalExpense.set(data.reduce((a, d) => a + d.expense, 0));
-        const top = data.reduce((a, b) => (b.expense > a.expense ? b : a), data[0]);
-        this.topLabel.set(top?.label ?? '');
-        this.topAmount.set(top?.expense ?? 0);
-
-        this.loading.set(false);
-
-        const lastYm = requests[requests.length - 1].ym;
-        this.api.getMovements(lastYm, 1, 200).subscribe({
-          next: (page) => {
-            this.recentMovements.set(page?.items?.slice(0, 8) ?? []);
-            const catMap = this.buildCategoryMap(page?.items ?? []);
-            this.categoryExpenses.set(catMap);
-          },
-          error: () => this.loading.set(false),
-        });
-      },
-      error: () => this.loading.set(false),
-    });
   }
 
   private buildCategoryMap(movements: MovementResponse[]): { name: string; total: number }[] {

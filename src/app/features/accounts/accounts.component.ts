@@ -57,7 +57,10 @@ export class AccountsComponent implements OnInit {
         this.accounts.set(list);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        console.error('[accounts] load error:', err);
+        this.loading.set(false);
+      },
     });
   }
 
@@ -134,4 +137,3 @@ export class AccountsComponent implements OnInit {
         : this.i18n.t('accounts.tipo_credito');
   }
 }
-

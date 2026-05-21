@@ -102,4 +102,3 @@ export class InstallmentsComponent implements OnInit {
       .reduce((s, i) => s + i.monthlyAmount, 0);
   }
 }
-

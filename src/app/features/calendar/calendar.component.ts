@@ -109,4 +109,3 @@ export class CalendarComponent {
     this.currentDate.set(new Date());
   }
 }
-

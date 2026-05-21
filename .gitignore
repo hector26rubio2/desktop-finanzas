@@ -1,5 +1,6 @@
 # Node
 node_modules/
+node_modules_old_del/
 dist/
 .angular/
 .opencode/
@@ -23,3 +24,5 @@ opencode.json
 # Logs
 *.log
 npm-debug.log*
+.agents
+skills-lock.json

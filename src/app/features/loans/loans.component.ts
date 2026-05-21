@@ -163,4 +163,3 @@ export class LoansComponent implements OnInit {
     return rows;
   }
 }
-

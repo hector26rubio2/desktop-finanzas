@@ -1,10 +1,22 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, session } = require("electron");
 const path = require("path");
 
 const isDev = process.argv.includes("--dev") || process.env.NODE_ENV === 'development';
 
 const log = (msg, ...args) => console.log(`[main:finanzas] ${msg}`, ...args);
 const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://accounts.google.com 'unsafe-inline'",
+  "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "frame-src https://accounts.google.com",
+  "connect-src 'self' http://localhost:5063 ws://localhost:4200 ws://localhost:5063",
+  "object-src 'none'",
+  "base-uri 'self'",
+].join('; ');
 
 log(`starting (dev=${isDev})`);
 
@@ -17,11 +29,21 @@ function createWindow() {
     show: isDev,
     backgroundColor: '#0f172a',
     webPreferences: {
+      sandbox: true,
       nodeIntegration: false,
       contextIsolation: true,
       devTools: isDev,
       preload: path.join(__dirname, 'preload.js'),
     },
+  });
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [CSP],
+      },
+    });
   });
 
   if (isDev) {
@@ -41,7 +63,6 @@ function createWindow() {
   });
 
   win.webContents.on('console-message', (_event, level, message) => {
-    // log renderer console messages with a prefix
     const prefix = level === 2 ? '[render:warn]' : level === 3 ? '[render:error]' : '[render:log]';
     console.log(`${prefix} ${message}`);
   });

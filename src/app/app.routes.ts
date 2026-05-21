@@ -1,16 +1,28 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './shared/guards/auth.guard';
-import { adminGuard } from './shared/guards/admin.guard';
+import { authGuard } from '@shared/guards/auth.guard';
+import { adminGuard } from '@shared/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'login',
-    loadComponent: () => import('./auth/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('@auth/login').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
-    loadComponent: () => import('./auth/register.component').then((m) => m.RegisterComponent),
+    loadComponent: () => import('@auth/register').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () => import('@auth/verify-email').then((m) => m.VerifyEmailComponent),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('@auth/forgot-password').then((m) => m.ForgotPasswordComponent),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => import('@auth/reset-password').then((m) => m.ResetPasswordComponent),
   },
   {
     path: 'dashboard',
@@ -60,13 +72,12 @@ export const routes: Routes = [
   {
     path: 'settings',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+    loadComponent: () => import('./features/settings/settings.component').then((m) => m.SettingsComponent),
   },
   {
     path: 'admin',
     canActivate: [adminGuard],
-    loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
+    loadComponent: () => import('@admin/admin').then((m) => m.AdminComponent),
   },
   { path: '**', redirectTo: 'dashboard' },
 ];
