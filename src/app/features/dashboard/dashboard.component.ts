@@ -4,18 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { ThemeService } from '../../shared/services/theme.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DashboardService, type Granularity } from '../../shared/services/dashboard.service';
-import { LangPickerComponent } from '@shared/lang-picker';
-import { ThemePickerComponent } from '@shared/theme-picker';
-
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, LangPickerComponent, ThemePickerComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -25,11 +21,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   public auth = inject(AuthService);
   public router = inject(Router);
-  public theme = inject(ThemeService);
   public i18n = inject(I18nService);
   public ds = inject(DashboardService);
-
-  formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
 
   baseCurrency = this.auth.currentUser()?.baseCurrency ?? 'ARS';
 

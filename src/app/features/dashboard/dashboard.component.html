@@ -16,14 +16,6 @@
       <span class="period-nav__label">{{ ds.currentLabel() }}</span>
       <button class="period-nav__btn" (click)="ds.next()">▶</button>
     </div>
-    <div class="dash-controls">
-      <app-lang-picker [currentLocale]="i18n.currentLocale()" (localeChange)="i18n.setLocale($event)" />
-      <app-theme-picker
-        [currentTheme]="theme.theme()"
-        [formatLabel]="formatThemeLabel"
-        (themeChange)="theme.setTheme($event)"
-      />
-    </div>
   </div>
 
   @if (ds.loading()) {
