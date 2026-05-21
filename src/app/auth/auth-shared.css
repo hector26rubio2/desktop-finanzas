@@ -20,7 +20,7 @@
     position: relative;
     align-items: center;
     justify-content: center;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 50%, var(--accent-2) 100%);
     overflow: hidden;
   }
 }
@@ -29,12 +29,10 @@
   position: absolute;
   inset: 0;
   opacity: 0.12;
-  background-image: radial-gradient(
-    circle at 2px 2px,
-    color-mix(in srgb, var(--accent-fg) 60%, transparent) 1px,
-    transparent 0
-  );
-  background-size: 40px 40px;
+  background-image:
+    radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--accent-fg) 60%, transparent) 1px, transparent 0),
+    radial-gradient(circle at 20px 20px, color-mix(in srgb, var(--accent-3) 30%, transparent) 1px, transparent 0);
+  background-size: 40px 40px, 60px 60px;
 }
 
 .auth-brand-content {
@@ -78,6 +76,19 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.auth-brand-feature:nth-child(2) .auth-brand-feature-icon {
+  background: color-mix(in srgb, var(--accent-2) 30%, transparent);
+}
+.auth-brand-feature:nth-child(2) .auth-brand-feature-icon span {
+  color: var(--accent-2);
+}
+.auth-brand-feature:nth-child(3) .auth-brand-feature-icon {
+  background: color-mix(in srgb, var(--accent-3) 30%, transparent);
+}
+.auth-brand-feature:nth-child(3) .auth-brand-feature-icon span {
+  color: var(--accent-3);
 }
 
 .auth-brand-feature-icon {
@@ -183,7 +194,7 @@
 .auth-forgot-link {
   font-size: 12px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--accent-2);
   text-decoration: none;
   transition: opacity var(--duration-fast) var(--ease-btn);
 }
@@ -204,13 +215,13 @@
 .auth-divider-line {
   flex: 1;
   height: 1px;
-  background: var(--line-2);
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--accent-2) 30%, transparent), color-mix(in oklch, var(--accent-3) 30%, transparent), transparent);
 }
 
 .auth-divider-text {
   font-size: 12px;
   font-weight: 500;
-  color: var(--fg-3);
+  color: var(--accent-2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
