@@ -71,6 +71,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const positive = this.cssVar('--positive') || 'oklch(76% 0.14 145)';
       const negative = this.cssVar('--negative') || 'oklch(70% 0.16 25)';
       const accent = this.cssVar('--accent') || 'oklch(80% 0.12 78)';
+      const accent2 = this.cssVar('--accent-2') || 'oklch(78% 0.1 198)';
+      const accent3 = this.cssVar('--accent-3') || 'oklch(76% 0.1 318)';
 
       if (this.lineCanvasRef) {
         this.lineChart?.destroy();
@@ -115,9 +117,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const cats = this.ds.categoryExpenses();
         const palette = [
           accent,
+          accent2,
+          accent3,
+          positive,
           negative,
           this.cssVar('--info') || 'oklch(72% 0.13 235)',
-          positive,
           this.cssVar('--warning') || 'oklch(78% 0.12 72)',
           'oklch(75% 0.13 320)',
           'oklch(72% 0.13 162)',

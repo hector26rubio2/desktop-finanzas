@@ -147,14 +147,18 @@
                   "
                   (click)="theme.activateCustomTheme(ct.name)"
                 >
-                  <div
-                    style="width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0"
-                    [style.background]="ct.bg"
-                  ></div>
-                  <div
-                    style="width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0"
-                    [style.background]="ct.accent"
-                  ></div>
+                  <div style="display: flex; gap: 2px; flex-shrink: 0">
+                    <div style="width: 18px; height: 18px; border-radius: 4px" [style.background]="ct.bg"></div>
+                    <div style="width: 18px; height: 18px; border-radius: 4px" [style.background]="ct.accent"></div>
+                    <div
+                      style="width: 18px; height: 18px; border-radius: 4px"
+                      [style.background]="ct.accent2 || triadicFrom(ct.accent, 120)"
+                    ></div>
+                    <div
+                      style="width: 18px; height: 18px; border-radius: 4px"
+                      [style.background]="ct.accent3 || triadicFrom(ct.accent, 240)"
+                    ></div>
+                  </div>
                   <span style="flex: 1; font-size: 13px; color: var(--fg-0)">{{ ct.name }}</span>
                   <span class="tag" style="font-size: 10px">{{
                     ct.isDark ? i18n.t('settings.tag_oscuro') : i18n.t('settings.tag_claro')
@@ -205,13 +209,22 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
               <label style="margin: 0">
                 <span style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('settings.accento') }}</span>
-                <div style="display: flex; gap: 8px; margin-top: 4px; align-items: center">
+                <div class="row-flex" style="gap: 4px">
                   <input
                     type="color"
+                    class="input-color"
+                    style="width: 30px; height: 30px; padding: 2px; cursor: pointer"
                     [(ngModel)]="newThemeAccent"
-                    style="width: 38px; height: 32px; padding: 2px; flex-shrink: 0"
                   />
                   <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent }}</span>
+                  <div
+                    style="width: 18px; height: 18px; border-radius: 4px; margin-left: auto"
+                    [style.background]="triadicFrom(newThemeAccent, 120)"
+                  ></div>
+                  <div
+                    style="width: 18px; height: 18px; border-radius: 4px"
+                    [style.background]="triadicFrom(newThemeAccent, 240)"
+                  ></div>
                 </div>
               </label>
               <label style="margin: 0">

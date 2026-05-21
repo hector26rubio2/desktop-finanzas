@@ -105,8 +105,27 @@
 }
 
 .theme-option.active {
-  background: var(--accent-soft);
+  background: linear-gradient(90deg, var(--accent-soft), var(--accent-2-soft));
   color: var(--accent);
+}
+
+.theme-swatch__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid var(--line-2);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.theme-option:hover .theme-swatch__dot {
+  transform: scale(1.15);
+}
+
+.theme-option.active .theme-swatch__dot {
+  border-color: transparent;
 }
 
 .theme-swatch {
