@@ -40,13 +40,13 @@
   z-index: 10;
   padding: 0 4rem;
   max-width: 32rem;
-  color: var(--accent-fg);
+  color: color-mix(in oklch, var(--accent-fg) 85%, var(--bg-0));
 }
 
 .auth-brand-icon {
   font-size: 56px;
   margin-bottom: 2rem;
-  color: var(--accent-fg);
+  color: color-mix(in oklch, var(--accent-fg) 85%, var(--bg-0));
   display: block;
   opacity: 0.9;
 }

@@ -506,6 +506,10 @@ table th.num {
   color: var(--fg-3);
 }
 
+.content__header .eyebrow {
+  color: var(--accent-2);
+}
+
 .subtle,
 .muted {
   color: var(--fg-2);
@@ -741,7 +745,7 @@ table th.num {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--accent-soft);
+  background: var(--accent-2);
   flex-shrink: 0;
 }
 
@@ -1827,8 +1831,9 @@ label {
 }
 .seg-ctrl__btn--active {
   background: var(--bg-3);
-  color: var(--fg-0);
+  color: var(--accent);
   box-shadow: var(--shadow-1);
+  font-weight: 600;
 }
 
 /* ============================================================
@@ -2081,8 +2086,8 @@ label {
 
 .period-nav__label {
   font-size: 12px;
-  font-weight: 500;
-  color: var(--fg-0);
+  font-weight: 600;
+  color: var(--accent-3);
   padding: 0 6px;
   min-width: 100px;
   text-align: center;
