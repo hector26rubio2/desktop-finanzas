@@ -648,10 +648,10 @@ table th.num {
 }
 
 .sidebar__brand-mark {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
   color: var(--accent-fg);
   font-family: 'Instrument Serif', serif;
   font-style: italic;
@@ -661,6 +661,7 @@ table th.num {
   flex-shrink: 0;
   font-weight: 400;
   line-height: 1;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .sidebar__brand-name {
@@ -715,13 +716,25 @@ table th.num {
 }
 
 .sidebar__group {
-  padding: 8px var(--pad-x) 4px;
+  padding: 10px var(--pad-x) 4px;
   font-family: 'Geist Mono', monospace;
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fg-4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar__group::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -751,24 +764,32 @@ table th.num {
   color: var(--fg-0);
 }
 
+.nav-item:hover .nav-item__icon {
+  color: var(--accent);
+}
+
 .nav-item:active {
   transform: scale(0.97);
 }
+
 .nav-item--active {
-  background: var(--selected);
-  color: var(--fg-0);
-  position: relative;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-item--active .nav-item__icon {
+  color: var(--accent);
 }
 
 .nav-item--active::after {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 50%;
-  translate: 0 -50%;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
   background: var(--accent);
 }
 
@@ -808,17 +829,18 @@ table th.num {
 }
 
 .sidebar__foot-avatar {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
   font-family: 'Geist Mono', monospace;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .sidebar__foot-meta {
@@ -893,14 +915,31 @@ table th.num {
 
 .card {
   background: var(--bg-1);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-1);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow: var(--shadow-1);
+  position: relative;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--accent-soft) 0%, var(--accent) 50%, var(--accent-soft) 100%);
+  opacity: 0.6;
+  z-index: 1;
 }
 
 .card--elevated {
   box-shadow: var(--shadow-2);
+}
+
+.card--elevated::before {
+  opacity: 1;
 }
 
 .card__h {
