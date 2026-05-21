@@ -22,6 +22,8 @@
   --accent-soft: oklch(80% 0.12 78 / 0.16);
   --accent-deep: oklch(55% 0.14 70);
   --accent-fg: oklch(15% 0.01 70);
+  --accent-2: oklch(78% 0.1 198);
+  --accent-3: oklch(76% 0.1 318);
   --positive: oklch(76% 0.14 145);
   --positive-soft: oklch(76% 0.14 145 / 0.18);
   --negative: oklch(70% 0.16 25);
@@ -54,6 +56,8 @@
   --accent-soft: oklch(74% 0.16 245 / 0.16);
   --accent-deep: oklch(50% 0.18 245);
   --accent-fg: oklch(15% 0.02 250);
+  --accent-2: oklch(70% 0.14 5);
+  --accent-3: oklch(72% 0.14 125);
   --positive: oklch(76% 0.14 145);
   --positive-soft: oklch(76% 0.14 145 / 0.18);
   --negative: oklch(70% 0.16 25);
@@ -86,6 +90,8 @@
   --accent-soft: oklch(74% 0.15 162 / 0.16);
   --accent-deep: oklch(50% 0.16 162);
   --accent-fg: oklch(15% 0.02 170);
+  --accent-2: oklch(72% 0.12 282);
+  --accent-3: oklch(74% 0.12 42);
   --positive: oklch(76% 0.14 145);
   --positive-soft: oklch(76% 0.14 145 / 0.18);
   --negative: oklch(70% 0.16 25);
@@ -118,6 +124,8 @@
   --accent-soft: oklch(48% 0.18 245 / 0.12);
   --accent-deep: oklch(36% 0.2 245);
   --accent-fg: oklch(99% 0.005 245);
+  --accent-2: oklch(42% 0.16 5);
+  --accent-3: oklch(44% 0.16 125);
   --positive: oklch(40% 0.14 145);
   --positive-soft: oklch(40% 0.14 145 / 0.14);
   --negative: oklch(44% 0.18 25);
@@ -153,6 +161,8 @@
   --accent-soft: var(--custom-accent-soft, oklch(48% 0.18 245 / 0.12));
   --accent-deep: var(--custom-accent-deep, oklch(36% 0.2 245));
   --accent-fg: var(--custom-accent-fg, oklch(99% 0.005 245));
+  --accent-2: var(--custom-accent-2, oklch(42% 0.16 5));
+  --accent-3: var(--custom-accent-3, oklch(44% 0.16 125));
   --positive: oklch(40% 0.14 145);
   --positive-soft: oklch(40% 0.14 145 / 0.14);
   --negative: oklch(44% 0.18 25);
@@ -188,6 +198,8 @@
   --accent-soft: oklch(77.4% 0.052 228 / 0.16);
   --accent-deep: oklch(22.7% 0.076 224);
   --accent-fg: oklch(15% 0.01 70);
+  --accent-2: oklch(75% 0.04 348);
+  --accent-3: oklch(74% 0.06 108);
   --positive: oklch(73.4% 0.102 155);
   --positive-soft: oklch(73.4% 0.102 155 / 0.18);
   --negative: oklch(76.6% 0.059 6);
@@ -201,9 +213,6 @@
   color-scheme: dark;
 }
 
-/* ============================================================
-   THEME: Deep Institutional Modernism (Light)
-   ============================================================ */
 [data-theme='institutional-light'] {
   --bg-0: oklch(97.5% 0.003 210);
   --bg-1: oklch(95.6% 0.003 210);
@@ -223,6 +232,8 @@
   --accent-soft: oklch(22.7% 0.076 224 / 0.12);
   --accent-deep: oklch(13% 0.078 221);
   --accent-fg: oklch(99% 0.005 245);
+  --accent-2: oklch(20% 0.05 344);
+  --accent-3: oklch(24% 0.07 104);
   --positive: oklch(56.9% 0.119 160);
   --positive-soft: oklch(56.9% 0.119 160 / 0.14);
   --negative: oklch(23.5% 0.113 0);
@@ -236,9 +247,6 @@
   color-scheme: light;
 }
 
-/* ============================================================
-   THEME: Terra & Roast (Dark)
-   ============================================================ */
 [data-theme='espresso'] {
   --bg-0: oklch(7.7% 0.002 80);
   --bg-1: oklch(10.9% 0.002 60);
@@ -258,6 +266,8 @@
   --accent-soft: oklch(77.6% 0.033 23 / 0.16);
   --accent-deep: oklch(18% 0.021 24);
   --accent-fg: oklch(15% 0.01 70);
+  --accent-2: oklch(74% 0.07 143);
+  --accent-3: oklch(72% 0.09 263);
   --positive: oklch(73.4% 0.102 155);
   --positive-soft: oklch(73.4% 0.102 155 / 0.18);
   --negative: oklch(76.6% 0.059 6);
@@ -271,9 +281,6 @@
   color-scheme: dark;
 }
 
-/* ============================================================
-   THEME: Terra & Roast (Light)
-   ============================================================ */
 [data-theme='espresso-light'] {
   --bg-0: oklch(97.8% 0.006 37);
   --bg-1: oklch(95.4% 0.006 37);
@@ -293,6 +300,8 @@
   --accent-soft: oklch(18% 0.021 24 / 0.12);
   --accent-deep: oklch(10% 0.018 25);
   --accent-fg: oklch(99% 0.005 245);
+  --accent-2: oklch(22% 0.06 144);
+  --accent-3: oklch(26% 0.08 264);
   --positive: oklch(56.9% 0.119 160);
   --positive-soft: oklch(56.9% 0.119 160 / 0.14);
   --negative: oklch(23.5% 0.113 0);
@@ -306,9 +315,6 @@
   color-scheme: light;
 }
 
-/* ============================================================
-   THEME: Vivid Pulse (Dark)
-   ============================================================ */
 [data-theme='pulse'] {
   --bg-0: oklch(7.3% 0.019 222);
   --bg-1: oklch(10.5% 0.019 222);
@@ -328,6 +334,8 @@
   --accent-soft: oklch(77.3% 0.048 261 / 0.16);
   --accent-deep: oklch(22% 0.105 263);
   --accent-fg: oklch(15% 0.01 70);
+  --accent-2: oklch(74% 0.08 21);
+  --accent-3: oklch(73% 0.09 141);
   --positive: oklch(73.4% 0.102 155);
   --positive-soft: oklch(73.4% 0.102 155 / 0.18);
   --negative: oklch(76.6% 0.059 6);
@@ -341,9 +349,6 @@
   color-scheme: dark;
 }
 
-/* ============================================================
-   THEME: Vivid Pulse (Light)
-   ============================================================ */
 [data-theme='pulse-light'] {
   --bg-0: oklch(97.6% 0.005 257);
   --bg-1: oklch(95.6% 0.009 235);
@@ -363,6 +368,8 @@
   --accent-soft: oklch(22% 0.105 263 / 0.12);
   --accent-deep: oklch(9.7% 0.104 267);
   --accent-fg: oklch(99% 0.005 245);
+  --accent-2: oklch(20% 0.07 23);
+  --accent-3: oklch(25% 0.08 143);
   --positive: oklch(32.4% 0.076 161);
   --positive-soft: oklch(32.4% 0.076 161 / 0.14);
   --negative: oklch(23.5% 0.113 0);
@@ -377,7 +384,7 @@
 }
 
 /* ============================================================
-   EASING TOKENS
+   EASING TOKENS & DERIVED ACCENT VARS
    ============================================================ */
 
 :root {
@@ -388,6 +395,13 @@
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --duration-slow: 350ms;
+
+  --accent-2-soft: color-mix(in oklch, var(--accent-2) 16%, transparent);
+  --accent-2-deep: color-mix(in oklch, var(--accent-2) 65%, oklch(0% 0 0));
+  --accent-2-fg: oklch(99% 0.005 245);
+  --accent-3-soft: color-mix(in oklch, var(--accent-3) 16%, transparent);
+  --accent-3-deep: color-mix(in oklch, var(--accent-3) 65%, oklch(0% 0 0));
+  --accent-3-fg: oklch(99% 0.005 245);
 }
 
 /* ============================================================

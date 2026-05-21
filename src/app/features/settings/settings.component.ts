@@ -61,12 +61,53 @@ export class SettingsComponent {
     return localStorage.getItem('active-custom-theme') ?? '';
   }
 
+  private triadicFrom(hex: string, offset: number): string {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b),
+      min = Math.min(r, g, b);
+    if (max === min) return '#666666';
+    let h = 0;
+    if (max === r) h = 60 * ((g - b) / (max - min) + (g < b ? 6 : 0));
+    else if (max === g) h = 60 * ((b - r) / (max - min) + 2);
+    else h = 60 * ((r - g) / (max - min) + 4);
+    const s = (max - min) / max;
+    const l = (max + min) / 2;
+    const h2 = (((h + offset) % 360) + 360) % 360;
+    const m2 = l <= 0.5 ? l * (1 + s) : l + s - l * s;
+    const m1 = 2 * l - m2;
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const r2 = hue2rgb(m1, m2, h2 / 360 + 1 / 3);
+    const g2 = hue2rgb(m1, m2, h2 / 360);
+    const b2 = hue2rgb(m1, m2, h2 / 360 - 1 / 3);
+    return (
+      '#' +
+      [r2, g2, b2]
+        .map((c) =>
+          Math.round(c * 255)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('')
+    );
+  }
+
   saveCustomTheme() {
     if (!this.newThemeName.trim()) return;
     this.theme.saveCustomTheme({
       name: this.newThemeName.trim(),
       isDark: this.newThemeIsDark,
       accent: this.newThemeAccent,
+      accent2: this.triadicFrom(this.newThemeAccent, 120),
+      accent3: this.triadicFrom(this.newThemeAccent, 240),
       bg: this.newThemeBg,
     });
     this.newThemeName = '';

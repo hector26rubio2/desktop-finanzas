@@ -18,7 +18,9 @@ export type Shape = 'rounded' | 'sharp';
 export interface CustomTheme {
   name: string;
   isDark: boolean;
-  accent: string; // hex color
+  accent: string; // hex color for --accent
+  accent2: string; // hex color for --accent-2 (triadic +120°)
+  accent3: string; // hex color for --accent-3 (triadic +240°)
   bg: string; // hex color for bg-0
 }
 
@@ -170,6 +172,16 @@ export class ThemeService {
       `oklch(${isDark ? accent.l * 100 : Math.min(accent.l * 0.75, 0.38) * 100}% ${accent.c} ${accent.h})`,
     );
     root.style.setProperty('--custom-accent-fg', `oklch(${isDark ? '15% 0.01 70' : '99% 0.005 245'})`);
+
+    // Triadic accent-2 (+120°) and accent-3 (+240°)
+    const h2 = ((+accent.h + 120) % 360).toFixed(0);
+    const h3 = ((+accent.h + 240) % 360).toFixed(0);
+    const a2 = ct.accent2 ? this.hexToOklch(ct.accent2) : { l: accent.l, c: accent.c, h: h2 };
+    const a3 = ct.accent3 ? this.hexToOklch(ct.accent3) : { l: accent.l, c: accent.c, h: h3 };
+    const a2L = isDark ? Math.min(a2.l + 0.3, 0.8) : Math.min(a2.l, 0.52);
+    const a3L = isDark ? Math.min(a3.l + 0.3, 0.8) : Math.min(a3.l, 0.52);
+    root.style.setProperty('--custom-accent-2', `oklch(${a2L} ${a2.c} ${a2.h})`);
+    root.style.setProperty('--custom-accent-3', `oklch(${a3L} ${a3.c} ${a3.h})`);
     root.style.setProperty('--custom-color-scheme', isDark ? 'dark' : 'light');
   }
 
