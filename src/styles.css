@@ -1031,7 +1031,7 @@ table th.num {
 
 .btn--secondary {
   background: var(--accent-2);
-  color: oklch(99% 0.005 245);
+  color: var(--accent-fg);
   border-color: var(--accent-2);
 }
 .btn--secondary:hover {
@@ -1041,7 +1041,7 @@ table th.num {
 
 .btn--tertiary {
   background: var(--accent-3);
-  color: oklch(99% 0.005 245);
+  color: var(--accent-fg);
   border-color: var(--accent-3);
 }
 .btn--tertiary:hover {
@@ -1067,7 +1067,7 @@ table th.num {
 }
 .btn--danger:hover {
   background: var(--negative);
-  color: #fff;
+  color: color-mix(in oklch, var(--fg-0) 90%, var(--negative));
 }
 
 .btn--icon {

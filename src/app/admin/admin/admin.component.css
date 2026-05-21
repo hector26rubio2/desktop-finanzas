@@ -1,5 +1,5 @@
 .muted {
-  color: var(--text-muted);
+  color: var(--fg-3);
   font-size: 0.85rem;
 }
 .actions {

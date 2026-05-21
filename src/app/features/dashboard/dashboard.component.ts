@@ -121,11 +121,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
           accent3,
           positive,
           negative,
-          this.cssVar('--info') || 'oklch(72% 0.13 235)',
-          this.cssVar('--warning') || 'oklch(78% 0.12 72)',
-          'oklch(75% 0.13 320)',
-          'oklch(72% 0.13 162)',
-          'oklch(70% 0.14 280)',
+          this.cssVar('--info') || accent2,
+          this.cssVar('--warning') || accent3,
+          this.cssVar('--accent-deep') || accent,
+          this.cssVar('--accent-2') || accent2,
+          this.cssVar('--accent-3') || accent3,
         ];
         this.pieChart = new Chart(this.pieCanvasRef.nativeElement, {
           type: 'doughnut',
