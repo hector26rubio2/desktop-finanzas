@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, effect, ViewChild, ElementRef, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, ViewChild, ElementRef, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,16 +26,115 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   baseCurrency = this.auth.currentUser()?.baseCurrency ?? 'ARS';
 
-  granularities: { key: Granularity; label: string }[] = [
-    { key: 'day', label: 'Día' },
-    { key: 'week', label: 'Sem' },
-    { key: 'month', label: 'Mes' },
-    { key: 'year', label: 'Año' },
+  granularities: { key: Granularity; keyLabel: string }[] = [
+    { key: 'day', keyLabel: 'dashboard.gran_day' },
+    { key: 'week', keyLabel: 'dashboard.gran_week' },
+    { key: 'month', keyLabel: 'dashboard.gran_month' },
+    { key: 'year', keyLabel: 'dashboard.gran_year' },
   ];
+
+  showPicker = signal(false);
+  pickerYear = signal(new Date().getFullYear());
+  pickerMonth = signal(new Date().getMonth());
+  pickerMode = signal<'month' | 'year'>('month');
+
+  readonly MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  readonly DAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
+
+  togglePicker() {
+    if (!this.showPicker()) {
+      const g = this.ds.granularity();
+      if (g === 'month' || g === 'day') {
+        const [y, m] = this.ds.currentLabelKey().split('-').map(Number);
+        this.pickerYear.set(y);
+        this.pickerMonth.set(m - 1);
+      }
+      this.pickerMode.set('month');
+    }
+    this.showPicker.set(!this.showPicker());
+  }
+
+  closePicker() { this.showPicker.set(false); }
+
+  pickerPrevMonth() {
+    if (this.pickerMonth() === 0) { this.pickerMonth.set(11); this.pickerYear.update((y) => y - 1); }
+    else { this.pickerMonth.update((m) => m - 1); }
+  }
+  pickerNextMonth() {
+    if (this.pickerMonth() === 11) { this.pickerMonth.set(0); this.pickerYear.update((y) => y + 1); }
+    else { this.pickerMonth.update((m) => m + 1); }
+  }
+
+  selectMonth(m: number) {
+    this.ds.jumpTo(`${this.pickerYear()}-${String(m + 1).padStart(2, '0')}-01`);
+    this.closePicker();
+  }
+
+  selectDay(d: number) {
+    const y = this.pickerYear(), m = this.pickerMonth();
+    this.ds.jumpTo(`${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    this.closePicker();
+  }
+
+  selectYear(y: number) {
+    if (this.ds.granularity() === 'year') {
+      this.ds.jumpTo(`${y}-01-01`);
+      this.closePicker();
+    } else {
+      this.pickerYear.set(y);
+      this.pickerMode.set('month');
+    }
+  }
+
+  yearList = computed(() => {
+    const y = this.pickerYear();
+    const start = Math.floor(y / 9) * 9;
+    return Array.from({ length: 9 }, (_, i) => start + i);
+  });
+
+  dayGrid = computed(() => {
+    const y = this.pickerYear(), m = this.pickerMonth();
+    const first = new Date(y, m, 1).getDay();
+    const total = new Date(y, m + 1, 0).getDate();
+    const off = first === 0 ? 6 : first - 1;
+    const cells: (number | null)[] = [];
+    for (let i = 0; i < off; i++) cells.push(null);
+    for (let d = 1; d <= total; d++) cells.push(d);
+    return cells;
+  });
+
+  isToday(d: number | null) {
+    if (!d) return false;
+    const n = new Date();
+    return n.getFullYear() === this.pickerYear() && n.getMonth() === this.pickerMonth() && n.getDate() === d;
+  }
+
+  isDayActive(d: number | null) {
+    if (!d) return false;
+    const [cy, cm, cd] = this.ds.currentLabelKey().split('-').map(Number);
+    return cy === this.pickerYear() && (cm - 1) === this.pickerMonth() && cd === d;
+  }
+
+  isMonthActive(m: number) {
+    const [cy, cm] = this.ds.currentLabelKey().split('-').map(Number);
+    return cy === this.pickerYear() && (cm - 1) === m;
+  }
+
+  isYearActive(y: number) {
+    return y === +this.ds.currentLabelKey().slice(0, 4);
+  }
 
   topLabelKey = computed(() => {
     const g = this.ds.granularity();
     return g === 'day' ? 'dashboard.fecha' : g === 'week' ? 'dashboard.concepto' : 'dashboard.mes_mas_gasto';
+  });
+
+  cashflowSubtitle = computed(() => {
+    const g = this.ds.granularity();
+    if (g === 'year') return this.i18n.t('dashboard.subtitle_year');
+    if (g === 'month') return this.i18n.t('dashboard.subtitle_month');
+    if (g === 'week') return this.i18n.t('dashboard.subtitle_week');
+    return this.i18n.t('dashboard.subtitle_day');
   });
 
   private lineChart?: Chart;
@@ -51,17 +150,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
-    this.ds.load();
-  }
+  ngOnInit() { this.ds.load(); }
 
-  ngOnDestroy() {
-    this.lineChart?.destroy();
-    this.pieChart?.destroy();
-  }
+  ngOnDestroy() { this.lineChart?.destroy(); this.pieChart?.destroy(); }
 
   private cssVar(name: string): string {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  private formatXLabel(raw: string, g: Granularity): string {
+    if (g === 'year') return this.MONTHS[Number(raw.slice(5, 7)) - 1] ?? raw;
+    if (g === 'month') return String(Number(raw.slice(8, 10)));
+    if (g === 'week') {
+      const wk = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      return wk[new Date(raw + 'T00:00:00').getDay()] ?? raw;
+    }
+    return raw;
+  }
+
+  private maxTicksFor(g: Granularity): number | undefined {
+    if (g === 'month') return 10;
+    if (g === 'day') return 12;
+    return undefined;
   }
 
   private renderCharts() {
@@ -77,35 +187,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (this.lineCanvasRef) {
         this.lineChart?.destroy();
         const data = this.ds.lineData();
+        const g = this.ds.granularity();
+        const maxTicks = this.maxTicksFor(g);
         this.lineChart = new Chart(this.lineCanvasRef.nativeElement, {
           type: 'line',
           data: {
-            labels: data.map((d) => d.label),
+            labels: data.map((d) => this.formatXLabel(d.label, g)),
             datasets: [
-              {
-                label: this.i18n.t('dashboard.ingresos'),
-                data: data.map((d) => d.income),
-                borderColor: positive,
-                backgroundColor: positive + '1A',
-                tension: 0.3,
-                fill: true,
-              },
-              {
-                label: this.i18n.t('dashboard.gastos'),
-                data: data.map((d) => d.expense),
-                borderColor: negative,
-                backgroundColor: negative + '1A',
-                tension: 0.3,
-                fill: true,
-              },
+              { label: this.i18n.t('dashboard.ingresos'), data: data.map((d) => d.income), borderColor: positive, backgroundColor: positive + '1A', tension: 0.3, fill: true },
+              { label: this.i18n.t('dashboard.gastos'), data: data.map((d) => d.expense), borderColor: negative, backgroundColor: negative + '1A', tension: 0.3, fill: true },
             ],
           },
           options: {
-            responsive: true,
-            animation: false,
-            plugins: { legend: { display: false } },
+            responsive: true, animation: false, plugins: { legend: { display: false } },
             scales: {
-              x: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 } }, grid: { color: gridColor } },
+              x: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, ...(maxTicks !== undefined ? { maxTicksLimit: maxTicks, autoSkip: true } : {}) }, grid: { color: gridColor } },
               y: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 } }, grid: { color: gridColor } },
             },
           },
@@ -127,80 +223,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const total = cats.reduce((s, c) => s + c.total, 0);
         const baseCcy = this.baseCurrency;
 
-        const centerTextPlugin = {
-          id: 'centerText',
-          afterDraw: (chart: Chart) => {
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return;
-            const cx = (chartArea.left + chartArea.right) / 2;
-            const cy = (chartArea.top + chartArea.bottom) / 2;
-            ctx.save();
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = fg1;
-            ctx.font = '500 10px "Geist Mono", monospace';
-            ctx.fillText('TOTAL', cx, cy - 14);
-            ctx.fillStyle = fg0;
-            ctx.font = '600 18px "Geist Mono", monospace';
-            ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
-            ctx.fillStyle = fg1;
-            ctx.font = '400 9px "Geist Mono", monospace';
-            ctx.fillText(baseCcy, cx, cy + 20);
-            ctx.restore();
-          },
-        };
-
-        const pieConfig: ChartConfiguration<'doughnut'> = {
+        this.pieChart = new Chart(this.pieCanvasRef.nativeElement, {
           type: 'doughnut',
           data: {
             labels: cats.map((c) => c.name),
-            datasets: [
-              {
-                data: cats.map((c) => c.total),
-                backgroundColor: colors,
-                borderColor: bg1,
-                borderWidth: 2,
-                hoverOffset: 8,
-                hoverBorderColor: bg1,
-                hoverBorderWidth: 2,
-              },
-            ],
+            datasets: [{ data: cats.map((c) => c.total), backgroundColor: colors, borderColor: bg1, borderWidth: 2, hoverOffset: 8 }],
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 600 },
+            responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
             cutout: '68%',
             plugins: {
-              legend: {
-                position: 'right',
-                labels: {
-                  color: fg1,
-                  font: { family: 'Geist', size: 11 },
-                  boxWidth: 10,
-                  boxHeight: 10,
-                  padding: 12,
-                  usePointStyle: true,
-                  pointStyle: 'circle',
-                },
-              },
-              tooltip: {
-                backgroundColor: bg3,
-                titleColor: fg0,
-                bodyColor: fg1,
-                borderColor: line1,
-                borderWidth: 1,
-                padding: 10,
-                displayColors: true,
-                boxPadding: 4,
-                titleFont: { family: 'Geist', size: 12, weight: 600 },
-                bodyFont: { family: 'Geist Mono', size: 11 },
-              },
+              legend: { position: 'right', labels: { color: fg1, font: { family: 'Geist', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 12, usePointStyle: true } },
+              tooltip: { backgroundColor: bg3, titleColor: fg0, bodyColor: fg1, borderColor: line1, borderWidth: 1, padding: 10, titleFont: { family: 'Geist', size: 12 }, bodyFont: { family: 'Geist Mono', size: 11 } },
             },
           },
-          plugins: [centerTextPlugin],
-        };
-        this.pieChart = new Chart(this.pieCanvasRef.nativeElement, pieConfig);
+          plugins: [{
+            id: 'centerText',
+            afterDraw: (chart: Chart) => {
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return;
+              const cx = (chartArea.left + chartArea.right) / 2, cy = (chartArea.top + chartArea.bottom) / 2;
+              ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+              ctx.fillStyle = fg1; ctx.font = '500 10px "Geist Mono"'; ctx.fillText('TOTAL', cx, cy - 14);
+              ctx.fillStyle = fg0; ctx.font = '600 18px "Geist Mono"'; ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
+              ctx.fillStyle = fg1; ctx.font = '400 9px "Geist Mono"'; ctx.fillText(baseCcy, cx, cy + 20);
+              ctx.restore();
+            },
+          }],
+        } as any);
       }
     } catch (e) {
       console.error('[dashboard] chart render error', e);

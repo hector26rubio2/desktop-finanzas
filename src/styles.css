@@ -2353,3 +2353,18 @@ label {
 .sidebar-collapsed .user-menu-wrap {
   justify-content: center;
 }
+
+/* ── Global Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE */
+* {
+  -ms-overflow-style: none;
+}

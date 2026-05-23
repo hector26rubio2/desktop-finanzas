@@ -32,9 +32,8 @@ export class SettingsComponent implements OnInit {
 
   activeSection = signal<Section>('ajustes');
 
-  // 'ajustes' uses hardcoded label since nav.settings translates to "Configuración" (would dup with section title)
-  sections: { id: Section; labelKey?: TranslationKey; hardLabel?: string }[] = [
-    { id: 'ajustes', hardLabel: 'Ajustes' }, // TODO: add i18n key
+  sections: { id: Section; labelKey: TranslationKey }[] = [
+    { id: 'ajustes', labelKey: 'settings.ajustes' },
     { id: 'perfil', labelKey: 'settings.profile' },
     { id: 'apariencia', labelKey: 'settings.appearance' },
     { id: 'idioma', labelKey: 'settings.language' },
@@ -70,8 +69,8 @@ export class SettingsComponent implements OnInit {
     this.i18n.setLocale(id);
   }
 
-  sectionLabel(s: { labelKey?: TranslationKey; hardLabel?: string }): string {
-    return s.labelKey ? this.i18n.t(s.labelKey) : (s.hardLabel ?? '');
+  sectionLabel(s: { labelKey: TranslationKey }): string {
+    return this.i18n.t(s.labelKey);
   }
 
   themeOptions: { id: Theme; name: string; bg: string; accent: string }[] = THEME_PRESETS.map((p) => ({

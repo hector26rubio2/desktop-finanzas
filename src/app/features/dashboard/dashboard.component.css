@@ -69,6 +69,115 @@
   max-height: 260px;
 }
 
+/* Period picker dropdown */
+:host .period-picker-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+:host .period-nav__label--btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  
+  padding: 6px 12px;
+  color: var(--fg-0);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    
+   
+    color var(--duration-fast) var(--ease-btn);
+}
+
+:host .period-nav__label--btn svg {
+  color: var(--fg-3);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+:host .period-nav__label--btn[aria-expanded='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+:host .period-nav__label--btn[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+:host .cashflow-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+:host .cashflow-title__sub {
+  font-size: 10px;
+  color: var(--fg-3);
+}
+
+:host .period-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: transparent;
+}
+
+:host .period-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-2);
+  padding: 4px;
+  z-index: 50;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:host .period-picker__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-button);
+  color: var(--fg-1);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
+}
+
+:host .period-picker__item:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .period-picker__item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* Gran-btn dropdown style (reserved for future use; current uses seg-ctrl) */
 :host .gran-btn {
   display: inline-flex;
@@ -130,5 +239,505 @@
 :host .gran-menu__item.active {
   background: var(--accent-soft);
   color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Date Picker Dropdown ──────────────────────────────────── */
+:host .picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: transparent;
+}
+
+:host .date-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: -8px;
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-2);
+  padding: 14px 16px;
+  z-index: 50;
+  min-width: 248px;
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+:host .date-picker::-webkit-scrollbar {
+  width: 3px;
+}
+
+:host .date-picker::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:host .date-picker::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+:host .dp-title {
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-button);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  align-self: center;
+}
+
+:host .dp-title:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+:host .dp-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-3);
+  font-size: 9px;
+  cursor: pointer;
+  border-radius: var(--radius-button);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  font-family: inherit;
+}
+
+:host .dp-arrow:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+/* ── Month grid ────────────────────────────────────────────── */
+:host .dp-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 2px;
+}
+
+:host .dp-month-btn {
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-month-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-month-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+/* ── Day grid ──────────────────────────────────────────────── */
+:host .dp-day-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+:host .dp-day-head__c {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-align: center;
+  padding: 4px 0 6px;
+  text-transform: uppercase;
+}
+
+:host .dp-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+:host .dp-day-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-day-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-day-btn--today {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+:host .dp-day-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+:host .dp-day-empty {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+}
+
+/* ── Year grid ─────────────────────────────────────────────── */
+:host .dp-year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+}
+
+:host .dp-year-btn {
+  padding: 12px 6px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-year-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-year-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+:host .date-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: calc(100% - 84px);
+  transform: translateX(-50%);
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-2);
+  padding: 14px 16px;
+  z-index: 50;
+  min-width: 248px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:host .dp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+:host .dp-nav__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-button);
+  border: 0;
+  background: transparent;
+  color: var(--fg-2);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  font-family: inherit;
+}
+
+:host .dp-nav__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-0);
+  min-width: 100px;
+  text-align: center;
+  user-select: none;
+}
+
+:host .dp-year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+}
+
+:host .dp-year-btn {
+  padding: 12px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--line-1);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-year-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg-0);
+  border-color: var(--line-2);
+}
+
+:host .dp-nav__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-button);
+  border: 0;
+  background: transparent;
+  color: var(--fg-2);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  font-family: inherit;
+}
+
+:host .dp-nav__btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-nav__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-0);
+  min-width: 80px;
+  text-align: center;
+  user-select: none;
+}
+
+:host .dp-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+:host .dp-month-btn {
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--line-1);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-month-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg-0);
+  border-color: var(--line-2);
+}
+
+:host .dp-month-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-month-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+:host .dp-month-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg-0);
+}
+
+:host .dp-month-btn--active:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+:host .dp-day-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+:host .dp-day-head__c {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-align: center;
+  padding: 4px 0 6px;
+  text-transform: uppercase;
+}
+
+:host .dp-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+:host .dp-day-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-day-empty {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+}
+
+:host .dp-day-head__c {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-align: center;
+  padding: 2px 0;
+  text-transform: uppercase;
+}
+
+:host .dp-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+:host .dp-day-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-day-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-day-btn--today {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+:host .dp-day-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+:host .dp-day-empty {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+}
+
+:host .dp-year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+
+:host .dp-year-btn {
+  padding: 8px 6px;
+  border-radius: var(--radius-button);
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+:host .dp-year-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .dp-year-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
   font-weight: 600;
 }

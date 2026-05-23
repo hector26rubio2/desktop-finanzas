@@ -463,6 +463,30 @@ const en: Record<TranslationKey, string> = {
   'admin.table_estado': 'Status',
   'admin.table_creado': 'Created',
   'admin.sin_usuarios': 'No users',
+
+  'settings.ajustes': 'Settings',
+  'settings.ajustes_intro':
+    'Settings hub. Choose a section from the panel to configure profile, appearance, language, currencies, shortcuts, or view general information.',
+  'common.previous': 'Previous',
+  'common.next': 'Next',
+  'common.expand_menu': 'Expand menu',
+  'common.collapse_menu': 'Collapse menu',
+  'common.all': 'All',
+  'common.all_currencies': 'All currencies',
+  'dashboard.cashflow': 'Cashflow',
+  'dashboard.subtitle_year': 'Last 12 months',
+  'dashboard.subtitle_month': 'Days of month',
+  'dashboard.subtitle_week': 'Last 7 days',
+  'dashboard.subtitle_day': 'Last 24 hours',
+  'dashboard.gran_day': 'Day',
+  'dashboard.gran_week': 'Week',
+  'dashboard.gran_month': 'Month',
+  'dashboard.gran_year': 'Year',
+  'dashboard.total': 'TOTAL',
+  'common.main_nav': 'Main navigation',
+  'common.search_dialog': 'Quick search',
+  'common.search_input': 'Search',
+  'common.new_movement_dialog': 'New transaction',
 };
 
 export default en;

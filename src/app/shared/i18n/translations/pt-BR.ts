@@ -464,6 +464,30 @@ const pt: Record<TranslationKey, string> = {
   'admin.table_estado': 'Estado',
   'admin.table_creado': 'Criado',
   'admin.sin_usuarios': 'Sem usuários',
+
+  'settings.ajustes': 'Ajustes',
+  'settings.ajustes_intro':
+    'Central de ajustes. Escolha uma seção do painel para configurar perfil, aparência, idioma, moedas, atalhos, ou ver informações gerais.',
+  'common.previous': 'Anterior',
+  'common.next': 'Próximo',
+  'common.expand_menu': 'Expandir menu',
+  'common.collapse_menu': 'Recolher menu',
+  'common.all': 'Tudo',
+  'common.all_currencies': 'Todas as moedas',
+  'dashboard.cashflow': 'Fluxo de caixa',
+  'dashboard.subtitle_year': 'Últimos 12 meses',
+  'dashboard.subtitle_month': 'Dias do mês',
+  'dashboard.subtitle_week': 'Últimos 7 dias',
+  'dashboard.subtitle_day': 'Últimas 24 horas',
+  'dashboard.gran_day': 'Dia',
+  'dashboard.gran_week': 'Sem',
+  'dashboard.gran_month': 'Mês',
+  'dashboard.gran_year': 'Ano',
+  'dashboard.total': 'TOTAL',
+  'common.main_nav': 'Navegação principal',
+  'common.search_dialog': 'Busca rápida',
+  'common.search_input': 'Buscar',
+  'common.new_movement_dialog': 'Novo movimento',
 };
 
 export default pt;

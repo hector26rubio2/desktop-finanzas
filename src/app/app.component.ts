@@ -11,8 +11,6 @@ import { PlatformService } from './shared/services/platform.service';
 import { I18nService } from './shared/i18n/i18n.service';
 import type { TranslationKey } from './shared/i18n/locale.types';
 import { ICONS } from './shared/icons';
-import { LangPickerComponent } from '@shared/lang-picker';
-import { ThemePickerComponent } from '@shared/theme-picker';
 
 interface NavItem {
   id: string;
@@ -58,7 +56,7 @@ const NAV_GROUPS: NavGroup[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, FormsModule, LangPickerComponent, ThemePickerComponent],
+  imports: [RouterOutlet, CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

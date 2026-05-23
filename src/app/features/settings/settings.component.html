@@ -28,10 +28,10 @@
     @if (activeSection() === 'ajustes') {
       <div style="max-width: 560px">
         <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 12px">
-          Ajustes generales
+          {{ i18n.t('settings.ajustes') }}
         </h3>
         <p style="font-size: 13px; color: var(--fg-2); line-height: 1.6; margin-bottom: 20px">
-          Centro de ajustes de la aplicación. Elige una sección del panel izquierdo para configurar perfil, apariencia, idioma, monedas, atajos, o ver información general.
+          {{ i18n.t('settings.ajustes_intro') }}
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px">
           <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('perfil')">

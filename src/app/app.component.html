@@ -7,7 +7,7 @@
         type="button"
         class="sidebar__head"
         (click)="toggleSidebar()"
-        [attr.title]="sidebarCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+        [attr.title]="sidebarCollapsed() ? i18n.t('common.expand_menu') : i18n.t('common.collapse_menu')"
       >
         <span class="sidebar__brand-mark">f</span>
         <span class="sidebar__brand-name">{{ i18n.t('app.title') }}</span>
@@ -31,7 +31,7 @@
         <span class="kbd">{{ os.kbd('K') }}</span>
       </button>
 
-      <nav class="sidebar__scroll" role="navigation" aria-label="Navegación principal">
+      <nav class="sidebar__scroll" role="navigation" [attr.aria-label]="i18n.t('common.main_nav')">
         @for (group of navGroups(); track group.label) {
           <div class="sidebar__group" role="separator">{{ group.label }}</div>
           @for (item of group.items; track item.id) {
@@ -207,7 +207,7 @@
 @if (!isAuthPage()) {
   <!-- CMDK Palette -->
   @if (showCmdk) {
-    <div class="overlay" (click)="showCmdk = false" role="dialog" aria-modal="true" aria-label="Búsqueda rápida">
+    <div class="overlay" (click)="showCmdk = false" role="dialog" aria-modal="true" [attr.aria-label]="i18n.t('common.search_dialog')">
       <div class="cmdk" (click)="$event.stopPropagation()" role="listbox">
         <div class="cmdk__input-wrap">
           <svg
@@ -230,7 +230,7 @@
             (input)="filterCmdk()"
             autofocus
             role="searchbox"
-            aria-label="Buscar"
+            [attr.aria-label]="i18n.t('common.search_input')"
           />
           <span class="kbd" style="cursor: pointer" (click)="showCmdk = false">ESC</span>
         </div>
@@ -270,7 +270,7 @@
       (click)="showNewMovement = false"
       role="dialog"
       aria-modal="true"
-      aria-label="Nuevo movimiento"
+      [attr.aria-label]="i18n.t('common.new_movement_dialog')"
     >
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal__h">

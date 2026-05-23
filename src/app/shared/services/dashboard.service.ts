@@ -74,6 +74,49 @@ export class DashboardService {
     return d.toLocaleDateString('es', { month: 'long', year: 'numeric' });
   });
 
+  readonly currentLabelKey = computed(() => {
+    const now = new Date();
+    const off = this.offset();
+    const g = this.granularity();
+    if (g === 'year') return `${now.getFullYear() + off}-01-01`;
+    if (g === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (g === 'week' ? off * 7 : off));
+    return d.toISOString().slice(0, 10);
+  });
+
+  jumpTo(target: string) {
+    const g = this.granularity();
+    const [ty, tm, td] = target.split('-').map(Number);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    if (g === 'year') {
+      this.offset.set(ty - now.getFullYear());
+    } else if (g === 'month') {
+      const cm = now.getFullYear() * 12 + now.getMonth();
+      const tm2 = ty * 12 + tm - 1;
+      this.offset.set(tm2 - cm);
+    } else if (g === 'day') {
+      const target = new Date(ty, tm - 1, td);
+      const diff = target.getTime() - now.getTime();
+      this.offset.set(Math.round(diff / 86400000));
+    } else {
+      // week: find which week the target belongs to
+      const targetDate = new Date(ty, tm - 1, td);
+      const day = targetDate.getDay();
+      const diff2 = targetDate.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(targetDate.getFullYear(), targetDate.getMonth(), diff2);
+      const nowDay = now.getDay();
+      const nowDiff = now.getDate() - nowDay + (nowDay === 0 ? -6 : 1);
+      const nowMonday = new Date(now.getFullYear(), now.getMonth(), nowDiff);
+      const weekDiff = monday.getTime() - nowMonday.getTime();
+      this.offset.set(Math.round(weekDiff / (86400000 * 7)));
+    }
+    this.load();
+  }
+
   private cache: MovementResponse[] = [];
 
   prev() {
@@ -83,6 +126,11 @@ export class DashboardService {
 
   next() {
     this.offset.update((n) => n + 1);
+    this.load();
+  }
+
+  setOffset(n: number) {
+    this.offset.set(n);
     this.load();
   }
 

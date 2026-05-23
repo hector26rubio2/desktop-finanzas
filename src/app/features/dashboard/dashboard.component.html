@@ -7,14 +7,72 @@
           [class.seg-ctrl__btn--active]="ds.granularity() === opt.key"
           (click)="ds.setGranularity(opt.key)"
         >
-          {{ opt.label }}
+          {{ i18n.t(opt.keyLabel) }}
         </button>
       }
     </div>
     <div class="period-nav">
-      <button class="period-nav__btn" (click)="ds.prev()">◀</button>
-      <span class="period-nav__label">{{ ds.currentLabel() }}</span>
-      <button class="period-nav__btn" (click)="ds.next()">▶</button>
+      <button class="period-nav__btn" (click)="ds.prev()" [attr.title]="i18n.t('common.previous')">&#9664;</button>
+      <div class="period-picker-wrap">
+        <button class="period-nav__label period-nav__label--btn" (click)="togglePicker()">
+          {{ ds.currentLabel() }}
+        </button>
+        @if (showPicker()) {
+          <div class="picker-backdrop" (click)="closePicker()"></div>
+          <div class="date-picker">
+            @if (ds.granularity() === 'year') {
+              <div class="dp-year-grid">
+                @for (y of yearList(); track y) {
+                  <button class="dp-year-btn" [class.dp-year-btn--active]="isYearActive(y)" (click)="selectYear(y)">{{ y }}</button>
+                }
+              </div>
+            } @else if (pickerMode() === 'year') {
+              <div class="dp-year-grid">
+                @for (y of yearList(); track y) {
+                  <button class="dp-year-btn" [class.dp-year-btn--active]="false" (click)="selectYear(y)">{{ y }}</button>
+                }
+              </div>
+            } @else if (ds.granularity() === 'month') {
+              <button class="dp-title" (click)="pickerMode.set('year')">{{ pickerYear() }}</button>
+              <div class="dp-month-grid">
+                @for (m of MONTHS; track m; let i = $index) {
+                  <button class="dp-month-btn" [class.dp-month-btn--active]="isMonthActive(i)" (click)="selectMonth(i)">
+                    {{ m }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="dp-head">
+                <button class="dp-arrow" (click)="pickerPrevMonth()">&#9664;</button>
+                <button class="dp-title" (click)="pickerMode.set('year')">{{ MONTHS[pickerMonth()] }} {{ pickerYear() }}</button>
+                <button class="dp-arrow" (click)="pickerNextMonth()">&#9654;</button>
+              </div>
+              <div class="dp-day-head">
+                @for (d of DAYS; track d) {
+                  <span class="dp-day-head__c">{{ d }}</span>
+                }
+              </div>
+              <div class="dp-day-grid">
+                @for (d of dayGrid(); track $index) {
+                  @if (d !== null) {
+                    <button
+                      class="dp-day-btn"
+                      [class.dp-day-btn--today]="isToday(d)"
+                      [class.dp-day-btn--active]="isDayActive(d)"
+                      (click)="selectDay(d)"
+                    >
+                      {{ d }}
+                    </button>
+                  } @else {
+                    <span class="dp-day-empty"></span>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <button class="period-nav__btn" (click)="ds.next()" [attr.title]="i18n.t('common.next')">&#9654;</button>
     </div>
   </div>
 
@@ -53,14 +111,16 @@
         </div>
       }
     </div>
-
     <div class="chart-grid stagger">
       <div class="card">
         <div class="card__h">
-          <span class="card__title">{{ i18n.t('dashboard.cashflow_title') }}</span>
+          <div class="cashflow-title">
+            <span class="card__title">Cashflow</span
+            ><span class="eyebrow cashflow-title__sub">&middot; {{ cashflowSubtitle() }}</span>
+          </div>
           <div class="legend-inline">
-            <span class="legend-dot clr-pos">● {{ i18n.t('dashboard.ingresos') }}</span>
-            <span class="legend-dot clr-neg">● {{ i18n.t('dashboard.gastos') }}</span>
+            <span class="legend-dot clr-pos">● {{ i18n.t('dashboard.ingresos') }}</span
+            ><span class="legend-dot clr-neg">● {{ i18n.t('dashboard.gastos') }}</span>
           </div>
         </div>
         <div class="card__body">
@@ -75,14 +135,14 @@
       </div>
       <div class="card">
         <div class="card__h">
-          <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
-          <span class="eyebrow">{{ ds.currentLabel() }}</span>
+          <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span
+          ><span class="eyebrow">{{ ds.currentLabel() }}</span>
         </div>
         <div style="display: flex; gap: 8px; padding: 0 16px 12px">
           <select class="select" style="flex: 1" [ngModel]="ds.typeFilter()" (ngModelChange)="ds.setTypeFilter($event)">
-            <option value="all">Todo</option>
-            <option value="Income">Ingresos</option>
-            <option value="Expense">Gastos</option>
+            <option value="all">{{ i18n.t('common.all') }}</option>
+            <option value="Income">{{ i18n.t('transactions.income') }}</option>
+            <option value="Expense">{{ i18n.t('transactions.expense') }}</option>
           </select>
           <select
             class="select"
@@ -90,7 +150,7 @@
             [ngModel]="ds.currencyFilter()"
             (ngModelChange)="ds.setCurrencyFilter($event)"
           >
-            <option value="">Todas las monedas</option>
+            <option value="">{{ i18n.t('common.all_currencies') }}</option>
             @for (ccy of ds.availableCurrencies(); track ccy) {
               <option [value]="ccy">{{ ccy }}</option>
             }
@@ -107,11 +167,10 @@
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="card__h">
-        <span class="card__title">{{ i18n.t('dashboard.movimientos_recientes') }}</span>
-        <button class="btn btn--ghost btn--sm" (click)="router.navigate(['/movements'])">
+        <span class="card__title">{{ i18n.t('dashboard.movimientos_recientes') }}</span
+        ><button class="btn btn--ghost btn--sm" (click)="router.navigate(['/movements'])">
           {{ i18n.t('dashboard.ver_todos') }}
         </button>
       </div>
@@ -130,9 +189,9 @@
               <td class="mono subtle td-date">{{ m.date }}</td>
               <td>{{ m.description ?? '—' }}</td>
               <td>
-                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
-                  {{ m.type === 'Income' ? i18n.t('dashboard.ingresos') : i18n.t('dashboard.gastos') }}
-                </span>
+                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">{{
+                  m.type === 'Income' ? i18n.t('dashboard.ingresos') : i18n.t('dashboard.gastos')
+                }}</span>
               </td>
               <td class="num mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
                 {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
@@ -141,9 +200,7 @@
           }
           @if (ds.recentMovements().length === 0) {
             <tr>
-              <td colspan="4" class="empty-state ta-center p-40">
-                {{ i18n.t('dashboard.sin_movimientos') }}
-              </td>
+              <td colspan="4" class="empty-state ta-center p-40">{{ i18n.t('dashboard.sin_movimientos') }}</td>
             </tr>
           }
         </tbody>
