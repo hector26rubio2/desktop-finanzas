@@ -1,12 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-
-export interface UserInfo {
-  id: string;
-  email: string;
-  name: string;
-  baseCurrency: string;
-  role: string;
-}
+import type { UserInfo } from '../../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class TokenService {

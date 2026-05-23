@@ -194,6 +194,7 @@ const es: Record<TranslationKey, string> = {
   'dashboard.monto': 'Monto',
   'dashboard.sin_categoria': 'Sin categoría',
   'dashboard.sin_movimientos': 'Sin movimientos',
+  'dashboard.transacciones': 'Transacciones',
 
   'transactions.total_ingresos': 'Ingresos',
   'transactions.total_gastos': 'Gastos',

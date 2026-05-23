@@ -24,90 +24,56 @@
     will-change: transform, opacity;
   }
 
-  :host .stagger > *:nth-child(1) {
-    animation-delay: 40ms;
-  }
-  :host .stagger > *:nth-child(2) {
-    animation-delay: 80ms;
-  }
-  :host .stagger > *:nth-child(3) {
-    animation-delay: 120ms;
-  }
-  :host .stagger > *:nth-child(4) {
-    animation-delay: 160ms;
-  }
-  :host .stagger > *:nth-child(5) {
-    animation-delay: 200ms;
-  }
-  :host .stagger > *:nth-child(6) {
-    animation-delay: 240ms;
-  }
+  :host .stagger > *:nth-child(1) { animation-delay: 40ms; }
+  :host .stagger > *:nth-child(2) { animation-delay: 80ms; }
+  :host .stagger > *:nth-child(3) { animation-delay: 120ms; }
+  :host .stagger > *:nth-child(4) { animation-delay: 160ms; }
+  :host .stagger > *:nth-child(5) { animation-delay: 200ms; }
+  :host .stagger > *:nth-child(6) { animation-delay: 240ms; }
 }
 
 @keyframes dash-stagger-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Doughnut card body — fixed height so chart renders cleanly */
 :host .card__body--center {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px 20px;
-  min-height: 280px;
+  padding: 4px 16px 12px;
+  flex: 1;
+  min-height: 240px;
 }
 
-:host .card__body--center canvas {
-  max-width: 100%;
-  max-height: 260px;
-}
-
-/* Period picker dropdown */
-:host .period-picker-wrap {
+:host .donut-wrap {
+  width: 100%;
+  max-width: 260px;
+  margin: auto;
   position: relative;
-  display: inline-flex;
 }
 
-:host .period-nav__label--btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  
-  padding: 6px 12px;
-  color: var(--fg-0);
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    
-   
-    color var(--duration-fast) var(--ease-btn);
+:host .donut-wrap canvas {
+  display: block;
 }
 
-:host .period-nav__label--btn svg {
-  color: var(--fg-3);
-  flex-shrink: 0;
-  transition: transform var(--duration-fast) var(--ease-out);
+:host .chart-grid .card {
+  display: flex;
+  flex-direction: column;
 }
 
-:host .period-nav__label--btn[aria-expanded='true'] {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
+:host .chart-wrap {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 180px;
+  padding: 8px 16px 12px;
 }
 
-:host .period-nav__label--btn[aria-expanded='true'] svg {
-  transform: rotate(180deg);
-  color: var(--accent);
+:host .chart-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 :host .cashflow-title {
@@ -122,127 +88,86 @@
   color: var(--fg-3);
 }
 
-:host .period-picker-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 49;
-  background: transparent;
-}
-
-:host .period-picker {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-2);
-  padding: 4px;
-  z-index: 50;
-  min-width: 200px;
-  max-height: 320px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-:host .period-picker__item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 8px 12px;
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-button);
-  color: var(--fg-1);
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
-  transition:
-    background var(--duration-fast) var(--ease-btn),
-    color var(--duration-fast) var(--ease-btn);
-}
-
-:host .period-picker__item:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .period-picker__item.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* Gran-btn dropdown style (reserved for future use; current uses seg-ctrl) */
-:host .gran-btn {
+:host .seg-ctrl {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  background: var(--bg-2);
+  gap: 0;
   border: 1px solid var(--line-1);
   border-radius: var(--radius-button);
-  color: var(--fg-1);
+  overflow: hidden;
+}
+
+:host .seg-ctrl__btn {
+  padding: 4px 10px;
   font-size: 11px;
   font-family: inherit;
+  font-weight: 500;
+  background: transparent;
+  color: var(--fg-2);
+  border: 0;
+  border-right: 1px solid var(--line-1);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
 }
 
-:host .gran-btn:hover {
-  background: var(--bg-3);
-  color: var(--fg-0);
+:host .seg-ctrl__btn:last-child { border-right: 0; }
+:host .seg-ctrl__btn:hover { background: var(--hover); color: var(--fg-0); }
+:host .seg-ctrl__btn--active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+:host .seg-ctrl__btn--active:hover { background: var(--accent-soft); color: var(--accent); }
+
+:host .period-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-:host .gran-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-card);
-  padding: 4px;
-  box-shadow: var(--shadow-2);
-  min-width: 160px;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-:host .gran-menu__item {
+:host .period-nav__btn {
   display: flex;
   align-items: center;
-  width: 100%;
-  padding: 7px 10px;
-  background: transparent;
-  border: 0;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-button);
-  color: var(--fg-1);
-  font-size: 12px;
+  border: 1px solid var(--line-1);
+  background: var(--bg-2);
+  color: var(--fg-2);
+  font-size: 10px;
   cursor: pointer;
-  text-align: left;
-  transition: background var(--duration-fast) var(--ease-btn);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
 }
 
-:host .gran-menu__item:hover {
-  background: var(--hover);
+:host .period-nav__btn:hover {
+  background: var(--bg-3);
   color: var(--fg-0);
+  border-color: var(--line-2);
 }
 
-:host .gran-menu__item.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
+:host .period-picker-wrap {
+  position: relative;
+  display: inline-flex;
 }
 
-/* ── Date Picker Dropdown ──────────────────────────────────── */
+:host .period-nav__label--btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  color: var(--fg-0);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-button);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+}
+
+:host .period-nav__label--btn:hover {
+  background: var(--hover);
+  border-color: var(--line-2);
+}
+
+/* ── Date Picker ─────────────────────────────────────────────── */
 :host .picker-backdrop {
   position: fixed;
   inset: 0;
@@ -270,19 +195,6 @@
   scrollbar-color: var(--accent) transparent;
 }
 
-:host .date-picker::-webkit-scrollbar {
-  width: 3px;
-}
-
-:host .date-picker::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-:host .date-picker::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 3px;
-}
-
 :host .dp-title {
   border: 0;
   background: transparent;
@@ -297,11 +209,7 @@
   transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
   align-self: center;
 }
-
-:host .dp-title:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
+:host .dp-title:hover { background: var(--hover); color: var(--fg-0); }
 
 :host .dp-head {
   display: flex;
@@ -311,231 +219,6 @@
 }
 
 :host .dp-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  background: transparent;
-  color: var(--fg-3);
-  font-size: 9px;
-  cursor: pointer;
-  border-radius: var(--radius-button);
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-  font-family: inherit;
-}
-
-:host .dp-arrow:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-/* ── Month grid ────────────────────────────────────────────── */
-:host .dp-month-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  padding: 2px;
-}
-
-:host .dp-month-btn {
-  padding: 10px 4px;
-  border-radius: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--fg-1);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: center;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-}
-
-:host .dp-month-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-month-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-weight: 600;
-}
-
-/* ── Day grid ──────────────────────────────────────────────── */
-:host .dp-day-head {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-:host .dp-day-head__c {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--fg-3);
-  text-align: center;
-  padding: 4px 0 6px;
-  text-transform: uppercase;
-}
-
-:host .dp-day-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-:host .dp-day-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: 0;
-  background: transparent;
-  color: var(--fg-1);
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-}
-
-:host .dp-day-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-day-btn--today {
-  border: 1.5px solid var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-:host .dp-day-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-weight: 600;
-}
-
-:host .dp-day-empty {
-  width: 30px;
-  height: 30px;
-  margin: 0 auto;
-}
-
-/* ── Year grid ─────────────────────────────────────────────── */
-:host .dp-year-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 2px;
-}
-
-:host .dp-year-btn {
-  padding: 12px 6px;
-  border-radius: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--fg-1);
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: center;
-  font-weight: 500;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-}
-
-:host .dp-year-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-year-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-weight: 600;
-}
-
-:host .date-picker {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: calc(100% - 84px);
-  transform: translateX(-50%);
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-2);
-  padding: 14px 16px;
-  z-index: 50;
-  min-width: 248px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-:host .dp-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 0 4px;
-}
-
-:host .dp-nav__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-button);
-  border: 0;
-  background: transparent;
-  color: var(--fg-2);
-  font-size: 11px;
-  cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-  font-family: inherit;
-}
-
-:host .dp-nav__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg-0);
-  min-width: 100px;
-  text-align: center;
-  user-select: none;
-}
-
-:host .dp-year-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 2px;
-}
-
-:host .dp-year-btn {
-  padding: 12px 6px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1);
-  background: var(--bg-2);
-  color: var(--fg-1);
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: center;
-  font-weight: 500;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
-}
-
-:host .dp-year-btn:hover {
-  background: var(--bg-3);
-  color: var(--fg-0);
-  border-color: var(--line-2);
-}
-
-:host .dp-nav__btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -550,20 +233,7 @@
   transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
   font-family: inherit;
 }
-
-:host .dp-nav__btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-nav__title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--fg-0);
-  min-width: 80px;
-  text-align: center;
-  user-select: none;
-}
+:host .dp-arrow:hover { background: var(--hover); color: var(--fg-0); }
 
 :host .dp-month-grid {
   display: grid;
@@ -583,79 +253,14 @@
   text-align: center;
   transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
 }
-
-:host .dp-month-btn:hover {
-  background: var(--bg-3);
-  color: var(--fg-0);
-  border-color: var(--line-2);
-}
-
-:host .dp-month-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-month-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  border-color: var(--accent);
-  font-weight: 600;
-}
-
-:host .dp-month-btn:hover {
-  background: var(--bg-3);
-  color: var(--fg-0);
-}
-
-:host .dp-month-btn--active:hover {
-  background: var(--accent);
-  color: var(--accent-fg);
-}
+:host .dp-month-btn:hover { background: var(--bg-3); color: var(--fg-0); border-color: var(--line-2); }
+:host .dp-month-btn--active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 
 :host .dp-day-head {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
 }
-
-:host .dp-day-head__c {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--fg-3);
-  text-align: center;
-  padding: 4px 0 6px;
-  text-transform: uppercase;
-}
-
-:host .dp-day-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-:host .dp-day-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: 0;
-  background: transparent;
-  color: var(--fg-1);
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
-}
-
-:host .dp-day-empty {
-  width: 30px;
-  height: 30px;
-  margin: 0 auto;
-}
-
 :host .dp-day-head__c {
   font-size: 9px;
   font-weight: 600;
@@ -687,23 +292,9 @@
   margin: 0 auto;
   transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
 }
-
-:host .dp-day-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-day-btn--today {
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-:host .dp-day-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-weight: 600;
-}
+:host .dp-day-btn:hover { background: var(--hover); color: var(--fg-0); }
+:host .dp-day-btn--today { border: 1px solid var(--accent); color: var(--accent); font-weight: 600; }
+:host .dp-day-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
 
 :host .dp-day-empty {
   width: 28px;
@@ -730,14 +321,5 @@
   font-weight: 500;
   transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
 }
-
-:host .dp-year-btn:hover {
-  background: var(--hover);
-  color: var(--fg-0);
-}
-
-:host .dp-year-btn--active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-weight: 600;
-}
+:host .dp-year-btn:hover { background: var(--hover); color: var(--fg-0); }
+:host .dp-year-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }

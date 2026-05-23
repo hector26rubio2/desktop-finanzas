@@ -103,6 +103,10 @@
         <div class="eyebrow">{{ i18n.t('dashboard.gastos_12m') }}</div>
         <div class="num-md mt-8 clr-neg">{{ ds.totalExpense() | number: '1.0-0' }}</div>
       </div>
+      <div class="kpi-card">
+        <div class="eyebrow">{{ i18n.t('dashboard.transacciones') }}</div>
+        <div class="num-md mt-8">{{ ds.transactionCount() }}</div>
+      </div>
       @if (ds.topLabel()) {
         <div class="kpi-card">
           <div class="eyebrow">{{ topLabelKey() }}</div>
@@ -123,9 +127,9 @@
             ><span class="legend-dot clr-neg">● {{ i18n.t('dashboard.gastos') }}</span>
           </div>
         </div>
-        <div class="card__body">
+        <div class="card__body chart-wrap">
           @if (ds.lineData().length > 0 && (ds.totalIncome() > 0 || ds.totalExpense() > 0)) {
-            <canvas #lineCanvas height="200"></canvas>
+            <canvas #lineCanvas></canvas>
           } @else {
             <div class="empty-state p-40">
               <p>{{ i18n.t('dashboard.sin_datos') }}</p>
@@ -158,7 +162,9 @@
         </div>
         <div class="card__body card__body--center">
           @if (ds.categoryExpenses().length > 0) {
-            <canvas #pieCanvas width="260" height="260"></canvas>
+            <div class="donut-wrap">
+              <canvas #pieCanvas></canvas>
+            </div>
           } @else {
             <div class="empty-state p-40">
               <p>{{ i18n.t('dashboard.sin_datos') }}</p>
@@ -186,7 +192,7 @@
         <tbody>
           @for (m of ds.recentMovements(); track m.id) {
             <tr>
-              <td class="mono subtle td-date">{{ m.date }}</td>
+              <td class="mono subtle td-date">{{ fmtDate(m.date) }}</td>
               <td>{{ m.description ?? '—' }}</td>
               <td>
                 <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">{{

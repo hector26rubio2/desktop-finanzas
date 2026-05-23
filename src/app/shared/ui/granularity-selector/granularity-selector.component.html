@@ -1,0 +1,11 @@
+<div class="seg-ctrl">
+  @for (opt of options(); track opt.key) {
+    <button
+      class="seg-ctrl__btn"
+      [class.seg-ctrl__btn--active]="active() === opt.key"
+      (click)="selectionChange.emit(opt.key)"
+    >
+      {{ i18n.t(opt.keyLabel) }}
+    </button>
+  }
+</div>

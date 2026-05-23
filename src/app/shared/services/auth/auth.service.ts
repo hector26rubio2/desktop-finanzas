@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { ApiService, AuthResponse } from '../api.service';
+import { AuthApiService } from '../api/auth-api.service';
+import type { AuthResponse } from '../../models/auth.model';
 import { tap } from 'rxjs';
 import { TokenService } from './token.service';
 import { SessionService } from './session.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private api = inject(ApiService);
+  private api = inject(AuthApiService);
   private router = inject(Router);
   private token = inject(TokenService);
   private session = inject(SessionService);

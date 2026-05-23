@@ -179,6 +179,7 @@ export type TranslationKey =
   | 'dashboard.monto'
   | 'dashboard.sin_categoria'
   | 'dashboard.sin_movimientos'
+  | 'dashboard.transacciones'
   | 'dashboard.cargando'
   | 'transactions.total_ingresos'
   | 'transactions.total_gastos'

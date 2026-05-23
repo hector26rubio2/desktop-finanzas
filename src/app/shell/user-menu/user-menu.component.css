@@ -1,0 +1,101 @@
+.user-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: transparent;
+}
+
+.user-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-2);
+  padding: 6px 0;
+  min-width: 220px;
+  max-width: 280px;
+  z-index: 50;
+  animation: menu-in 160ms var(--ease-out);
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-menu__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.user-menu__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Geist', sans-serif;
+  flex-shrink: 0;
+}
+
+.user-menu__info {
+  min-width: 0;
+}
+
+.user-menu__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu__mail {
+  font-size: 11px;
+  color: var(--fg-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu__divider {
+  height: 1px;
+  background: var(--line-1);
+  margin: 4px 0;
+}
+
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: 0;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+
+.user-menu__item:hover { background: var(--hover); color: var(--fg-0); }
+.user-menu__item--danger { color: var(--negative); }
+.user-menu__item--danger:hover { background: color-mix(in oklch, var(--negative) 10%, var(--bg-1)); }
+
+.user-menu__hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--fg-3);
+  font-family: 'Geist Mono', monospace;
+}

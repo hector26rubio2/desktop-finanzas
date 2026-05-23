@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ApiService, AccountResponse, AccountBalance } from '../../shared/services/api.service';
@@ -11,6 +11,7 @@ interface CardWithBalance extends AccountResponse {
 @Component({
   selector: 'app-cards',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './cards.component.html',
   styleUrl: './cards.component.css',

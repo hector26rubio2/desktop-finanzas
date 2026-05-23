@@ -1,0 +1,10 @@
+<div class="card" [class.card--interactive]="interactive()">
+  <div class="card__h" *ngIf="title()">
+    <span class="card__title">{{ title() }}</span>
+    <span class="card__subtitle eyebrow" *ngIf="subtitle()">{{ subtitle() }}</span>
+    <ng-content select="[card-actions]" />
+  </div>
+  <div class="card__body">
+    <ng-content />
+  </div>
+</div>

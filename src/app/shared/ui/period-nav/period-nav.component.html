@@ -1,0 +1,15 @@
+<div class="period-nav">
+  <button class="period-nav__btn" (click)="prev.emit()" [attr.title]="i18n.t('common.previous')">&#9664;</button>
+  <div class="period-picker-wrap">
+    <button class="period-nav__label period-nav__label--btn" (click)="togglePicker()">
+      {{ label() }}
+    </button>
+    <app-date-picker
+      [granularity]="granularity()"
+      [activeLabelKey]="activeLabelKey()"
+      (selectDate)="selectDate.emit($event)"
+      (closePicker)="showPicker.set(false)"
+    />
+  </div>
+  <button class="period-nav__btn" (click)="next.emit()" [attr.title]="i18n.t('common.next')">&#9654;</button>
+</div>

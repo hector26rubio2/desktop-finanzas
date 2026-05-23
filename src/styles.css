@@ -1572,6 +1572,10 @@ label {
   gap: var(--gutter);
 }
 
+.chart-grid .card {
+  max-height: 360px;
+}
+
 @media (max-width: 900px) {
   .chart-grid {
     grid-template-columns: 1fr;
@@ -1850,6 +1854,25 @@ label {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--gutter);
 }
+
+.chart-skel-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+@media (max-width: 900px) {
+  .chart-skel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.h-78  { height: 78px; }
+.h-200 { height: 200px; }
+.h-280 { height: 280px; }
+.mt-8  { margin-top: 8px; }
+.p-40  { padding: 40px; }
+.ta-center { text-align: center; }
 
 /* ============================================================
    DASHBOARD NAVIGATION

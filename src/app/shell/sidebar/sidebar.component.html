@@ -1,0 +1,104 @@
+<aside class="sidebar">
+  <button
+    type="button"
+    class="sidebar__head"
+    (click)="toggle.emit()"
+    [attr.title]="collapsed() ? i18n.t('common.expand_menu') : i18n.t('common.collapse_menu')"
+  >
+    <span class="sidebar__brand-mark">f</span>
+    <span class="sidebar__brand-name">{{ i18n.t('app.title') }}</span>
+    <span class="sidebar__brand-ver">{{ i18n.t('app.version') }}</span>
+  </button>
+
+  <button class="sidebar__search" (click)="openCmdk.emit()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="7" cy="7" r="5" />
+      <path d="M12 12l3 3" />
+    </svg>
+    <span>{{ i18n.t('common.search') }}</span>
+  </button>
+
+  <nav class="sidebar__scroll" role="navigation" [attr.aria-label]="i18n.t('common.main_nav')">
+    @for (group of navGroups(); track group.label) {
+      <div class="sidebar__group" role="separator">{{ group.label }}</div>
+      @for (item of group.items; track item.id) {
+        <button
+          class="nav-item"
+          [class.nav-item--active]="activeView() === item.id"
+          [attr.aria-current]="activeView() === item.id ? 'page' : null"
+          [attr.title]="collapsed() ? item.label : null"
+          (click)="navigate.emit(item.id)"
+        >
+          <svg
+            class="nav-item__icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            [innerHTML]="iconSvg(item.icon)"
+            aria-hidden="true"
+          ></svg>
+          <span>{{ item.label }}</span>
+          @if (item.badge) {
+            <span class="nav-item__badge">{{ item.badge }}</span>
+          }
+          @if (item.dot) {
+            <span class="nav-item__dot" aria-hidden="true"></span>
+          }
+        </button>
+      }
+    }
+    @if (role.isAdmin()) {
+      <div class="sidebar__group" role="separator">{{ i18n.t('nav.admin') }}</div>
+      <button
+        class="nav-item"
+        [class.nav-item--active]="activeView() === 'admin'"
+        [attr.aria-current]="activeView() === 'admin' ? 'page' : null"
+        [attr.title]="collapsed() ? i18n.t('nav.admin') : null"
+        (click)="navigate.emit('admin')"
+      >
+        <svg
+          class="nav-item__icon"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          [innerHTML]="iconSvg('admin')"
+          aria-hidden="true"
+        ></svg>
+        <span>{{ i18n.t('nav.admin') }}</span>
+      </button>
+    }
+  </nav>
+
+  <div class="sidebar__foot">
+    <div class="user-menu-wrap">
+      <button
+        type="button"
+        class="sidebar__foot-avatar"
+        (click)="toggleUserMenu()"
+        [attr.aria-expanded]="showUserMenu()"
+        [attr.aria-label]="userName()"
+      >
+        {{ userInitials() }}
+      </button>
+      @if (!collapsed()) {
+        <div class="sidebar__foot-meta" (click)="toggleUserMenu()" style="cursor: pointer">
+          <div class="sidebar__foot-name">{{ userName() }}</div>
+          <div class="sidebar__foot-mail">{{ userEmail() }}</div>
+        </div>
+      }
+      @if (showUserMenu()) {
+        <app-user-menu
+          (close)="closeUserMenu()"
+          (navigate)="onUserMenuNavigate($event)"
+          (openCmdk)="openCmdk.emit(); closeUserMenu()"
+        />
+      }
+    </div>
+  </div>
+</aside>

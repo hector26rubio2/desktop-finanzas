@@ -1,8 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ApiService, MovementResponse } from './api.service';
+import { MovementsApiService } from './api/movements-api.service';
+import type { MovementResponse } from '../models/movement.model';
 import { I18nService } from '../i18n/i18n.service';
+import { getMonthKey, getWeekRange, parseDate, toDateKey, toMonthKey } from '../utils/date';
 
 export type Granularity = 'day' | 'week' | 'month' | 'year';
 export type TypeFilter = 'all' | 'Income' | 'Expense';
@@ -13,26 +15,13 @@ export interface DataPoint {
   expense: number;
 }
 
-function getMonthKey(year: number, month: number): string {
-  return `${year}-${String(month + 1).padStart(2, '0')}`;
-}
-
-function getWeekRange(date: Date, lang = 'es'): { start: Date; end: Date; label: string } {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-  monday.setHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-  const fmt = (dt: Date) => dt.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
-  return { start: monday, end: sunday, label: `${fmt(monday)} – ${fmt(sunday)}` };
+function toDateStr(y: number, m: number, d: number): string {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private api = inject(ApiService);
+  private movementsApi = inject(MovementsApiService);
   private i18n = inject(I18nService);
 
   private lang = computed(() => {
@@ -53,6 +42,7 @@ export class DashboardService {
   readonly totalExpense = signal(0);
   readonly topLabel = signal('');
   readonly topAmount = signal(0);
+  readonly transactionCount = signal(0);
 
   readonly availableCurrencies = computed(() => {
     const ccs = new Set<string>();
@@ -94,7 +84,7 @@ export class DashboardService {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
     }
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (g === 'week' ? off * 7 : off));
-    return d.toISOString().slice(0, 10);
+    return toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
   });
 
   jumpTo(target: string) {
@@ -109,11 +99,10 @@ export class DashboardService {
       const tm2 = ty * 12 + tm - 1;
       this.offset.set(tm2 - cm);
     } else if (g === 'day') {
-      const target = new Date(ty, tm - 1, td);
-      const diff = target.getTime() - now.getTime();
+      const tgt = new Date(ty, tm - 1, td);
+      const diff = tgt.getTime() - now.getTime();
       this.offset.set(Math.round(diff / 86400000));
     } else {
-      // week: find which week the target belongs to
       const targetDate = new Date(ty, tm - 1, td);
       const day = targetDate.getDay();
       const diff2 = targetDate.getDate() - day + (day === 0 ? -6 : 1);
@@ -195,7 +184,7 @@ export class DashboardService {
   private fetchAll(yms: string[]) {
     forkJoin(
       yms.map((ym) =>
-        this.api.getMovements(ym, 1, 1000).pipe(
+        this.movementsApi.getMovements(ym, 1, 1000).pipe(
           catchError((err) => {
             console.error(`[dashboard] error fetching ${ym}:`, err);
             return of({ items: [], total: 0, page: 1, pageSize: 0 });
@@ -220,31 +209,30 @@ export class DashboardService {
     const off = this.offset();
     const g = this.granularity();
 
-    // ── Period filter (ALL data — type/currency filters NOT applied here) ──
     let periodData: MovementResponse[];
     if (g === 'year') {
       const year = now.getFullYear() + off;
-      periodData = this.cache.filter((m) => new Date(m.date).getFullYear() === year);
+      periodData = this.cache.filter((m) => parseDate(m.date).getFullYear() === year);
     } else if (g === 'month') {
       const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      const y = d.getFullYear(), mo = d.getMonth();
       periodData = this.cache.filter((m) => {
-        const md = new Date(m.date);
-        return md.getFullYear() === d.getFullYear() && md.getMonth() === d.getMonth();
+        const md = parseDate(m.date);
+        return md.getFullYear() === y && md.getMonth() === mo;
       });
     } else if (g === 'week') {
       const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
       const range = getWeekRange(base);
       periodData = this.cache.filter((m) => {
-        const md = new Date(m.date);
+        const md = parseDate(m.date);
         return md >= range.start && md <= range.end;
       });
     } else {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off);
-      const dayStr = d.toISOString().slice(0, 10);
-      periodData = this.cache.filter((m) => m.date.slice(0, 10) === dayStr);
+      const dayStr = toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+      periodData = this.cache.filter((m) => toDateKey(parseDate(m.date)) === dayStr);
     }
 
-    // ── Line chart + KPI (from period data, no type/currency filter) ──
     let lineData: DataPoint[];
     if (g === 'year') {
       lineData = this.aggregateByMonth(periodData);
@@ -261,7 +249,6 @@ export class DashboardService {
     this.topLabel.set(top?.label ?? '');
     this.topAmount.set(top?.expense ?? 0);
 
-    // ── Category expenses (typeFilter + currencyFilter apply ONLY here) ──
     let catData = this.cache;
     const t = this.typeFilter();
     if (t !== 'all') catData = catData.filter((m) => m.type === t);
@@ -269,8 +256,8 @@ export class DashboardService {
     if (ccy) catData = catData.filter((m) => m.currency === ccy);
     this.categoryExpenses.set(this.buildCategoryMap(catData));
 
-    // ── Recent movements (from period data) ──
-    this.recentMovements.set(periodData.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8));
+    this.recentMovements.set(periodData.sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()).slice(0, 8));
+    this.transactionCount.set(periodData.length);
   }
 
   private aggregateByHour(movements: MovementResponse[]): DataPoint[] {
@@ -278,52 +265,139 @@ export class DashboardService {
     for (let h = 0; h < 24; h++) slots.set(h, { income: 0, expense: 0 });
 
     for (const m of movements) {
-      const hour = new Date(m.createdAt).getHours();
+      const dt = parseDate(m.createdAt ?? m.date);
+      const hour = dt.getHours();
       const e = slots.get(hour)!;
       if (m.type === 'Income') e.income += m.amountBase;
       else e.expense += m.amountBase;
     }
 
-    return [...slots.entries()].map(([hour, v]) => ({
-      label: `${String(hour).padStart(2, '0')}:00`,
-      income: v.income,
-      expense: v.expense,
-    }));
+    const firstHour = movements.length > 0
+      ? Math.min(...movements.map((m) => parseDate(m.createdAt ?? m.date).getHours()))
+      : 0;
+    const lastHour = movements.length > 0
+      ? Math.max(...movements.map((m) => parseDate(m.createdAt ?? m.date).getHours()))
+      : 23;
+
+    return [...slots.entries()]
+      .filter(([h]) => h >= firstHour && h <= lastHour || movements.length === 0)
+      .map(([hour, v]) => ({
+        label: `${String(hour).padStart(2, '0')}:00`,
+        income: v.income,
+        expense: v.expense,
+      }));
   }
 
   private aggregateByDay(movements: MovementResponse[]): DataPoint[] {
-    const map = new Map<string, { income: number; expense: number }>();
+    const g = this.granularity();
+    const off = this.offset();
+    const now = new Date();
+    const lang = this.lang();
+
+    if (g === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const map = new Map<number, { income: number; expense: number }>();
+      for (let i = 1; i <= daysInMonth; i++) map.set(i, { income: 0, expense: 0 });
+
+      for (const m of movements) {
+        const md = parseDate(m.date);
+        const day = md.getDate();
+        const e = map.get(day);
+        if (e) {
+          if (m.type === 'Income') e.income += m.amountBase;
+          else e.expense += m.amountBase;
+        }
+      }
+
+      return [...map.entries()].map(([day, v]) => ({ label: String(day), income: v.income, expense: v.expense }));
+    }
+
+    if (g === 'week') {
+      const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
+      const range = getWeekRange(base);
+      const fmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', { weekday: 'short', day: 'numeric' });
+      const map = new Map<string, { income: number; expense: number; sortKey: number }>();
+      let idx = 0;
+      const tmp = new Date(range.start);
+      while (tmp <= range.end) {
+        const key = toDateStr(tmp.getFullYear(), tmp.getMonth(), tmp.getDate());
+        map.set(key, { income: 0, expense: 0, sortKey: idx++ });
+        tmp.setDate(tmp.getDate() + 1);
+      }
+
+      for (const m of movements) {
+        const key = toDateKey(parseDate(m.date));
+        const e = map.get(key);
+        if (e) {
+          if (m.type === 'Income') e.income += m.amountBase;
+          else e.expense += m.amountBase;
+        }
+      }
+
+      return [...map.entries()]
+        .sort((a, b) => a[1].sortKey - b[1].sortKey)
+        .map(([key, v]) => {
+          const d = parseDate(key);
+          return { label: fmt.format(d), income: v.income, expense: v.expense };
+        });
+    }
+
+    const dateFmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', { day: 'numeric', month: 'short' });
+    const dayMap = new Map<string, { income: number; expense: number }>();
     for (const m of movements) {
-      const day = m.date.slice(0, 10);
-      const e = map.get(day) ?? { income: 0, expense: 0 };
+      const day = toDateKey(parseDate(m.date));
+      const e = dayMap.get(day) ?? { income: 0, expense: 0 };
       if (m.type === 'Income') e.income += m.amountBase;
       else e.expense += m.amountBase;
-      map.set(day, e);
+      dayMap.set(day, e);
     }
-    return [...map.entries()]
-      .map(([label, v]) => ({ label, income: v.income, expense: v.expense }))
-      .sort((a, b) => a.label.localeCompare(b.label));
+    return [...dayMap.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, v]) => {
+        const d = parseDate(key);
+        return { label: dateFmt.format(d), income: v.income, expense: v.expense };
+      });
   }
 
   private aggregateByMonth(movements: MovementResponse[]): DataPoint[] {
+    const off = this.offset();
+    const now = new Date();
+    const year = now.getFullYear() + off;
+    const lang = this.lang();
+    const fmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', { month: 'short' });
+
     const map = new Map<string, { income: number; expense: number }>();
-    for (const m of movements) {
-      const mk = m.date.slice(0, 7);
-      const e = map.get(mk) ?? { income: 0, expense: 0 };
-      if (m.type === 'Income') e.income += m.amountBase;
-      else e.expense += m.amountBase;
-      map.set(mk, e);
+    for (let m = 0; m < 12; m++) {
+      const mk = `${year}-${String(m + 1).padStart(2, '0')}`;
+      map.set(mk, { income: 0, expense: 0 });
     }
+
+    for (const m of movements) {
+      const mk = toMonthKey(parseDate(m.date));
+      const e = map.get(mk);
+      if (e) {
+        if (m.type === 'Income') e.income += m.amountBase;
+        else e.expense += m.amountBase;
+      }
+    }
+
     return [...map.entries()]
-      .map(([label, v]) => ({ label, income: v.income, expense: v.expense }))
-      .sort((a, b) => a.label.localeCompare(b.label));
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([mk, v]) => {
+        const d = parseDate(mk + '-15');
+        const s = fmt.format(d);
+        return { label: s.charAt(0).toUpperCase() + s.slice(1).replace('.', ''), income: v.income, expense: v.expense };
+      });
   }
 
   private buildCategoryMap(movements: MovementResponse[]): { name: string; total: number }[] {
     const catMap = new Map<string, number>();
     for (const m of movements) {
       if (m.type !== 'Expense') continue;
-      const key = m.categoryName ?? 'Sin categoría';
+      const key = m.categoryName ?? 'Sin categor\u00eda';
       catMap.set(key, (catMap.get(key) ?? 0) + (m.amountBase ?? 0));
     }
     return [...catMap.entries()].map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total);

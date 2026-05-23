@@ -1,0 +1,57 @@
+<div class="period-picker-wrap">
+  <ng-content select="[date-picker-trigger]" />
+  @if (show()) {
+    <div class="picker-backdrop" (click)="onClose()"></div>
+    <div class="date-picker">
+      @if (granularity() === 'year') {
+        <div class="dp-year-grid">
+          @for (y of yearList(); track y) {
+            <button class="dp-year-btn" [class.dp-year-btn--active]="isYearActive(y)" (click)="selectYear(y)">{{ y }}</button>
+          }
+        </div>
+      } @else if (pickerMode() === 'year') {
+        <div class="dp-year-grid">
+          @for (y of yearList(); track y) {
+            <button class="dp-year-btn" [class.dp-year-btn--active]="false" (click)="selectYear(y)">{{ y }}</button>
+          }
+        </div>
+      } @else if (granularity() === 'month') {
+        <button class="dp-title" (click)="pickerMode.set('year')">{{ pickerYear() }}</button>
+        <div class="dp-month-grid">
+          @for (m of MONTHS(); track m; let i = $index) {
+            <button class="dp-month-btn" [class.dp-month-btn--active]="isMonthActive(i)" (click)="selectMonth(i)">
+              {{ m }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="dp-head">
+          <button class="dp-arrow" (click)="pickerPrevMonth()">&#9664;</button>
+          <button class="dp-title" (click)="pickerMode.set('year')">{{ MONTHS()[pickerMonth()] }} {{ pickerYear() }}</button>
+          <button class="dp-arrow" (click)="pickerNextMonth()">&#9654;</button>
+        </div>
+        <div class="dp-day-head">
+          @for (d of DAYS(); track d) {
+            <span class="dp-day-head__c">{{ d }}</span>
+          }
+        </div>
+        <div class="dp-day-grid">
+          @for (d of dayGrid(); track $index) {
+            @if (d !== null) {
+              <button
+                class="dp-day-btn"
+                [class.dp-day-btn--today]="isToday(d)"
+                [class.dp-day-btn--active]="isDayActive(d)"
+                (click)="selectDay(d)"
+              >
+                {{ d }}
+              </button>
+            } @else {
+              <span class="dp-day-empty"></span>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,37 @@
+<div class="card">
+  <div class="card__h">
+    <span class="card__title">{{ title() }}</span>
+    <button class="btn btn--ghost btn--sm" (click)="viewAll.emit()">{{ viewAllLabel() }}</button>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="th-date">{{ dateLabel() }}</th>
+        <th>{{ conceptLabel() }}</th>
+        <th>{{ typeLabel() }}</th>
+        <th class="num">{{ amountLabel() }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (m of movements(); track m.id) {
+        <tr>
+          <td class="mono subtle td-date">{{ m.date }}</td>
+          <td>{{ m.description || '—' }}</td>
+          <td>
+            <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+              {{ m.type === 'Income' ? incomeLabel() : expenseLabel() }}
+            </span>
+          </td>
+          <td class="num mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
+            {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+          </td>
+        </tr>
+      }
+      @if (movements().length === 0) {
+        <tr>
+          <td colspan="4" class="empty-state ta-center p-40">{{ emptyLabel() }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

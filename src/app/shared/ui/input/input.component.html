@@ -1,0 +1,13 @@
+<label class="field-label" [class.field-label--required]="required()">
+  {{ label() }}
+  <input
+    class="field-input"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    [disabled]="disabled()"
+    (input)="onInput($event)"
+    [attr.min]="min()"
+    [attr.step]="step()"
+  />
+</label>

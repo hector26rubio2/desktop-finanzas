@@ -1,14 +1,16 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ApiService, AdminUserDto } from '../../shared/services/api.service';
-import { AuthService } from '../../shared/services/auth/auth.service';
-import { I18nService } from '../../shared/i18n/i18n.service';
-import { ThemeService } from '../../shared/services/theme.service';
+import { AdminUserDto } from '../shared/models/admin.model';
+import { AdminApiService } from '../shared/services/api/admin-api.service';
+import { AuthService } from '../shared/services/auth/auth.service';
+import { I18nService } from '../shared/i18n/i18n.service';
+import { ThemeService } from '../shared/services/theme.service';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
@@ -21,7 +23,7 @@ export class AdminComponent implements OnInit {
   public router = inject(Router);
   public theme = inject(ThemeService);
   public i18n = inject(I18nService);
-  private api = inject(ApiService);
+  private adminApi = inject(AdminApiService);
 
   ngOnInit() {
     this.load();
@@ -29,7 +31,7 @@ export class AdminComponent implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.api.getAdminUsers().subscribe({
+    this.adminApi.getAdminUsers().subscribe({
       next: (list) => {
         this.users.set(list);
         this.loading.set(false);
@@ -40,10 +42,10 @@ export class AdminComponent implements OnInit {
 
   toggleRole(u: AdminUserDto) {
     const role = u.role === 'Admin' ? 'User' : 'Admin';
-    this.api.setUserRole(u.id, role).subscribe(() => this.load());
+    this.adminApi.setUserRole(u.id, role).subscribe(() => this.load());
   }
 
   toggleActive(u: AdminUserDto) {
-    this.api.setUserActive(u.id, !u.isActive).subscribe(() => this.load());
+    this.adminApi.setUserActive(u.id, !u.isActive).subscribe(() => this.load());
   }
 }

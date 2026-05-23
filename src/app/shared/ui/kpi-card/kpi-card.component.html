@@ -1,0 +1,7 @@
+<div class="kpi-card">
+  <div class="eyebrow">{{ label() }}</div>
+  <div class="num-lg mt-8" [style.color]="color() ?? 'var(--fg-0)'">{{ value() }}</div>
+  @if (sub()) {
+    <div class="num-sm">{{ sub() }}</div>
+  }
+</div>

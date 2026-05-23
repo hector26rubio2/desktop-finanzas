@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, AccountResponse, AccountRequest } from '../../shared/services/api.service';
@@ -7,6 +7,7 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-accounts',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',

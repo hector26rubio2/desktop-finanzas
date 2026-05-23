@@ -193,6 +193,7 @@ const pt: Record<TranslationKey, string> = {
   'dashboard.monto': 'Valor',
   'dashboard.sin_categoria': 'Sem categoria',
   'dashboard.sin_movimientos': 'Sem movimentações',
+  'dashboard.transacciones': 'Transações',
 
   'transactions.total_ingresos': 'Receitas',
   'transactions.total_gastos': 'Despesas',

@@ -1,0 +1,45 @@
+@if (visible) {
+  <div class="overlay" (click)="close.emit()" role="dialog" aria-modal="true" [attr.aria-label]="i18n.t('common.search_dialog')">
+    <div class="cmdk" (click)="$event.stopPropagation()" role="listbox">
+      <div class="cmdk__input-wrap">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="7" cy="7" r="5" />
+          <path d="M12 12l3 3" />
+        </svg>
+        <input
+          class="cmdk__input"
+          [placeholder]="i18n.t('cmdk.placeholder')"
+          [(ngModel)]="query"
+          (input)="query.set($any($event.target).value)"
+          autofocus
+          role="searchbox"
+          [attr.aria-label]="i18n.t('common.search_input')"
+        />
+        <span class="kbd" style="cursor: pointer" (click)="close.emit()">ESC</span>
+      </div>
+      <div class="cmdk__list">
+        <div class="cmdk__section">{{ i18n.t('cmdk.go_to') }}</div>
+        @for (item of cmdkItems(); track item.id) {
+          @if (matches(item.label)) {
+            <div class="cmdk__item" (click)="onNavigate(item.id)">
+              <span class="cmdk__item-lbl">{{ item.label }}</span>
+              @if (item.kbd) {
+                <span class="cmdk__item-kbd">{{ item.kbd }}</span>
+              }
+            </div>
+          }
+        }
+        <div class="cmdk__section">{{ i18n.t('cmdk.actions') }}</div>
+        <div class="cmdk__item" (click)="onNewMovement()">
+          <span class="cmdk__item-lbl">{{ i18n.t('cmdk.new_movement') }}</span>
+        </div>
+        <div class="cmdk__item" (click)="onTheme()">
+          <span class="cmdk__item-lbl">{{ i18n.t('cmdk.change_theme') }}</span>
+        </div>
+        <div class="cmdk__item" (click)="onLogout()">
+          <span class="cmdk__item-lbl" style="color: var(--negative)">{{ i18n.t('common.sign_out') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

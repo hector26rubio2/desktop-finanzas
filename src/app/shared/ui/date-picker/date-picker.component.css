@@ -1,0 +1,165 @@
+:host {
+  display: inline-flex;
+  position: relative;
+}
+
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: transparent;
+}
+
+.date-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: -8px;
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-2);
+  padding: 14px 16px;
+  z-index: 50;
+  min-width: 248px;
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.date-picker::-webkit-scrollbar { width: 3px; }
+.date-picker::-webkit-scrollbar-track { background: transparent; }
+.date-picker::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+.dp-title {
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-button);
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  align-self: center;
+}
+.dp-title:hover { background: var(--hover); color: var(--fg-0); }
+
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dp-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-button);
+  border: 0;
+  background: transparent;
+  color: var(--fg-2);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  font-family: inherit;
+}
+.dp-arrow:hover { background: var(--hover); color: var(--fg-0); }
+
+.dp-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+.dp-month-btn {
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--line-1);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+}
+.dp-month-btn:hover { background: var(--bg-3); color: var(--fg-0); border-color: var(--line-2); }
+.dp-month-btn--active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+.dp-month-btn--active:hover { background: var(--accent); color: var(--accent-fg); }
+
+.dp-day-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.dp-day-head__c {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-align: center;
+  padding: 2px 0;
+  text-transform: uppercase;
+}
+
+.dp-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.dp-day-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+.dp-day-btn:hover { background: var(--hover); color: var(--fg-0); }
+.dp-day-btn--today { border: 1px solid var(--accent); color: var(--accent); font-weight: 600; }
+.dp-day-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+
+.dp-day-empty {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+}
+
+.dp-year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+
+.dp-year-btn {
+  padding: 8px 6px;
+  border-radius: var(--radius-button);
+  border: 0;
+  background: transparent;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+}
+.dp-year-btn:hover { background: var(--hover); color: var(--fg-0); }
+.dp-year-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }

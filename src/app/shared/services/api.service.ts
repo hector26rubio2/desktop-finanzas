@@ -1,322 +1,91 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
+import { AuthApiService } from './api/auth-api.service';
+import { AccountsApiService } from './api/accounts-api.service';
+import { MovementsApiService } from './api/movements-api.service';
+import { CategoriesApiService } from './api/categories-api.service';
+import { LoansApiService } from './api/loans-api.service';
+import { InstallmentsApiService } from './api/installments-api.service';
+import { AdminApiService } from './api/admin-api.service';
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: { id: string; email: string; name: string; baseCurrency: string; role: string };
-}
+import type { AuthResponse } from '../models/auth.model';
+import type { AccountResponse, AccountRequest, AccountBalance } from '../models/account.model';
+import type { CategoryResponse } from '../models/category.model';
+import type { MovementResponse, MovementRequest, MovementSummary, PagedResult } from '../models/movement.model';
+import type { LoanResponse, LoanRequest } from '../models/loan.model';
+import type { InstallmentResponse, InstallmentRequest } from '../models/installment.model';
+import type { AdminUserDto } from '../models/admin.model';
 
-export interface CategoryResponse {
-  id: string;
-  name: string;
-  color: string;
-  icon: string;
-  type: 'Income' | 'Expense';
-  isDefault: boolean;
-  createdAt: string;
-}
-
-export interface MovementResponse {
-  id: string;
-  type: 'Income' | 'Expense';
-  subType: 'Income' | 'Expense' | 'LoanReceived' | 'LoanGiven' | 'Saving' | null;
-  sourceType: 'Cash' | 'OwnAccount' | 'CreditCard' | 'Loan' | null;
-  loanParty: string | null;
-  amount: number;
-  currency: string;
-  trmApplied: number;
-  amountBase: number;
-  date: string;
-  description: string | null;
-  categoryId: string | null;
-  categoryName: string | null;
-  categoryColor: string | null;
-  accountId: string | null;
-  accountName: string | null;
-  createdAt: string;
-}
-
-export interface AdminUserDto {
-  id: string;
-  email: string;
-  name: string;
-  baseCurrency: string;
-  role: 'User' | 'Admin';
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface AccountResponse {
-  id: string;
-  name: string;
-  type: 'Cash' | 'Debit' | 'Credit';
-  currency: string;
-  bank: string | null;
-  lastFour: string | null;
-  creditLimit: number | null;
-  billingDay: number | null;
-  paymentDay: number | null;
-  interestRate: number | null;
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface AccountRequest {
-  name: string;
-  type: 'Cash' | 'Debit' | 'Credit';
-  currency: string;
-  bank?: string;
-  lastFour?: string;
-  creditLimit?: number;
-  billingDay?: number;
-  paymentDay?: number;
-  interestRate?: number;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-export interface MovementSummary {
-  totalIncome: number;
-  totalExpense: number;
-  balance: number;
-  comparedToPreviousMonth: { incomeDelta: number; expenseDelta: number };
-}
-
-export interface MovementRequest {
-  type: 'Income' | 'Expense';
-  subType?: string;
-  sourceType?: string;
-  loanParty?: string;
-  amount: number;
-  currency: string;
-  trmApplied: number;
-  date: string;
-  description?: string;
-  categoryId?: string;
-  accountId?: string;
-}
-
-export interface LoanResponse {
-  id: string;
-  userId: string;
-  description: string;
-  party: string | null;
-  principal: number;
-  currency: string;
-  trmApplied: number;
-  interestRateAnnual: number;
-  termMonths: number;
-  startDate: string;
-  loanType: 'French' | 'German' | 'American';
-  accountId: string | null;
-  isActive: boolean;
-  paidMonths: number;
-  remainingMonths: number;
-  createdAt: string;
-}
-
-export interface LoanRequest {
-  description: string;
-  party?: string;
-  principal: number;
-  currency: string;
-  trmApplied?: number;
-  interestRateAnnual: number;
-  termMonths: number;
-  startDate: string;
-  loanType?: 'French' | 'German' | 'American';
-  accountId?: string;
-}
-
-export interface InstallmentResponse {
-  id: string;
-  userId: string;
-  description: string;
-  accountId: string | null;
-  totalAmount: number;
-  currency: string;
-  trmApplied: number;
-  installmentsCount: number;
-  paidCount: number;
-  startDate: string;
-  isActive: boolean;
-  monthlyAmount: number;
-  remainingAmount: number;
-  createdAt: string;
-}
-
-export interface InstallmentRequest {
-  description: string;
-  accountId?: string;
-  totalAmount: number;
-  currency: string;
-  trmApplied?: number;
-  installmentsCount: number;
-  paidCount?: number;
-  startDate: string;
-}
-
-export interface AccountBalance {
-  balance: number;
-  usedInCycle: number;
-}
+export type {
+  AuthResponse,
+  AccountResponse,
+  AccountRequest,
+  AccountBalance,
+  CategoryResponse,
+  MovementResponse,
+  MovementRequest,
+  MovementSummary,
+  PagedResult,
+  LoanResponse,
+  LoanRequest,
+  InstallmentResponse,
+  InstallmentRequest,
+  AdminUserDto,
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private http = inject(HttpClient);
-  private base = environment.apiUrl;
+  private authApi = inject(AuthApiService);
+  private accountsApi = inject(AccountsApiService);
+  private movementsApi = inject(MovementsApiService);
+  private categoriesApi = inject(CategoriesApiService);
+  private loansApi = inject(LoansApiService);
+  private installmentsApi = inject(InstallmentsApiService);
+  private adminApi = inject(AdminApiService);
 
-  // ── Auth ────────────────────────────────────────────────────────────────
-  loginWithGoogle(idToken: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/auth/google`, { idToken });
-  }
+  // ── Auth ──────────────────────────────────────────────────────────────
+  loginWithGoogle(idToken: string): Observable<AuthResponse> { return this.authApi.loginWithGoogle(idToken); }
+  register(name: string, email: string, password: string, baseCurrency: string): Observable<AuthResponse> { return this.authApi.register(name, email, password, baseCurrency); }
+  login(email: string, password: string): Observable<AuthResponse> { return this.authApi.login(email, password); }
+  refresh(refreshToken: string): Observable<AuthResponse> { return this.authApi.refresh(refreshToken); }
+  logout(refreshToken: string): Observable<void> { return this.authApi.logout(refreshToken); }
+  forgotPassword(email: string): Observable<void> { return this.authApi.forgotPassword(email); }
+  resetPassword(token: string, password: string): Observable<void> { return this.authApi.resetPassword(token, password); }
+  verifyEmail(token: string): Observable<void> { return this.authApi.verifyEmail(token); }
+  resendVerification(email: string): Observable<void> { return this.authApi.resendVerification(email); }
 
-  register(name: string, email: string, password: string, baseCurrency: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/auth/register`, { name, email, password, baseCurrency });
-  }
+  // ── Admin ─────────────────────────────────────────────────────────────
+  getAdminUsers(): Observable<AdminUserDto[]> { return this.adminApi.getAdminUsers(); }
+  setUserRole(id: string, role: string): Observable<void> { return this.adminApi.setUserRole(id, role); }
+  setUserActive(id: string, isActive: boolean): Observable<void> { return this.adminApi.setUserActive(id, isActive); }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/auth/login`, { email, password });
-  }
+  // ── Accounts ──────────────────────────────────────────────────────────
+  getAccounts(): Observable<AccountResponse[]> { return this.accountsApi.getAccounts(); }
+  createAccount(req: AccountRequest): Observable<AccountResponse> { return this.accountsApi.createAccount(req); }
+  updateAccount(id: string, req: AccountRequest): Observable<AccountResponse> { return this.accountsApi.updateAccount(id, req); }
+  deleteAccount(id: string): Observable<void> { return this.accountsApi.deleteAccount(id); }
+  getAccountBalance(id: string): Observable<AccountBalance> { return this.accountsApi.getAccountBalance(id); }
 
-  refresh(refreshToken: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/auth/refresh`, { refreshToken });
-  }
+  // ── Categories ────────────────────────────────────────────────────────
+  getCategories(): Observable<CategoryResponse[]> { return this.categoriesApi.getCategories(); }
+  createCategory(req: { name: string; color: string; icon: string; type: 'Income' | 'Expense' }): Observable<CategoryResponse> { return this.categoriesApi.createCategory(req); }
 
-  logout(refreshToken: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/logout`, { refreshToken });
-  }
+  // ── Movements ─────────────────────────────────────────────────────────
+  getMovements(yearMonth: string, page = 1, pageSize = 20): Observable<PagedResult<MovementResponse>> { return this.movementsApi.getMovements(yearMonth, page, pageSize); }
+  getMovementSummary(yearMonth: string): Observable<MovementSummary> { return this.movementsApi.getMovementSummary(yearMonth); }
+  createMovement(req: MovementRequest): Observable<MovementResponse> { return this.movementsApi.createMovement(req); }
+  deleteMovement(id: string): Observable<void> { return this.movementsApi.deleteMovement(id); }
+  updateMovement(id: string, req: MovementRequest): Observable<MovementResponse> { return this.movementsApi.updateMovement(id, req); }
 
-  forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/forgot-password`, { email });
-  }
+  // ── Loans ─────────────────────────────────────────────────────────────
+  getLoans(): Observable<LoanResponse[]> { return this.loansApi.getLoans(); }
+  createLoan(req: LoanRequest): Observable<LoanResponse> { return this.loansApi.createLoan(req); }
+  updateLoan(id: string, req: LoanRequest): Observable<LoanResponse> { return this.loansApi.updateLoan(id, req); }
+  deleteLoan(id: string): Observable<void> { return this.loansApi.deleteLoan(id); }
 
-  resetPassword(token: string, password: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/reset-password`, { token, password });
-  }
-
-  verifyEmail(token: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/verify-email`, { token });
-  }
-
-  resendVerification(email: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/resend-verification`, { email });
-  }
-
-  // ── Admin ──────────────────────────────────────────────────────────────
-  getAdminUsers(): Observable<AdminUserDto[]> {
-    return this.http.get<AdminUserDto[]>(`${this.base}/admin/users`);
-  }
-
-  setUserRole(id: string, role: string): Observable<void> {
-    return this.http.put<void>(`${this.base}/admin/users/${id}/role`, { role });
-  }
-
-  setUserActive(id: string, isActive: boolean): Observable<void> {
-    return this.http.put<void>(`${this.base}/admin/users/${id}/active`, { isActive });
-  }
-
-  // ── Accounts ───────────────────────────────────────────────────────────
-  getAccounts(): Observable<AccountResponse[]> {
-    return this.http.get<AccountResponse[]>(`${this.base}/accounts`);
-  }
-
-  createAccount(req: AccountRequest): Observable<AccountResponse> {
-    return this.http.post<AccountResponse>(`${this.base}/accounts`, req);
-  }
-
-  updateAccount(id: string, req: AccountRequest): Observable<AccountResponse> {
-    return this.http.put<AccountResponse>(`${this.base}/accounts/${id}`, req);
-  }
-
-  deleteAccount(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/accounts/${id}`);
-  }
-
-  // ── Categories ─────────────────────────────────────────────────────────
-  getCategories(): Observable<CategoryResponse[]> {
-    return this.http.get<CategoryResponse[]>(`${this.base}/categories`);
-  }
-
-  createCategory(req: {
-    name: string;
-    color: string;
-    icon: string;
-    type: 'Income' | 'Expense';
-  }): Observable<CategoryResponse> {
-    return this.http.post<CategoryResponse>(`${this.base}/categories`, req);
-  }
-
-  // ── Movements ──────────────────────────────────────────────────────────
-  getMovements(yearMonth: string, page = 1, pageSize = 20): Observable<PagedResult<MovementResponse>> {
-    const [year, month] = yearMonth.split('-').map(Number);
-    const params = new HttpParams().set('year', year).set('month', month).set('page', page).set('pageSize', pageSize);
-    return this.http.get<PagedResult<MovementResponse>>(`${this.base}/movements`, { params });
-  }
-
-  getMovementSummary(yearMonth: string): Observable<MovementSummary> {
-    const [year, month] = yearMonth.split('-').map(Number);
-    return this.http.get<MovementSummary>(`${this.base}/movements/summary`, {
-      params: new HttpParams().set('year', year).set('month', month),
-    });
-  }
-
-  createMovement(req: MovementRequest): Observable<MovementResponse> {
-    return this.http.post<MovementResponse>(`${this.base}/movements`, req);
-  }
-
-  deleteMovement(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/movements/${id}`);
-  }
-
-  updateMovement(id: string, req: MovementRequest): Observable<MovementResponse> {
-    return this.http.put<MovementResponse>(`${this.base}/movements/${id}`, req);
-  }
-
-  // ── Loans ──────────────────────────────────────────────────────────────
-  getLoans(): Observable<LoanResponse[]> {
-    return this.http.get<LoanResponse[]>(`${this.base}/loans`);
-  }
-
-  createLoan(req: LoanRequest): Observable<LoanResponse> {
-    return this.http.post<LoanResponse>(`${this.base}/loans`, req);
-  }
-
-  updateLoan(id: string, req: LoanRequest): Observable<LoanResponse> {
-    return this.http.put<LoanResponse>(`${this.base}/loans/${id}`, req);
-  }
-
-  deleteLoan(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/loans/${id}`);
-  }
-
-  // ── Installments ───────────────────────────────────────────────────────
-  getInstallments(): Observable<InstallmentResponse[]> {
-    return this.http.get<InstallmentResponse[]>(`${this.base}/installments`);
-  }
-
-  createInstallment(req: InstallmentRequest): Observable<InstallmentResponse> {
-    return this.http.post<InstallmentResponse>(`${this.base}/installments`, req);
-  }
-
-  updateInstallmentPaid(id: string, paidCount: number): Observable<InstallmentResponse> {
-    return this.http.patch<InstallmentResponse>(`${this.base}/installments/${id}/paid`, { paidCount });
-  }
-
-  deleteInstallment(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/installments/${id}`);
-  }
-
-  // ── Account balance ────────────────────────────────────────────────────
-  getAccountBalance(id: string): Observable<AccountBalance> {
-    return this.http.get<AccountBalance>(`${this.base}/accounts/${id}/balance`);
-  }
+  // ── Installments ──────────────────────────────────────────────────────
+  getInstallments(): Observable<InstallmentResponse[]> { return this.installmentsApi.getInstallments(); }
+  createInstallment(req: InstallmentRequest): Observable<InstallmentResponse> { return this.installmentsApi.createInstallment(req); }
+  updateInstallmentPaid(id: string, paidCount: number): Observable<InstallmentResponse> { return this.installmentsApi.updateInstallmentPaid(id, paidCount); }
+  deleteInstallment(id: string): Observable<void> { return this.installmentsApi.deleteInstallment(id); }
 }

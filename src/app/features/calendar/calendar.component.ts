@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { TranslationKey } from '../../shared/i18n/locale.types';
@@ -14,6 +14,7 @@ interface CalEvent {
 @Component({
   selector: 'app-calendar',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',

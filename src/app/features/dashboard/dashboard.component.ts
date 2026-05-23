@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, effect, ViewChild, ElementRef, inject, computed, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, ViewChild, ElementRef, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Chart, registerables, type ChartConfiguration } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
+import { parseDate } from '../../shared/utils/date';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DashboardService, type Granularity } from '../../shared/services/dashboard.service';
@@ -11,6 +12,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -38,9 +40,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   pickerMonth = signal(new Date().getMonth());
   pickerMode = signal<'month' | 'year'>('month');
 
-  readonly ALL_MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  readonly ALL_DAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
-
   MONTHS = computed(() => {
     const loc = this.i18n.currentLocale();
     const fmt = new Intl.DateTimeFormat(loc === 'en-US' ? 'en' : loc === 'pt-BR' ? 'pt' : 'es', { month: 'short' });
@@ -54,13 +53,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
   DAYS = computed(() => {
     const loc = this.i18n.currentLocale();
     const fmt = new Intl.DateTimeFormat(loc === 'en-US' ? 'en' : loc === 'pt-BR' ? 'pt' : 'es', { weekday: 'short' });
-    const base = new Date(2024, 0, 1); // Monday
+    const base = new Date(2024, 0, 1);
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(base);
       d.setDate(base.getDate() + i);
       const s = fmt.format(d);
       return s.charAt(0).toUpperCase() + s.slice(1).replace('.', '');
     });
+  });
+
+  topLabelKey = computed(() => {
+    const g = this.ds.granularity();
+    return g === 'day' ? 'dashboard.fecha' : g === 'week' ? 'dashboard.concepto' : 'dashboard.mes_mas_gasto';
+  });
+
+  cashflowSubtitle = computed(() => {
+    const g = this.ds.granularity();
+    if (g === 'year') return this.i18n.t('dashboard.subtitle_year');
+    if (g === 'month') return this.i18n.t('dashboard.subtitle_month');
+    if (g === 'week') return this.i18n.t('dashboard.subtitle_week');
+    return this.i18n.t('dashboard.subtitle_day');
+  });
+
+  yearList = computed(() => {
+    const y = this.pickerYear();
+    const start = Math.floor(y / 9) * 9;
+    return Array.from({ length: 9 }, (_, i) => start + i);
+  });
+
+  dayGrid = computed(() => {
+    const y = this.pickerYear(), m = this.pickerMonth();
+    const first = new Date(y, m, 1).getDay();
+    const total = new Date(y, m + 1, 0).getDate();
+    const off = first === 0 ? 6 : first - 1;
+    const cells: (number | null)[] = [];
+    for (let i = 0; i < off; i++) cells.push(null);
+    for (let d = 1; d <= total; d++) cells.push(d);
+    return cells;
   });
 
   togglePicker() {
@@ -73,18 +102,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
       this.pickerMode.set('month');
     }
-    this.showPicker.set(!this.showPicker());
+    this.showPicker.update(v => !v);
   }
 
   closePicker() { this.showPicker.set(false); }
 
   pickerPrevMonth() {
-    if (this.pickerMonth() === 0) { this.pickerMonth.set(11); this.pickerYear.update((y) => y - 1); }
-    else { this.pickerMonth.update((m) => m - 1); }
+    if (this.pickerMonth() === 0) { this.pickerMonth.set(11); this.pickerYear.update(y => y - 1); }
+    else { this.pickerMonth.update(m => m - 1); }
   }
+
   pickerNextMonth() {
-    if (this.pickerMonth() === 11) { this.pickerMonth.set(0); this.pickerYear.update((y) => y + 1); }
-    else { this.pickerMonth.update((m) => m + 1); }
+    if (this.pickerMonth() === 11) { this.pickerMonth.set(0); this.pickerYear.update(y => y + 1); }
+    else { this.pickerMonth.update(m => m + 1); }
   }
 
   selectMonth(m: number) {
@@ -108,23 +138,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  yearList = computed(() => {
-    const y = this.pickerYear();
-    const start = Math.floor(y / 9) * 9;
-    return Array.from({ length: 9 }, (_, i) => start + i);
-  });
-
-  dayGrid = computed(() => {
-    const y = this.pickerYear(), m = this.pickerMonth();
-    const first = new Date(y, m, 1).getDay();
-    const total = new Date(y, m + 1, 0).getDate();
-    const off = first === 0 ? 6 : first - 1;
-    const cells: (number | null)[] = [];
-    for (let i = 0; i < off; i++) cells.push(null);
-    for (let d = 1; d <= total; d++) cells.push(d);
-    return cells;
-  });
-
   isToday(d: number | null) {
     if (!d) return false;
     const n = new Date();
@@ -146,19 +159,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return y === +this.ds.currentLabelKey().slice(0, 4);
   }
 
-  topLabelKey = computed(() => {
-    const g = this.ds.granularity();
-    return g === 'day' ? 'dashboard.fecha' : g === 'week' ? 'dashboard.concepto' : 'dashboard.mes_mas_gasto';
-  });
-
-  cashflowSubtitle = computed(() => {
-    const g = this.ds.granularity();
-    if (g === 'year') return this.i18n.t('dashboard.subtitle_year');
-    if (g === 'month') return this.i18n.t('dashboard.subtitle_month');
-    if (g === 'week') return this.i18n.t('dashboard.subtitle_week');
-    return this.i18n.t('dashboard.subtitle_day');
-  });
-
   private lineChart?: Chart;
   private pieChart?: Chart;
 
@@ -173,27 +173,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() { this.ds.load(); }
-
   ngOnDestroy() { this.lineChart?.destroy(); this.pieChart?.destroy(); }
+
+  fmtDate(dateStr: string): string {
+    const d = parseDate(dateStr);
+    return d.toLocaleDateString(this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'short' });
+  }
 
   private cssVar(name: string): string {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-
-  private formatXLabel(raw: string, g: Granularity): string {
-    if (g === 'year') return this.MONTHS()[Number(raw.slice(5, 7)) - 1] ?? raw;
-    if (g === 'month') return String(Number(raw.slice(8, 10)));
-    if (g === 'week') {
-      const wk = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      return wk[new Date(raw + 'T00:00:00').getDay()] ?? raw;
-    }
-    return raw;
-  }
-
-  private maxTicksFor(g: Granularity): number | undefined {
-    if (g === 'month') return 10;
-    if (g === 'day') return 12;
-    return undefined;
   }
 
   private renderCharts() {
@@ -210,21 +198,50 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.lineChart?.destroy();
         const data = this.ds.lineData();
         const g = this.ds.granularity();
-        const maxTicks = this.maxTicksFor(g);
+        const maxTicksLimit = g === 'day' ? 12 : g === 'year' ? 12 : g === 'week' ? 7 : 15;
+        const allValues = data.flatMap(d => [d.income, d.expense]).filter(v => v > 0);
+        const maxVal = allValues.length > 0 ? Math.max(...allValues) : 0;
+        const minVal = allValues.length > 0 ? Math.min(...allValues) : 0;
+        const yMax = maxVal + maxVal * 0.15;
+        const yMin = minVal > 0 ? Math.max(0, minVal - minVal * 0.05) : 0;
         this.lineChart = new Chart(this.lineCanvasRef.nativeElement, {
           type: 'line',
           data: {
-            labels: data.map((d) => this.formatXLabel(d.label, g)),
+            labels: data.map((d) => d.label),
             datasets: [
-              { label: this.i18n.t('dashboard.ingresos'), data: data.map((d) => d.income), borderColor: positive, backgroundColor: positive + '1A', tension: 0.3, fill: true },
-              { label: this.i18n.t('dashboard.gastos'), data: data.map((d) => d.expense), borderColor: negative, backgroundColor: negative + '1A', tension: 0.3, fill: true },
+              {
+                label: this.i18n.t('dashboard.ingresos'),
+                data: data.map(d => d.income),
+                borderColor: positive,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: positive,
+                tension: 0.15,
+                fill: false,
+              },
+              {
+                label: this.i18n.t('dashboard.gastos'),
+                data: data.map(d => d.expense),
+                borderColor: negative,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: negative,
+                tension: 0.15,
+                fill: false,
+              },
             ],
           },
           options: {
-            responsive: true, animation: false, plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false }, tooltip: { backgroundColor: this.cssVar('--bg-3') || 'oklch(90% 0 0)', titleColor: this.cssVar('--fg-0') || 'oklch(20% 0 0)', bodyColor: this.cssVar('--fg-1') || textColor, borderColor: this.cssVar('--line-1') || gridColor, borderWidth: 1, padding: 8, titleFont: { family: 'Geist', size: 11 }, bodyFont: { family: 'Geist Mono', size: 11 }, callbacks: { label: (ctx: any) => `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}` } } },
             scales: {
-              x: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, ...(maxTicks !== undefined ? { maxTicksLimit: maxTicks, autoSkip: true } : {}) }, grid: { color: gridColor } },
-              y: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 } }, grid: { color: gridColor } },
+              x: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, maxTicksLimit, autoSkip: true }, grid: { color: gridColor, drawTicks: false }, border: { color: gridColor } },
+              y: { min: yMin, suggestedMax: yMax, ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, callback: (v: any) => new Intl.NumberFormat('es', { notation: 'compact' }).format(v as number) }, grid: { color: gridColor, drawTicks: false }, border: { color: gridColor } },
             },
           },
         });
@@ -255,7 +272,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
             cutout: '68%',
             plugins: {
-              legend: { position: 'right', labels: { color: fg1, font: { family: 'Geist', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 12, usePointStyle: true } },
+              legend: { position: 'bottom', labels: { color: fg1, font: { family: 'Geist', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10, usePointStyle: true } },
               tooltip: { backgroundColor: bg3, titleColor: fg0, bodyColor: fg1, borderColor: line1, borderWidth: 1, padding: 10, titleFont: { family: 'Geist', size: 12 }, bodyFont: { family: 'Geist Mono', size: 11 } },
             },
           },
