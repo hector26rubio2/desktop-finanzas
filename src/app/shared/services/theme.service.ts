@@ -1,67 +1,92 @@
 import { Injectable, signal, computed } from '@angular/core';
 
 export type Theme =
-  | 'obsidian'
-  | 'midnight'
-  | 'emerald'
-  | 'claro'
-  | 'institutional'
-  | 'institutional-light'
-  | 'espresso'
-  | 'espresso-light'
-  | 'pulse'
-  | 'pulse-light'
+  | 'purple'
+  | 'purple-light'
+  | 'ocean'
+  | 'ocean-light'
+  | 'forest'
+  | 'forest-light'
+  | 'crimson'
+  | 'crimson-light'
+  | 'amber'
+  | 'amber-light'
   | 'custom';
+
 export type Density = 'dense' | 'comfy' | 'airy';
 export type Shape = 'rounded' | 'sharp';
 
 export interface CustomTheme {
   name: string;
   isDark: boolean;
-  accent: string; // hex color for --accent
-  accent2: string; // hex color for --accent-2 (triadic +120°)
-  accent3: string; // hex color for --accent-3 (triadic +240°)
-  bg: string; // hex color for bg-0
+  accent: string;
+  accent2: string;
+  accent3: string;
+  bg: string;
 }
+
+export interface ThemePreset {
+  id: Theme;
+  name: string;
+  baseHue: number;
+  isDark: boolean;
+}
+
+export const THEME_PRESETS: ThemePreset[] = [
+  { id: 'purple', name: 'Púrpura', baseHue: 280, isDark: true },
+  { id: 'purple-light', name: 'Púrpura Claro', baseHue: 280, isDark: false },
+  { id: 'ocean', name: 'Océano', baseHue: 240, isDark: true },
+  { id: 'ocean-light', name: 'Océano Claro', baseHue: 240, isDark: false },
+  { id: 'forest', name: 'Bosque', baseHue: 160, isDark: true },
+  { id: 'forest-light', name: 'Bosque Claro', baseHue: 160, isDark: false },
+  { id: 'crimson', name: 'Carmesí', baseHue: 20, isDark: true },
+  { id: 'crimson-light', name: 'Carmesí Claro', baseHue: 20, isDark: false },
+  { id: 'amber', name: 'Ámbar', baseHue: 75, isDark: true },
+  { id: 'amber-light', name: 'Ámbar Claro', baseHue: 75, isDark: false },
+];
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  readonly theme = signal<Theme>((localStorage.getItem('theme') as Theme) ?? 'midnight');
+  private readonly validIds = new Set<string>(THEME_PRESETS.map((p) => p.id).concat('custom'));
+
+  readonly theme = signal<Theme>(this.resolveStoredTheme());
   readonly density = signal<Density>((localStorage.getItem('density') as Density) ?? 'comfy');
   readonly shape = signal<Shape>((localStorage.getItem('shape') as Shape) ?? 'rounded');
   readonly customThemes = signal<CustomTheme[]>(this.loadCustomThemes());
 
-  private readonly darkBuiltins: Record<string, boolean> = {
-    obsidian: true,
-    midnight: true,
-    emerald: true,
-    institutional: true,
-    espresso: true,
-    pulse: true,
-    claro: false,
-    'institutional-light': false,
-    'espresso-light': false,
-    'pulse-light': false,
-  };
-
   readonly isDarkTheme = computed(() => {
     const t = this.theme();
-    if (t !== 'custom') return this.darkBuiltins[t] ?? true;
+    if (t !== 'custom') {
+      const preset = THEME_PRESETS.find((p) => p.id === t);
+      return preset ? preset.isDark : true;
+    }
     const name = localStorage.getItem('active-custom-theme');
     const ct = this.customThemes().find((c) => c.name === name);
     return ct?.isDark ?? true;
   });
 
+  readonly currentPreset = computed(() => THEME_PRESETS.find((p) => p.id === this.theme()));
+
   constructor() {
     this.applyAll();
-    if (this.theme() === 'custom') this.applyCustomCssVars();
+    const current = this.theme();
+    if (current === 'custom') {
+      this.applyCustomCssVars();
+    } else {
+      this.applyPreset(current);
+    }
   }
 
   setTheme(t: Theme) {
     this.theme.set(t);
     localStorage.setItem('theme', t);
     document.documentElement.setAttribute('data-theme', t);
-    if (t === 'custom') this.applyCustomCssVars();
+
+    if (t === 'custom') {
+      this.applyCustomCssVars();
+    } else {
+      this.applyPreset(t);
+    }
   }
 
   setDensity(d: Density) {
@@ -77,24 +102,13 @@ export class ThemeService {
   }
 
   toggle() {
-    this.setTheme(this.isDarkTheme() ? 'claro' : 'midnight');
+    this.setTheme(this.isDarkTheme() ? 'purple-light' : 'purple');
   }
 
   cycleTheme() {
-    const themes: Theme[] = [
-      'obsidian',
-      'midnight',
-      'emerald',
-      'institutional',
-      'espresso',
-      'pulse',
-      'claro',
-      'institutional-light',
-      'espresso-light',
-      'pulse-light',
-    ];
-    const idx = themes.indexOf(this.theme() as Theme);
-    this.setTheme(themes[(idx + 1) % themes.length]);
+    const ids = THEME_PRESETS.map((p) => p.id);
+    const idx = ids.indexOf(this.theme() as Theme);
+    this.setTheme(idx >= 0 ? ids[(idx + 1) % ids.length] : 'purple');
   }
 
   saveCustomTheme(ct: CustomTheme) {
@@ -112,7 +126,7 @@ export class ThemeService {
     const updated = this.customThemes().filter((t) => t.name !== name);
     this.customThemes.set(updated);
     localStorage.setItem('custom-themes', JSON.stringify(updated));
-    if (this.theme() === 'custom') this.setTheme('midnight');
+    if (this.theme() === 'custom') this.setTheme('purple');
   }
 
   activateCustomTheme(name: string) {
@@ -123,12 +137,217 @@ export class ThemeService {
     this.setTheme('custom');
   }
 
-  private loadCustomThemes(): CustomTheme[] {
-    try {
-      return JSON.parse(localStorage.getItem('custom-themes') ?? '[]');
-    } catch {
-      return [];
+  // ── Programmatic palette ──────────────────────────────────────────
+
+  private applyPreset(id: string) {
+    const preset = THEME_PRESETS.find((p) => p.id === id);
+    if (!preset) return;
+    this.generateTriadicPalette(preset.baseHue, preset.isDark);
+  }
+
+  private applyCustomCssVarsFrom(ct: CustomTheme) {
+    const accent = this.hexToOklch(ct.accent);
+    const bg = this.hexToOklch(ct.bg);
+    const root = document.documentElement;
+    const h1 = Math.round(accent.h);
+    const primaryChroma = clampChroma(accent.c);
+    const secondHue = ct.accent2 ? Math.round(this.hexToOklch(ct.accent2).h) : (h1 + 120) % 360;
+    const thirdHue = ct.accent3 ? Math.round(this.hexToOklch(ct.accent3).h) : (h1 + 240) % 360;
+    const secChroma = clampChroma((ct.accent2 ? this.hexToOklch(ct.accent2).c : primaryChroma) * 0.9);
+    const terChroma = clampChroma((ct.accent3 ? this.hexToOklch(ct.accent3).c : primaryChroma) * 0.8);
+    const bgHue = Math.round(bg.h);
+    const bgChroma = clampChroma(bg.c);
+
+    this.generateTriadicPalette(h1, ct.isDark, primaryChroma, secChroma, terChroma, bgHue, secondHue, thirdHue);
+
+    // Override bg scale with user's actual background chroma (not near-zero neutral)
+    const isDark = ct.isDark;
+    const bgL = bg.l * 100;
+    const bgOff = isDark ? [0, 4, 9, 15] : [0, -3, -7, -12];
+    const bgL0 = clampPct(bgL + bgOff[0]);
+    const bgL1 = clampPct(bgL + bgOff[1]);
+    const bgL2 = clampPct(bgL + bgOff[2]);
+    const bgL3 = clampPct(bgL + bgOff[3]);
+    root.style.setProperty('--color-page-bg', `oklch(${bgL0}% ${bgChroma} ${bgHue})`);
+    root.style.setProperty('--color-surface', `oklch(${bgL1}% ${bgChroma} ${bgHue})`);
+    root.style.setProperty('--color-surface-elevated', `oklch(${bgL2}% ${bgChroma} ${bgHue})`);
+    root.style.setProperty('--color-surface-highest', `oklch(${bgL3}% ${bgChroma} ${bgHue})`);
+    root.style.setProperty('--bg-0', `var(--color-page-bg)`);
+    root.style.setProperty('--bg-1', `var(--color-surface)`);
+    root.style.setProperty('--bg-2', `var(--color-surface-elevated)`);
+    root.style.setProperty('--bg-3', `var(--color-surface-highest)`);
+  }
+
+  private generateTriadicPalette(
+    primaryHue: number,
+    isDark: boolean,
+    primaryChroma = 0.1,
+    secondaryChroma = 0.09,
+    tertiaryChroma = 0.08,
+    neutralHue = 30,
+    secondaryHue?: number,
+    tertiaryHue?: number,
+  ) {
+    const root = document.documentElement;
+    const h1 = primaryHue;
+    const h2 = secondaryHue ?? (primaryHue + 120) % 360;
+    const h3 = tertiaryHue ?? (primaryHue + 240) % 360;
+    const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+
+    // Lightness curve: peak chroma at 500
+    const L = [97, 92, 83, 72, 60, 48, 40, 31, 23, 15, 10];
+    const cOff = [-0.04, -0.03, -0.02, -0.01, 0, 0, -0.01, -0.02, -0.03, -0.04, -0.05];
+
+    // ── Accent scales ──
+    const buildScale = (hue: number, baseC: number, prefix: string) => {
+      for (let i = 0; i < 11; i++) {
+        const c = clampChroma(baseC + cOff[i]);
+        root.style.setProperty(`--color-${prefix}-${steps[i]}`, `oklch(${L[i]}% ${c} ${hue})`);
+      }
+    };
+    buildScale(h1, primaryChroma, 'primary');
+    buildScale(h2, secondaryChroma, 'secondary');
+    buildScale(h3, tertiaryChroma, 'tertiary');
+
+    // ── Neutral scale ──
+    const nL = [98, 93, 85, 75, 63, 51, 39, 29, 19, 11, 7];
+    const nC = [0.003, 0.004, 0.005, 0.005, 0.005, 0.006, 0.006, 0.006, 0.006, 0.005, 0.004];
+    for (let i = 0; i < 11; i++) {
+      root.style.setProperty(`--color-neutral-${steps[i]}`, `oklch(${nL[i]}% ${nC[i]} ${neutralHue})`);
     }
+
+    // ── Semantic ──
+    const sem = (name: string, lite: number, chroma: number, hue: number) => {
+      const l = isDark ? Math.min(lite + 20, 80) : lite;
+      root.style.setProperty(`--color-${name}`, `oklch(${l}% ${chroma} ${hue})`);
+      const sl = isDark ? 15 : 92;
+      const sc = isDark ? chroma * 0.35 : chroma * 0.4;
+      root.style.setProperty(`--color-${name}-soft`, `oklch(${sl}% ${clampChroma(sc)} ${hue})`);
+    };
+    sem('success', 48, 0.12, 155);
+    sem('warning', 56, 0.14, 80);
+    sem('danger', 44, 0.16, 20);
+    sem('info', 46, 0.14, 245);
+
+    // ── Mode-dependent role tokens ──
+    const accentStep = isDark ? 300 : 500;
+    const accentStepDeep = isDark ? 500 : 600;
+
+    root.style.setProperty('--color-primary', `var(--color-primary-${accentStep})`);
+    root.style.setProperty('--color-secondary', `var(--color-secondary-${accentStep})`);
+    root.style.setProperty('--color-tertiary', `var(--color-tertiary-${accentStep})`);
+
+    root.style.setProperty('--color-page-bg', isDark ? 'var(--color-neutral-950)' : 'var(--color-neutral-50)');
+    root.style.setProperty('--color-surface', isDark ? 'var(--color-neutral-900)' : 'var(--color-neutral-100)');
+    root.style.setProperty(
+      '--color-surface-elevated',
+      isDark ? 'var(--color-neutral-800)' : 'var(--color-neutral-200)',
+    );
+    root.style.setProperty('--color-surface-highest', isDark ? 'var(--color-neutral-700)' : 'var(--color-neutral-300)');
+
+    root.style.setProperty('--color-text-body', isDark ? 'var(--color-neutral-100)' : 'var(--color-neutral-900)');
+    root.style.setProperty('--color-text-muted', isDark ? 'var(--color-neutral-400)' : 'var(--color-neutral-600)');
+    root.style.setProperty('--color-text-subtle', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-400)');
+
+    root.style.setProperty('--color-border-subtle', isDark ? 'var(--color-neutral-800)' : 'var(--color-neutral-200)');
+    root.style.setProperty('--color-border-default', isDark ? 'var(--color-neutral-700)' : 'var(--color-neutral-300)');
+    root.style.setProperty('--color-border-strong', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-400)');
+
+    const fgAccent = isDark ? 'var(--color-neutral-950)' : 'var(--color-neutral-50)';
+    root.style.setProperty('--color-text-on-primary', fgAccent);
+    root.style.setProperty('--color-text-on-secondary', fgAccent);
+    root.style.setProperty('--color-text-on-tertiary', fgAccent);
+    root.style.setProperty('--color-text-on-success', fgAccent);
+    root.style.setProperty('--color-text-on-danger', fgAccent);
+    root.style.setProperty('--color-text-on-info', fgAccent);
+    root.style.setProperty('--color-text-on-warning', isDark ? 'var(--color-neutral-950)' : 'var(--color-neutral-950)');
+
+    // ── Interaction ──
+    root.style.setProperty(
+      '--color-hover',
+      isDark
+        ? 'color-mix(in srgb, var(--color-neutral-50) 4%, transparent)'
+        : 'color-mix(in srgb, var(--color-neutral-900) 4%, transparent)',
+    );
+    root.style.setProperty(
+      '--color-selected',
+      isDark
+        ? `color-mix(in srgb, var(--color-primary-300) 14%, transparent)`
+        : `color-mix(in srgb, var(--color-primary-500) 12%, transparent)`,
+    );
+
+    root.style.setProperty(
+      '--color-shadow-1',
+      isDark
+        ? '0 1px 0 color-mix(in srgb, var(--color-neutral-50) 6%, transparent) inset, 0 1px 2px color-mix(in srgb, var(--color-neutral-950) 30%, transparent)'
+        : '0 1px 0 color-mix(in srgb, var(--color-neutral-50) 70%, transparent) inset, 0 1px 3px color-mix(in srgb, var(--color-neutral-900) 12%, transparent)',
+    );
+    root.style.setProperty(
+      '--color-shadow-2',
+      isDark
+        ? '0 10px 30px color-mix(in srgb, var(--color-neutral-950) 45%, transparent)'
+        : '0 10px 30px color-mix(in srgb, var(--color-neutral-900) 14%, transparent)',
+    );
+
+    root.style.setProperty('color-scheme', isDark ? 'dark' : 'light');
+
+    // ── Backward-compat aliases ──
+    root.style.setProperty('--bg-0', 'var(--color-page-bg)');
+    root.style.setProperty('--bg-1', 'var(--color-surface)');
+    root.style.setProperty('--bg-2', 'var(--color-surface-elevated)');
+    root.style.setProperty('--bg-3', 'var(--color-surface-highest)');
+    root.style.setProperty('--fg-0', 'var(--color-text-body)');
+    root.style.setProperty('--fg-1', 'var(--color-text-muted)');
+    root.style.setProperty('--fg-2', 'var(--color-text-subtle)');
+    root.style.setProperty('--fg-3', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-400)');
+    root.style.setProperty('--fg-4', isDark ? 'var(--color-neutral-600)' : 'var(--color-neutral-300)');
+    root.style.setProperty('--accent', 'var(--color-primary)');
+    root.style.setProperty(
+      '--accent-soft',
+      isDark
+        ? 'color-mix(in srgb, var(--color-primary) 18%, transparent)'
+        : 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
+    );
+    root.style.setProperty('--accent-deep', `var(--color-primary-${accentStepDeep})`);
+    root.style.setProperty('--accent-fg', 'var(--color-text-on-primary)');
+    root.style.setProperty('--accent-2', 'var(--color-secondary)');
+    root.style.setProperty(
+      '--accent-2-soft',
+      isDark
+        ? 'color-mix(in srgb, var(--color-secondary) 18%, transparent)'
+        : 'color-mix(in srgb, var(--color-secondary) 14%, transparent)',
+    );
+    root.style.setProperty('--accent-3', 'var(--color-tertiary)');
+    root.style.setProperty(
+      '--accent-3-soft',
+      isDark
+        ? 'color-mix(in srgb, var(--color-tertiary) 18%, transparent)'
+        : 'color-mix(in srgb, var(--color-tertiary) 14%, transparent)',
+    );
+    root.style.setProperty('--line', 'var(--color-border-subtle)');
+    root.style.setProperty('--line-1', 'var(--color-border-default)');
+    root.style.setProperty('--line-2', 'var(--color-border-strong)');
+    root.style.setProperty('--hover', 'var(--color-hover)');
+    root.style.setProperty('--selected', 'var(--color-selected)');
+    root.style.setProperty('--positive', 'var(--color-success)');
+    root.style.setProperty('--positive-soft', 'var(--color-success-soft)');
+    root.style.setProperty('--negative', 'var(--color-danger)');
+    root.style.setProperty('--negative-soft', 'var(--color-danger-soft)');
+    root.style.setProperty('--warning', 'var(--color-warning)');
+    root.style.setProperty('--warning-soft', 'var(--color-warning-soft)');
+    root.style.setProperty('--info', 'var(--color-info)');
+    root.style.setProperty('--info-soft', 'var(--color-info-soft)');
+    root.style.setProperty('--shadow-1', 'var(--color-shadow-1)');
+    root.style.setProperty('--shadow-2', 'var(--color-shadow-2)');
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+
+  private resolveStoredTheme(): Theme {
+    const raw = localStorage.getItem('theme');
+    if (raw && this.validIds.has(raw)) return raw as Theme;
+    if (raw) localStorage.setItem('theme', 'purple');
+    return 'purple';
   }
 
   private applyCustomCssVars() {
@@ -137,66 +356,24 @@ export class ThemeService {
     if (ct) this.applyCustomCssVarsFrom(ct);
   }
 
-  private applyCustomCssVarsFrom(ct: CustomTheme) {
-    const root = document.documentElement;
-    const accent = this.hexToOklch(ct.accent);
-    const bg = this.hexToOklch(ct.bg);
-    const isDark = ct.isDark;
-
-    // Derive bg scale from base bg
-    const bgL = isDark ? [bg.l, bg.l + 0.03, bg.l + 0.07, bg.l + 0.12] : [bg.l, bg.l - 0.03, bg.l - 0.07, bg.l - 0.12];
-    const fgBase = isDark ? 0.96 : 0.14;
-
-    root.style.setProperty('--custom-bg-0', `oklch(${(bgL[0] * 100).toFixed(1)}% ${bg.c} ${bg.h})`);
-    root.style.setProperty('--custom-bg-1', `oklch(${(bgL[1] * 100).toFixed(1)}% ${bg.c} ${bg.h})`);
-    root.style.setProperty('--custom-bg-2', `oklch(${(bgL[2] * 100).toFixed(1)}% ${bg.c} ${bg.h})`);
-    root.style.setProperty('--custom-bg-3', `oklch(${(bgL[3] * 100).toFixed(1)}% ${bg.c} ${bg.h})`);
-    root.style.setProperty('--custom-fg-0', `oklch(${(fgBase * 100).toFixed(0)}% 0.010 ${bg.h})`);
-    root.style.setProperty('--custom-fg-1', `oklch(${isDark ? 78 : 30}% 0.012 ${bg.h})`);
-    root.style.setProperty('--custom-fg-2', `oklch(${isDark ? 58 : 48}% 0.010 ${bg.h})`);
-    root.style.setProperty('--custom-fg-3', `oklch(${isDark ? 40 : 62}% 0.008 ${bg.h})`);
-    root.style.setProperty('--custom-fg-4', `oklch(${isDark ? 28 : 74}% 0.006 ${bg.h})`);
-    root.style.setProperty('--custom-line', `oklch(${isDark ? '100% 0 0 / 0.07' : '0% 0 0 / 0.09'})`);
-    root.style.setProperty('--custom-line-1', `oklch(${isDark ? '100% 0 0 / 0.10' : '0% 0 0 / 0.13'})`);
-    root.style.setProperty('--custom-line-2', `oklch(${isDark ? '100% 0 0 / 0.16' : '0% 0 0 / 0.20'})`);
-    root.style.setProperty(
-      '--custom-accent',
-      `oklch(${isDark ? Math.min(accent.l + 0.3, 0.8) : Math.min(accent.l, 0.52)} ${accent.c} ${accent.h})`,
-    );
-    root.style.setProperty(
-      '--custom-accent-soft',
-      `oklch(${isDark ? Math.min(accent.l + 0.3, 0.8) : Math.min(accent.l, 0.52)} ${accent.c} ${accent.h} / ${isDark ? '0.16' : '0.12'})`,
-    );
-    root.style.setProperty(
-      '--custom-accent-deep',
-      `oklch(${isDark ? accent.l * 100 : Math.min(accent.l * 0.75, 0.38) * 100}% ${accent.c} ${accent.h})`,
-    );
-    root.style.setProperty('--custom-accent-fg', `oklch(${isDark ? '15% 0.01 70' : '99% 0.005 245'})`);
-
-    // Triadic accent-2 (+120°) and accent-3 (+240°)
-    const h2 = ((+accent.h + 120) % 360).toFixed(0);
-    const h3 = ((+accent.h + 240) % 360).toFixed(0);
-    const a2 = ct.accent2 ? this.hexToOklch(ct.accent2) : { l: accent.l, c: accent.c, h: h2 };
-    const a3 = ct.accent3 ? this.hexToOklch(ct.accent3) : { l: accent.l, c: accent.c, h: h3 };
-    const a2L = isDark ? Math.min(a2.l + 0.3, 0.8) : Math.min(a2.l, 0.52);
-    const a3L = isDark ? Math.min(a3.l + 0.3, 0.8) : Math.min(a3.l, 0.52);
-    root.style.setProperty('--custom-accent-2', `oklch(${a2L} ${a2.c} ${a2.h})`);
-    root.style.setProperty('--custom-accent-3', `oklch(${a3L} ${a3.c} ${a3.h})`);
-    root.style.setProperty('--custom-color-scheme', isDark ? 'dark' : 'light');
+  private loadCustomThemes(): CustomTheme[] {
+    try {
+      return JSON.parse(localStorage.getItem('custom-themes') ?? '[]');
+    } catch {
+      return [];
+    }
   }
 
-  private hexToOklch(hex: string): { l: number; c: string; h: string } {
+  private hexToOklch(hex: string): { l: number; c: number; h: number } {
     const r1 = parseInt(hex.slice(1, 3), 16) / 255;
     const g1 = parseInt(hex.slice(3, 5), 16) / 255;
     const b1 = parseInt(hex.slice(5, 7), 16) / 255;
 
     const srgbToLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-
     const r = srgbToLinear(r1);
     const g = srgbToLinear(g1);
     const b = srgbToLinear(b1);
 
-    // sRGB → OKLab (Bottos 2021)
     const l_ = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
     const m_ = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
     const s_ = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
@@ -209,17 +386,17 @@ export class ThemeService {
     const a = 1.9779984951 * l3 - 2.428592205 * m3 + 0.4505937099 * s3;
     const bb = 0.0259040371 * l3 + 0.7827717662 * m3 - 0.808675766 * s3;
 
-    const hue = (Math.atan2(bb, a) * 180) / Math.PI;
+    const hue = ((Math.atan2(bb, a) * 180) / Math.PI + 360) % 360;
     const chroma = Math.sqrt(a * a + bb * bb);
 
     const maxC = Math.max(r1, g1, b1);
     const minC = Math.min(r1, g1, b1);
-    const naiveChroma = ((maxC - minC) * 0.18).toFixed(3);
+    const naiveChroma = (maxC - minC) * 0.18;
 
     return {
       l: L,
-      c: chroma > 0.01 ? chroma.toFixed(3) : naiveChroma,
-      h: ((hue + 360) % 360).toFixed(0),
+      c: chroma > 0.01 ? chroma : naiveChroma,
+      h: hue,
     };
   }
 
@@ -228,4 +405,12 @@ export class ThemeService {
     document.documentElement.setAttribute('data-density', this.density());
     document.documentElement.setAttribute('data-shape', this.shape());
   }
+}
+
+function clampChroma(c: number): number {
+  return Math.round(Math.max(0.003, Math.min(0.5, c)) * 1000) / 1000;
+}
+
+function clampPct(v: number): number {
+  return Math.round(Math.max(3, Math.min(98, v)) * 10) / 10;
 }

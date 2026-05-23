@@ -25,4 +25,6 @@ opencode.json
 *.log
 npm-debug.log*
 .agents
+# Google OAuth secrets
+client_secret_*.json
 skills-lock.json

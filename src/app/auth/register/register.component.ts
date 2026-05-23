@@ -41,8 +41,8 @@ export class RegisterComponent {
     const v = this.form.value;
     this.auth.register(v.name!, v.email!, v.password!, v.baseCurrency!).subscribe({
       next: (res) => this.router.navigate(['/verify-email'], { state: { email: res.user.email } }),
-      error: (err) => {
-        this.error = err.error?.message ?? this.i18n.t('auth.register_error');
+      error: () => {
+        this.error = this.i18n.t('auth.register_error');
         this.loading = false;
       },
     });

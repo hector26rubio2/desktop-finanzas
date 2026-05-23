@@ -8,17 +8,22 @@ const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);
 
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' https://accounts.google.com 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+  `script-src 'self' https://accounts.google.com https://apis.google.com https://ssl.gstatic.com https://*.gstatic.com 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' https://fonts.googleapis.com https://accounts.google.com https://ssl.gstatic.com https://*.gstatic.com 'unsafe-inline'",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data:",
-  "frame-src https://accounts.google.com",
-  `connect-src 'self' http://localhost:5063${isDev ? ' ws://localhost:4200 ws://localhost:5063' : ''}`,
+  "img-src 'self' data: https://*.google.com https://*.googleusercontent.com https://*.gstatic.com",
+  "frame-src https://accounts.google.com https://*.google.com",
+  `connect-src 'self' http://localhost:5063 https://accounts.google.com https://*.googleapis.com https://*.gstatic.com${isDev ? ' ws://localhost:4200 ws://localhost:5063' : ''}`,
   "object-src 'none'",
   "base-uri 'self'",
 ].join('; ');
 
 log(`starting (dev=${isDev})`);
+
+if (isDev) {
+  app.commandLine.appendSwitch('disable-features', 'CrossOriginOpenerPolicy');
+  log('COOP disabled via command line');
+}
 
 function createWindow() {
   log("creating window");
@@ -32,18 +37,30 @@ function createWindow() {
       sandbox: true,
       nodeIntegration: false,
       contextIsolation: true,
+      nativeWindowOpen: true,
       devTools: isDev,
       preload: path.join(__dirname, 'preload.js'),
     },
   });
 
+  // Allow OAuth popup windows
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https://accounts.google.com')) {
+      return { action: 'allow' };
+    }
+    return { action: 'deny' };
+  });
+
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [CSP],
-      },
-    });
+    const headers = { ...details.responseHeaders };
+    // Strip COOP to allow Google OAuth postMessage
+    delete headers['cross-origin-opener-policy'];
+    delete headers['Cross-Origin-Opener-Policy'];
+    // Only apply CSP in production
+    if (!isDev) {
+      headers['Content-Security-Policy'] = [CSP];
+    }
+    callback({ responseHeaders: headers });
   });
 
   if (isDev) {

@@ -98,10 +98,9 @@ export class AppComponent {
     return seg || 'dashboard';
   });
 
-  isAuthPage = computed(() => {
-    const v = this.activeView();
-    return v === 'login' || v === 'register';
-  });
+  private readonly AUTH_ROUTES = new Set(['login', 'register', 'forgot-password', 'reset-password', 'verify-email']);
+
+  isAuthPage = computed(() => this.AUTH_ROUTES.has(this.activeView()));
 
   userName = computed(() => this.auth.currentUser()?.name ?? 'Usuario');
   userEmail = computed(() => this.auth.currentUser()?.email ?? '');

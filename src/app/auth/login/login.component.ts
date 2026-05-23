@@ -86,6 +86,7 @@ export class LoginComponent implements OnInit {
         size: 'large',
         text: 'continue_with',
         width: 392,
+        ux_mode: 'popup',
       });
     };
     document.head.appendChild(script);

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { ThemeService, Theme } from '../../shared/services/theme.service';
+import { ThemeService, Theme, THEME_PRESETS } from '../../shared/services/theme.service';
 import { PlatformService } from '../../shared/services/platform.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { Locale, TranslationKey } from '../../shared/i18n/locale.types';
@@ -34,26 +34,17 @@ export class SettingsComponent {
     { id: 'acerca', labelKey: 'settings.about' },
   ];
 
-  themeOptions: { id: Theme; name: string; bg: string; accent: string }[] = [
-    { id: 'obsidian', name: 'Obsidiana', bg: 'oklch(13% 0.006 70)', accent: 'oklch(80% 0.12 78)' },
-    { id: 'midnight', name: 'Medianoche', bg: 'oklch(13% 0.035 255)', accent: 'oklch(74% 0.16 245)' },
-    { id: 'emerald', name: 'Esmeralda', bg: 'oklch(15% 0.020 175)', accent: 'oklch(74% 0.15 162)' },
-    { id: 'institutional', name: 'Institución', bg: 'oklch(7.5% 0.004 192)', accent: 'oklch(77.4% 0.052 228)' },
-    { id: 'espresso', name: 'Espresso', bg: 'oklch(7.7% 0.002 80)', accent: 'oklch(77.6% 0.033 23)' },
-    { id: 'pulse', name: 'Pulso', bg: 'oklch(7.3% 0.019 222)', accent: 'oklch(77.3% 0.048 261)' },
-    { id: 'claro', name: 'Claro', bg: 'oklch(98% 0.004 80)', accent: 'oklch(48% 0.18 245)' },
-    {
-      id: 'institutional-light',
-      name: 'Institución Claro',
-      bg: 'oklch(97.5% 0.003 210)',
-      accent: 'oklch(22.7% 0.076 224)',
-    },
-    { id: 'espresso-light', name: 'Espresso Claro', bg: 'oklch(97.8% 0.006 37)', accent: 'oklch(18.0% 0.021 24)' },
-    { id: 'pulse-light', name: 'Pulso Claro', bg: 'oklch(97.6% 0.005 257)', accent: 'oklch(22.0% 0.105 263)' },
-  ];
+  themeOptions: { id: Theme; name: string; bg: string; accent: string }[] = THEME_PRESETS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    bg: p.isDark ? 'oklch(7% 0.004 30)' : 'oklch(98% 0.003 30)',
+    accent: `oklch(${p.isDark ? 72 : 48}% 0.10 ${p.baseHue})`,
+  }));
 
   newThemeName = '';
-  newThemeAccent = '#3b82f6';
+  newThemeAccent = '#7c5fb3';
+  newThemeAccent2 = '#b68b4a';
+  newThemeAccent3 = '#4fa083';
   newThemeBg = '#f8f8f6';
   newThemeIsDark = false;
 
@@ -106,8 +97,8 @@ export class SettingsComponent {
       name: this.newThemeName.trim(),
       isDark: this.newThemeIsDark,
       accent: this.newThemeAccent,
-      accent2: this.triadicFrom(this.newThemeAccent, 120),
-      accent3: this.triadicFrom(this.newThemeAccent, 240),
+      accent2: this.newThemeAccent2,
+      accent3: this.newThemeAccent3,
       bg: this.newThemeBg,
     });
     this.newThemeName = '';

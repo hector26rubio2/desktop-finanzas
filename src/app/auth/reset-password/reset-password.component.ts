@@ -53,11 +53,8 @@ export class ResetPasswordComponent implements OnInit {
         this.loading = false;
         setTimeout(() => this.router.navigate(['/login']), 3000);
       },
-      error: (err) => {
-        this.error =
-          err.error?.error === 'invalid_token'
-            ? this.i18n.t('auth.login_error')
-            : (err.error?.message ?? this.i18n.t('auth.login_error'));
+      error: () => {
+        this.error = this.i18n.t('auth.reset_error');
         this.loading = false;
       },
     });

@@ -206,37 +206,50 @@
                 style="margin-top: 4px"
               />
             </label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-              <label style="margin: 0">
-                <span style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('settings.accento') }}</span>
-                <div class="row-flex" style="gap: 4px">
-                  <input
-                    type="color"
-                    class="input-color"
-                    style="width: 30px; height: 30px; padding: 2px; cursor: pointer"
-                    [(ngModel)]="newThemeAccent"
-                  />
-                  <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent }}</span>
-                  <div
-                    style="width: 18px; height: 18px; border-radius: 4px; margin-left: auto"
-                    [style.background]="triadicFrom(newThemeAccent, 120)"
-                  ></div>
-                  <div
-                    style="width: 18px; height: 18px; border-radius: 4px"
-                    [style.background]="triadicFrom(newThemeAccent, 240)"
-                  ></div>
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
+                  >{{ i18n.t('settings.accento') }} 1</span
+                >
+                <input
+                  type="color"
+                  [(ngModel)]="newThemeAccent"
+                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
+                />
+                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent }}</span>
               </label>
-              <label style="margin: 0">
-                <span style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('settings.fondo_base') }}</span>
-                <div style="display: flex; gap: 8px; margin-top: 4px; align-items: center">
-                  <input
-                    type="color"
-                    [(ngModel)]="newThemeBg"
-                    style="width: 38px; height: 32px; padding: 2px; flex-shrink: 0"
-                  />
-                  <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeBg }}</span>
-                </div>
+              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
+                  >{{ i18n.t('settings.accento') }} 2</span
+                >
+                <input
+                  type="color"
+                  [(ngModel)]="newThemeAccent2"
+                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
+                />
+                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent2 }}</span>
+              </label>
+              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
+                  >{{ i18n.t('settings.accento') }} 3</span
+                >
+                <input
+                  type="color"
+                  [(ngModel)]="newThemeAccent3"
+                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
+                />
+                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent3 }}</span>
+              </label>
+              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
+                  >{{ i18n.t('settings.fondo_base') }}</span
+                >
+                <input
+                  type="color"
+                  [(ngModel)]="newThemeBg"
+                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
+                />
+                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeBg }}</span>
               </label>
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between">

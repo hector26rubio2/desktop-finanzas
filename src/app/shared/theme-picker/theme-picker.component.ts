@@ -1,5 +1,6 @@
 import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import type { Theme } from '../services/theme.service';
+import { THEME_PRESETS } from '../services/theme.service';
 
 interface ThemeOption {
   id: Theme;
@@ -9,78 +10,17 @@ interface ThemeOption {
   accent3: string;
 }
 
-const THEME_OPTIONS: ThemeOption[] = [
-  {
-    id: 'obsidian',
-    name: 'Obsidiana',
-    accent: 'oklch(80% 0.12 78)',
-    accent2: 'oklch(78% 0.1 198)',
-    accent3: 'oklch(76% 0.1 318)',
-  },
-  {
-    id: 'midnight',
-    name: 'Medianoche',
-    accent: 'oklch(74% 0.16 245)',
-    accent2: 'oklch(70% 0.14 5)',
-    accent3: 'oklch(72% 0.14 125)',
-  },
-  {
-    id: 'emerald',
-    name: 'Esmeralda',
-    accent: 'oklch(74% 0.15 162)',
-    accent2: 'oklch(72% 0.12 282)',
-    accent3: 'oklch(74% 0.12 42)',
-  },
-  {
-    id: 'claro',
-    name: 'Claro',
-    accent: 'oklch(48% 0.18 245)',
-    accent2: 'oklch(42% 0.16 5)',
-    accent3: 'oklch(44% 0.16 125)',
-  },
-  {
-    id: 'institutional',
-    name: 'Institución',
-    accent: 'oklch(77.4% 0.052 228)',
-    accent2: 'oklch(75% 0.04 348)',
-    accent3: 'oklch(74% 0.06 108)',
-  },
-  {
-    id: 'institutional-light',
-    name: 'Inst. Claro',
-    accent: 'oklch(22.7% 0.076 224)',
-    accent2: 'oklch(20% 0.05 344)',
-    accent3: 'oklch(24% 0.07 104)',
-  },
-  {
-    id: 'espresso',
-    name: 'Espresso',
-    accent: 'oklch(77.6% 0.033 23)',
-    accent2: 'oklch(74% 0.07 143)',
-    accent3: 'oklch(72% 0.09 263)',
-  },
-  {
-    id: 'espresso-light',
-    name: 'Espresso Claro',
-    accent: 'oklch(18.0% 0.021 24)',
-    accent2: 'oklch(22% 0.06 144)',
-    accent3: 'oklch(26% 0.08 264)',
-  },
-  {
-    id: 'pulse',
-    name: 'Pulso',
-    accent: 'oklch(77.3% 0.048 261)',
-    accent2: 'oklch(74% 0.08 21)',
-    accent3: 'oklch(73% 0.09 141)',
-  },
-  {
-    id: 'pulse-light',
-    name: 'Pulso Claro',
-    accent: 'oklch(22.0% 0.105 263)',
-    accent2: 'oklch(20% 0.07 23)',
-    accent3: 'oklch(25% 0.08 143)',
-  },
-];
+function buildOptions(): ThemeOption[] {
+  return THEME_PRESETS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    accent: `oklch(${p.isDark ? 72 : 48}% 0.10 ${p.baseHue})`,
+    accent2: `oklch(${p.isDark ? 70 : 47}% 0.09 ${(p.baseHue + 120) % 360})`,
+    accent3: `oklch(${p.isDark ? 70 : 46}% 0.08 ${(p.baseHue + 240) % 360})`,
+  }));
+}
+
+const THEME_OPTIONS: ThemeOption[] = buildOptions();
 
 @Component({
   selector: 'app-theme-picker',
@@ -118,8 +58,8 @@ const THEME_OPTIONS: ThemeOption[] = [
                 <span class="theme-swatch__dot" [style.background]="opt.accent3"></span>
               </span>
               <span class="theme-option__txt">
-                <span class="theme-option__name">{{ formatLabel()(opt.id) }}</span>
-                <span class="theme-option__desc">{{ formatLabel()(opt.id + '_desc') }}</span>
+                <span class="theme-option__name">{{ opt.name }}</span>
+                <span class="theme-option__desc">{{ formatLabel()(opt.id) }}</span>
               </span>
             </button>
           }
@@ -129,7 +69,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   `,
 })
 export class ThemePickerComponent {
-  currentTheme = input<Theme>('obsidian');
+  currentTheme = input<Theme>('purple');
   formatLabel = input<(id: string) => string>((id: string) => id);
   themeChange = output<Theme>();
 
