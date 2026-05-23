@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiService, MovementResponse } from './api.service';
+import { I18nService } from '../i18n/i18n.service';
 
 export type Granularity = 'day' | 'week' | 'month' | 'year';
 export type TypeFilter = 'all' | 'Income' | 'Expense';
@@ -16,7 +17,7 @@ function getMonthKey(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}`;
 }
 
-function getWeekRange(date: Date): { start: Date; end: Date; label: string } {
+function getWeekRange(date: Date, lang = 'es'): { start: Date; end: Date; label: string } {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
@@ -25,13 +26,19 @@ function getWeekRange(date: Date): { start: Date; end: Date; label: string } {
   const sunday = new Date(monday);
   sunday.setDate(sunday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
-  const fmt = (dt: Date) => dt.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  const fmt = (dt: Date) => dt.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
   return { start: monday, end: sunday, label: `${fmt(monday)} – ${fmt(sunday)}` };
 }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private api = inject(ApiService);
+  private i18n = inject(I18nService);
+
+  private lang = computed(() => {
+    const loc = this.i18n.currentLocale();
+    return loc === 'en-US' ? 'en' : loc === 'pt-BR' ? 'pt' : 'es';
+  });
 
   readonly granularity = signal<Granularity>('month');
   readonly offset = signal(0);
@@ -59,19 +66,22 @@ export class DashboardService {
     const now = new Date();
     const off = this.offset();
     const g = this.granularity();
+    const lang = this.lang();
     if (g === 'year') {
-      return `Año ${now.getFullYear() + off}`;
+      const y = now.getFullYear() + off;
+      return new Intl.DateTimeFormat(lang, { year: 'numeric' }).format(new Date(y, 0, 1));
     }
     if (g === 'day') {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off);
-      return d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+      return d.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' });
     }
     if (g === 'week') {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
-      return getWeekRange(d).label;
+      const range = getWeekRange(d, lang);
+      return range.label;
     }
     const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
-    return d.toLocaleDateString('es', { month: 'long', year: 'numeric' });
+    return d.toLocaleDateString(lang, { month: 'long', year: 'numeric' });
   });
 
   readonly currentLabelKey = computed(() => {

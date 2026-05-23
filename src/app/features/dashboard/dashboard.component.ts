@@ -38,8 +38,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
   pickerMonth = signal(new Date().getMonth());
   pickerMode = signal<'month' | 'year'>('month');
 
-  readonly MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  readonly DAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
+  readonly ALL_MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  readonly ALL_DAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
+
+  MONTHS = computed(() => {
+    const loc = this.i18n.currentLocale();
+    const fmt = new Intl.DateTimeFormat(loc === 'en-US' ? 'en' : loc === 'pt-BR' ? 'pt' : 'es', { month: 'short' });
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(2024, i, 1);
+      const s = fmt.format(d);
+      return s.charAt(0).toUpperCase() + s.slice(1).replace('.', '');
+    });
+  });
+
+  DAYS = computed(() => {
+    const loc = this.i18n.currentLocale();
+    const fmt = new Intl.DateTimeFormat(loc === 'en-US' ? 'en' : loc === 'pt-BR' ? 'pt' : 'es', { weekday: 'short' });
+    const base = new Date(2024, 0, 1); // Monday
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const s = fmt.format(d);
+      return s.charAt(0).toUpperCase() + s.slice(1).replace('.', '');
+    });
+  });
 
   togglePicker() {
     if (!this.showPicker()) {
@@ -159,7 +181,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private formatXLabel(raw: string, g: Granularity): string {
-    if (g === 'year') return this.MONTHS[Number(raw.slice(5, 7)) - 1] ?? raw;
+    if (g === 'year') return this.MONTHS()[Number(raw.slice(5, 7)) - 1] ?? raw;
     if (g === 'month') return String(Number(raw.slice(8, 10)));
     if (g === 'week') {
       const wk = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
