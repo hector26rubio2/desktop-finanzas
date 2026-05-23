@@ -67,6 +67,26 @@ export class AppComponent {
   showNewMovement = false;
   cmdkQuery = '';
 
+  sidebarCollapsed = signal<boolean>(
+    localStorage.getItem('sidebar-collapsed') === '1',
+  );
+
+  showUserMenu = signal(false);
+
+  toggleSidebar() {
+    const next = !this.sidebarCollapsed();
+    this.sidebarCollapsed.set(next);
+    localStorage.setItem('sidebar-collapsed', next ? '1' : '0');
+  }
+
+  toggleUserMenu() {
+    this.showUserMenu.set(!this.showUserMenu());
+  }
+
+  closeUserMenu() {
+    this.showUserMenu.set(false);
+  }
+
   public auth = inject(AuthService);
   public role = inject(RoleService);
   public theme = inject(ThemeService);
@@ -168,8 +188,8 @@ export class AppComponent {
     return admin ? [...base, admin] : base;
   });
 
-  nav(id: string) {
-    this.router.navigate(['/' + id]);
+  nav(id: string, params?: Record<string, string>) {
+    this.router.navigate(['/' + id], params ? { queryParams: params } : undefined);
   }
 
   cmdkNav(id: string) {

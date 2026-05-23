@@ -1,13 +1,13 @@
-<div style="display: grid; grid-template-columns: 180px 1fr; gap: 0; height: 100%">
+<div class="settings-layout">
   <!-- Sections sidebar -->
-  <nav style="border-right: 1px solid var(--line); padding: 8px 0">
+  <nav class="settings-nav">
     @for (s of sections; track s.id) {
-      <button class="nav-item" [class.nav-item--active]="activeSection() === s.id" (click)="activeSection.set(s.id)">
-        {{ i18n.t(s.labelKey) }}
+      <button class="settings-nav__item" [class.settings-nav__item--active]="activeSection() === s.id" (click)="activeSection.set(s.id)">
+        {{ sectionLabel(s) }}
       </button>
     }
-    <div style="height: 1px; background: var(--line); margin: 8px 0"></div>
-    <button class="nav-item" style="color: var(--negative)" (click)="logout()">
+    <div class="settings-nav__divider"></div>
+    <button class="settings-nav__item settings-nav__item--danger" (click)="logout()">
       <svg
         width="14"
         height="14"
@@ -24,7 +24,68 @@
   </nav>
 
   <!-- Section content -->
-  <div style="padding: var(--pad-x); overflow-y: auto">
+  <div class="settings-content">
+    @if (activeSection() === 'ajustes') {
+      <div style="max-width: 560px">
+        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 12px">
+          Ajustes generales
+        </h3>
+        <p style="font-size: 13px; color: var(--fg-2); line-height: 1.6; margin-bottom: 20px">
+          Centro de ajustes de la aplicación. Elige una sección del panel izquierdo para configurar perfil, apariencia, idioma, monedas, atajos, o ver información general.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px">
+          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('perfil')">
+            <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.profile') }}</div>
+            <div style="font-size: 12px; color: var(--fg-2)">{{ userName() }}</div>
+          </button>
+          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('apariencia')">
+            <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.appearance') }}</div>
+            <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('theme.' + theme.theme()) }}</div>
+          </button>
+          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('idioma')">
+            <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.language') }}</div>
+            <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.currentLocale() }}</div>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (activeSection() === 'idioma') {
+      <div style="max-width: 480px">
+        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
+          {{ i18n.t('settings.language') }}
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          @for (l of langs; track l.id) {
+            <button
+              class="card card--padded"
+              style="
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                text-align: left;
+                border: 2px solid;
+                transition: border-color 0.15s, background 0.15s;
+              "
+              [style.border-color]="i18n.currentLocale() === l.id ? 'var(--accent)' : 'var(--line)'"
+              [style.background]="i18n.currentLocale() === l.id ? 'var(--accent-soft)' : 'var(--bg-1)'"
+              (click)="selectLang(l.id)"
+            >
+              <span style="font-size: 28px; line-height: 1; flex-shrink: 0">{{ l.flag }}</span>
+              <div style="flex: 1">
+                <div style="font-size: 14px; font-weight: 600; color: var(--fg-0)">{{ l.label }}</div>
+                <div class="mono subtle" style="font-size: 11px; margin-top: 2px">{{ l.id }}</div>
+              </div>
+              @if (i18n.currentLocale() === l.id) {
+                <span class="tag tag--accent">{{ i18n.t('settings.tag_principal') }}</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     @if (activeSection() === 'perfil') {
       <div style="max-width: 480px">
         <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">

@@ -7,10 +7,14 @@ interface LangOption {
   flag: string;
 }
 
-const LANG_OPTIONS: LangOption[] = [
-  { id: 'es-CO', label: 'Español', flag: '🇨🇴' },
-  { id: 'en-US', label: 'English', flag: '🇺🇸' },
-  { id: 'pt-BR', label: 'Português', flag: '🇧🇷' },
+interface LangOptionExt extends LangOption {
+  code: string;
+}
+
+const LANG_OPTIONS: LangOptionExt[] = [
+  { id: 'es-CO', label: 'Español', flag: '🇨🇴', code: 'es-CO' },
+  { id: 'en-US', label: 'English', flag: '🇺🇸', code: 'en-US' },
+  { id: 'pt-BR', label: 'Português', flag: '🇧🇷', code: 'pt-BR' },
 ];
 
 @Component({
@@ -28,7 +32,10 @@ const LANG_OPTIONS: LangOption[] = [
           @for (opt of LANG_OPTIONS; track opt.id) {
             <button type="button" class="lang-option" [class.active]="currentLocale() === opt.id" (click)="select(opt)">
               <span class="lang-flag">{{ opt.flag }}</span>
-              {{ opt.label }}
+              <span class="lang-option__txt">
+                <span class="lang-option__name">{{ opt.label }}</span>
+                <span class="lang-option__code">{{ opt.code }}</span>
+              </span>
             </button>
           }
         </div>

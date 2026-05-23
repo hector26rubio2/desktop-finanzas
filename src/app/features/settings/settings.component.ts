@@ -1,14 +1,14 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { ThemeService, Theme, THEME_PRESETS } from '../../shared/services/theme.service';
 import { PlatformService } from '../../shared/services/platform.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { Locale, TranslationKey } from '../../shared/i18n/locale.types';
 
-type Section = 'perfil' | 'apariencia' | 'monedas' | 'atajos' | 'acerca';
+type Section = 'ajustes' | 'perfil' | 'apariencia' | 'idioma' | 'monedas' | 'atajos' | 'acerca';
 
 @Component({
   selector: 'app-settings',
@@ -17,22 +17,62 @@ type Section = 'perfil' | 'apariencia' | 'monedas' | 'atajos' | 'acerca';
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   locales = [
     { id: 'es-CO' as Locale, key: 'settings.es' as const },
     { id: 'en-US' as Locale, key: 'settings.en' as const },
     { id: 'pt-BR' as Locale, key: 'settings.pt' as const },
   ];
 
-  activeSection = signal<Section>('apariencia');
+  langs = [
+    { id: 'es-CO' as Locale, label: 'Español', flag: '🇨🇴' },
+    { id: 'en-US' as Locale, label: 'English', flag: '🇺🇸' },
+    { id: 'pt-BR' as Locale, label: 'Português', flag: '🇧🇷' },
+  ];
 
-  sections: { id: Section; labelKey: TranslationKey }[] = [
+  activeSection = signal<Section>('ajustes');
+
+  // 'ajustes' uses hardcoded label since nav.settings translates to "Configuración" (would dup with section title)
+  sections: { id: Section; labelKey?: TranslationKey; hardLabel?: string }[] = [
+    { id: 'ajustes', hardLabel: 'Ajustes' }, // TODO: add i18n key
     { id: 'perfil', labelKey: 'settings.profile' },
     { id: 'apariencia', labelKey: 'settings.appearance' },
+    { id: 'idioma', labelKey: 'settings.language' },
     { id: 'monedas', labelKey: 'settings.currencies' },
     { id: 'atajos', labelKey: 'settings.shortcuts' },
     { id: 'acerca', labelKey: 'settings.about' },
   ];
+
+  private validSections: Section[] = [
+    'ajustes',
+    'perfil',
+    'apariencia',
+    'idioma',
+    'monedas',
+    'atajos',
+    'acerca',
+  ];
+
+  ngOnInit() {
+    const section = this.route.snapshot.queryParamMap.get('section');
+    if (section && this.validSections.includes(section as Section)) {
+      this.activeSection.set(section as Section);
+    }
+    this.route.queryParamMap.subscribe((params) => {
+      const s = params.get('section');
+      if (s && this.validSections.includes(s as Section)) {
+        this.activeSection.set(s as Section);
+      }
+    });
+  }
+
+  selectLang(id: Locale) {
+    this.i18n.setLocale(id);
+  }
+
+  sectionLabel(s: { labelKey?: TranslationKey; hardLabel?: string }): string {
+    return s.labelKey ? this.i18n.t(s.labelKey) : (s.hardLabel ?? '');
+  }
 
   themeOptions: { id: Theme; name: string; bg: string; accent: string }[] = THEME_PRESETS.map((p) => ({
     id: p.id,
@@ -144,6 +184,7 @@ export class SettingsComponent {
   public theme = inject(ThemeService);
   public os = inject(PlatformService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   public i18n = inject(I18nService);
 
   logout() {

@@ -1,0 +1,134 @@
+/* Dashboard scoped styles */
+
+:host {
+  display: block;
+}
+
+:host .card,
+:host .kpi-card {
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-btn),
+    border-color 180ms var(--ease-btn);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :host .card:hover,
+  :host .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
+
+  :host .stagger > * {
+    animation: dash-stagger-in 420ms var(--ease-out) both;
+    will-change: transform, opacity;
+  }
+
+  :host .stagger > *:nth-child(1) {
+    animation-delay: 40ms;
+  }
+  :host .stagger > *:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  :host .stagger > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  :host .stagger > *:nth-child(4) {
+    animation-delay: 160ms;
+  }
+  :host .stagger > *:nth-child(5) {
+    animation-delay: 200ms;
+  }
+  :host .stagger > *:nth-child(6) {
+    animation-delay: 240ms;
+  }
+}
+
+@keyframes dash-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Doughnut card body — fixed height so chart renders cleanly */
+:host .card__body--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px 20px;
+  min-height: 280px;
+}
+
+:host .card__body--center canvas {
+  max-width: 100%;
+  max-height: 260px;
+}
+
+/* Gran-btn dropdown style (reserved for future use; current uses seg-ctrl) */
+:host .gran-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-button);
+  color: var(--fg-1);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-btn);
+}
+
+:host .gran-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg-0);
+}
+
+:host .gran-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  padding: 4px;
+  box-shadow: var(--shadow-2);
+  min-width: 160px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:host .gran-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-button);
+  color: var(--fg-1);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-btn);
+}
+
+:host .gran-menu__item:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+:host .gran-menu__item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
