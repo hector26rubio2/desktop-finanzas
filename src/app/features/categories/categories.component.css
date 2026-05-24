@@ -1,0 +1,256 @@
+:host {
+  display: block;
+}
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--gutter);
+}
+
+.cat-header .serif {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--fg-0);
+}
+
+.cat-header .btn--sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--gutter);
+  padding: 10px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.cat-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-input);
+  padding: 0 10px;
+  height: 32px;
+  flex: 1;
+  min-width: 160px;
+  max-width: 240px;
+  color: var(--fg-2);
+}
+
+.cat-search input {
+  background: none;
+  border: 0;
+  outline: 0;
+  flex: 1;
+  color: var(--fg-0);
+  font-size: 12px;
+  width: 100%;
+  padding: 0;
+}
+
+.cat-filters {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.cat-filter-btn {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: var(--radius-button, 4px);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.cat-filter-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+
+.cat-filter-btn--active {
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-1));
+  border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  color: var(--accent);
+}
+
+.cat-filter-btn--expense {
+  border-color: color-mix(in oklab, var(--negative) 30%, transparent);
+  color: var(--negative);
+}
+
+.cat-filter-btn--expense.cat-filter-btn--active {
+  background: color-mix(in oklab, var(--negative) 12%, var(--bg-1));
+  border-color: color-mix(in oklab, var(--negative) 50%, transparent);
+}
+
+.cat-filter-btn--income {
+  border-color: color-mix(in oklab, var(--positive) 30%, transparent);
+  color: var(--positive);
+}
+
+.cat-filter-btn--income.cat-filter-btn--active {
+  background: color-mix(in oklab, var(--positive) 12%, var(--bg-1));
+  border-color: color-mix(in oklab, var(--positive) 50%, transparent);
+}
+
+.cat-table-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.cat-table-row:hover {
+  background: var(--hover) !important;
+}
+
+.cat-icon-chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+}
+
+.cat-cell-name {
+  color: var(--fg-0);
+  font-weight: 500;
+}
+
+.cat-cell-tr {
+  color: var(--fg-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+
+
+.cat-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+  min-height: 38px;
+}
+
+.cat-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-footer-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--line);
+}
+
+.cat-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cat-count-inline {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-3);
+  text-transform: lowercase;
+}
+
+.cat-page-info {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-2);
+}
+
+.cat-page-info {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-2);
+}
+
+.cat-page-size {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.cat-page-size:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+  border-color: var(--line-2);
+}
+
+.cat-page-size--active {
+  background: color-mix(in oklab, var(--accent) 15%, var(--bg-1));
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.form-row,
+.cat-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.icon-preview-selected {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.lang-badge {
+  font-size: 13px;
+  margin-right: 4px;
+}
+
+.cat-section-title {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+}

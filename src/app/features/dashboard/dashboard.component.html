@@ -90,18 +90,21 @@
     <div class="skeleton skeleton--card h-200"></div>
   } @else {
     <div class="kpi-grid stagger">
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('dashboard.balance_total') }}</div>
+      <div class="kpi-card kpi-card--accent">
+        <div class="eyebrow"><span class="kpi-dot" style="background:var(--accent)"></span>{{ i18n.t('dashboard.balance_total') }}</div>
         <div class="num-lg mt-8">{{ ds.totalIncome() - ds.totalExpense() | number: '1.0-0' }}</div>
         <div class="num-sm">{{ baseCurrency }}</div>
+        <div class="kpi-bar" style="background:var(--accent)"></div>
       </div>
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('dashboard.ingresos_12m') }}</div>
+      <div class="kpi-card kpi-card--pos">
+        <div class="eyebrow"><span class="kpi-dot" style="background:var(--positive)"></span>{{ i18n.t('dashboard.ingresos_12m') }}</div>
         <div class="num-md mt-8 clr-pos">{{ ds.totalIncome() | number: '1.0-0' }}</div>
+        <div class="kpi-bar" style="background:var(--positive)"></div>
       </div>
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('dashboard.gastos_12m') }}</div>
+      <div class="kpi-card kpi-card--neg">
+        <div class="eyebrow"><span class="kpi-dot" style="background:var(--negative)"></span>{{ i18n.t('dashboard.gastos_12m') }}</div>
         <div class="num-md mt-8 clr-neg">{{ ds.totalExpense() | number: '1.0-0' }}</div>
+        <div class="kpi-bar" style="background:var(--negative)"></div>
       </div>
       <div class="kpi-card">
         <div class="eyebrow">{{ i18n.t('dashboard.transacciones') }}</div>
@@ -109,7 +112,7 @@
       </div>
       @if (ds.topLabel()) {
         <div class="kpi-card">
-          <div class="eyebrow">{{ topLabelKey() }}</div>
+          <div class="eyebrow">{{ i18n.t(topLabelKey()) }}</div>
           <div class="num-md mono mt-8">{{ ds.topLabel() }}</div>
           <div class="num-sm">{{ ds.topAmount() | number: '1.0-0' }} {{ baseCurrency }}</div>
         </div>
@@ -142,31 +145,24 @@
           <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span
           ><span class="eyebrow">{{ ds.currentLabel() }}</span>
         </div>
-        <div style="display: flex; gap: 8px; padding: 0 16px 12px">
-          <select class="select" style="flex: 1" [ngModel]="ds.typeFilter()" (ngModelChange)="ds.setTypeFilter($event)">
-            <option value="all">{{ i18n.t('common.all') }}</option>
-            <option value="Income">{{ i18n.t('transactions.income') }}</option>
-            <option value="Expense">{{ i18n.t('transactions.expense') }}</option>
-          </select>
-          <select
-            class="select"
-            style="flex: 1"
-            [ngModel]="ds.currencyFilter()"
-            (ngModelChange)="ds.setCurrencyFilter($event)"
-          >
-            <option value="">{{ i18n.t('common.all_currencies') }}</option>
-            @for (ccy of ds.availableCurrencies(); track ccy) {
-              <option [value]="ccy">{{ ccy }}</option>
+<div class="filter-tags">
+          <button class="filter-tag" [class.filter-tag--active]="ds.typeFilter() === 'all'" (click)="ds.setTypeFilter('all')">{{ i18n.t('common.all') }}</button>
+          <button class="filter-tag filter-tag--pos-outline" [class.filter-tag--pos]="ds.typeFilter() === 'Income'" (click)="ds.setTypeFilter('Income')">{{ i18n.t('transactions.income') }}</button>
+          <button class="filter-tag filter-tag--neg-outline" [class.filter-tag--neg]="ds.typeFilter() === 'Expense'" (click)="ds.setTypeFilter('Expense')">{{ i18n.t('transactions.expense') }}</button>
+          <span class="filter-tag-sep"></span>
+          <select class="filter-tag-select" [ngModel]="ds.categoryFilterId()" (ngModelChange)="ds.setCategoryFilterId($event)">
+            <option value="">{{ i18n.t('transactions.filtro_categoria') }}</option>
+            @for (c of ds.categories(); track c.id) {
+              <option [value]="c.id">{{ c.icon }} · {{ catName(c) }}</option>
             }
           </select>
         </div>
         <div class="card__body card__body--center">
-          @if (ds.categoryExpenses().length > 0) {
-            <div class="donut-wrap">
-              <canvas #pieCanvas></canvas>
-            </div>
-          } @else {
-            <div class="empty-state p-40">
+          <div class="donut-wrap">
+            <canvas #pieCanvas></canvas>
+          </div>
+          @if (ds.categoryExpenses().length === 0) {
+            <div class="empty-state p-40 donut-empty">
               <p>{{ i18n.t('dashboard.sin_datos') }}</p>
             </div>
           }
@@ -186,18 +182,22 @@
             <th class="th-date">{{ i18n.t('dashboard.fecha') }}</th>
             <th>{{ i18n.t('dashboard.concepto') }}</th>
             <th>{{ i18n.t('dashboard.tipo') }}</th>
+            <th>{{ i18n.t('transactions.source') }}</th>
             <th class="num">{{ i18n.t('dashboard.monto') }}</th>
           </tr>
         </thead>
         <tbody>
           @for (m of ds.recentMovements(); track m.id) {
             <tr>
-              <td class="mono subtle td-date">{{ fmtDate(m.date) }}</td>
+              <td class="mono subtle td-date">{{ fmtDateTime(m.date) }}</td>
               <td>{{ m.description ?? '—' }}</td>
               <td>
                 <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">{{
                   m.type === 'Income' ? i18n.t('dashboard.ingresos') : i18n.t('dashboard.gastos')
                 }}</span>
+              </td>
+              <td>
+                <span class="source-tag">{{ sourceLabel(m.sourceType) }}</span>
               </td>
               <td class="num mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
                 {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
@@ -206,7 +206,7 @@
           }
           @if (ds.recentMovements().length === 0) {
             <tr>
-              <td colspan="4" class="empty-state ta-center p-40">{{ i18n.t('dashboard.sin_movimientos') }}</td>
+              <td colspan="5" class="empty-state ta-center p-40">{{ i18n.t('dashboard.sin_movimientos') }}</td>
             </tr>
           }
         </tbody>

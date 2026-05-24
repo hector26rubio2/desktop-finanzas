@@ -180,6 +180,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return d.toLocaleDateString(this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'short' });
   }
 
+  fmtDateTime(dateStr: string): string {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const date = d.toLocaleDateString(this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'short' });
+    const hours = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${date} ${hours}:${mins}`;
+  }
+
+  sourceLabel(st: string | null): string {
+    if (!st) return '—';
+    const map: Record<string, string> = {
+      Cash: this.i18n.t('transactions.cash'),
+      OwnAccount: this.i18n.t('transactions.own_account'),
+      CreditCard: this.i18n.t('transactions.credit_card'),
+      Loan: this.i18n.t('transactions.loan'),
+    };
+    return map[st] ?? st;
+  }
+
+catName(cat: { name: string; translations: any }): string {
+    return this.i18n.catName(cat.name, cat.translations);
+  }
+
   private cssVar(name: string): string {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
@@ -247,9 +271,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
       }
 
-      if (this.pieCanvasRef && this.ds.categoryExpenses().length > 0) {
+      if (this.pieCanvasRef) {
         this.pieChart?.destroy();
+        this.pieChart = undefined;
         const cats = this.ds.categoryExpenses();
+        if (cats.length > 0) {
         const fg0 = this.cssVar('--fg-0') || 'oklch(20% 0 0)';
         const fg1 = this.cssVar('--fg-1') || textColor;
         const bg1 = this.cssVar('--bg-1') || 'oklch(98% 0 0)';
@@ -290,6 +316,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             },
           }],
         } as any);
+        }
       }
     } catch (e) {
       console.error('[dashboard] chart render error', e);

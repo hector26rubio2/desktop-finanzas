@@ -2,7 +2,9 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MovementsApiService } from './api/movements-api.service';
+import { CategoriesApiService } from './api/categories-api.service';
 import type { MovementResponse } from '../models/movement.model';
+import type { CategoryResponse } from '../models/category.model';
 import { I18nService } from '../i18n/i18n.service';
 import { getMonthKey, getWeekRange, parseDate, toDateKey, toMonthKey } from '../utils/date';
 
@@ -22,6 +24,7 @@ function toDateStr(y: number, m: number, d: number): string {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private movementsApi = inject(MovementsApiService);
+  private categoriesApi = inject(CategoriesApiService);
   private i18n = inject(I18nService);
 
   private lang = computed(() => {
@@ -32,25 +35,19 @@ export class DashboardService {
   readonly granularity = signal<Granularity>('month');
   readonly offset = signal(0);
   readonly typeFilter = signal<TypeFilter>('all');
-  readonly currencyFilter = signal('');
+  readonly categoryFilterId = signal('');
   readonly loading = signal(true);
 
+  readonly categories = signal<CategoryResponse[]>([]);
+
   readonly lineData = signal<DataPoint[]>([]);
-  readonly categoryExpenses = signal<{ name: string; total: number }[]>([]);
+  readonly categoryExpenses = signal<{ name: string; total: number; icon: string; color: string }[]>([]);
   readonly recentMovements = signal<MovementResponse[]>([]);
   readonly totalIncome = signal(0);
   readonly totalExpense = signal(0);
   readonly topLabel = signal('');
   readonly topAmount = signal(0);
   readonly transactionCount = signal(0);
-
-  readonly availableCurrencies = computed(() => {
-    const ccs = new Set<string>();
-    for (const m of this.cache) {
-      if (m.currency) ccs.add(m.currency);
-    }
-    return [...ccs].sort();
-  });
 
   readonly currentLabel = computed(() => {
     const now = new Date();
@@ -145,14 +142,18 @@ export class DashboardService {
     this.recompute();
   }
 
-  setCurrencyFilter(ccy: string) {
-    this.currencyFilter.set(ccy);
+  setCategoryFilterId(id: string) {
+    this.categoryFilterId.set(id);
     this.recompute();
   }
 
   load() {
     this.loading.set(true);
     this.cache = [];
+    this.categoriesApi.getCategories().subscribe({
+      next: (list) => this.categories.set(list),
+      error: () => {},
+    });
     const g = this.granularity();
     const off = this.offset();
     const now = new Date();
@@ -233,6 +234,12 @@ export class DashboardService {
       periodData = this.cache.filter((m) => toDateKey(parseDate(m.date)) === dayStr);
     }
 
+    const cfi = this.categoryFilterId();
+    if (cfi) periodData = periodData.filter((m) => m.categoryId === cfi);
+
+    const tf = this.typeFilter();
+    if (tf !== 'all') periodData = periodData.filter((m) => m.type === tf);
+
     let lineData: DataPoint[];
     if (g === 'year') {
       lineData = this.aggregateByMonth(periodData);
@@ -249,12 +256,7 @@ export class DashboardService {
     this.topLabel.set(top?.label ?? '');
     this.topAmount.set(top?.expense ?? 0);
 
-    let catData = this.cache;
-    const t = this.typeFilter();
-    if (t !== 'all') catData = catData.filter((m) => m.type === t);
-    const ccy = this.currencyFilter();
-    if (ccy) catData = catData.filter((m) => m.currency === ccy);
-    this.categoryExpenses.set(this.buildCategoryMap(catData));
+    this.categoryExpenses.set(this.buildCategoryMap(periodData));
 
     this.recentMovements.set(periodData.sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()).slice(0, 8));
     this.transactionCount.set(periodData.length);
@@ -272,15 +274,7 @@ export class DashboardService {
       else e.expense += m.amountBase;
     }
 
-    const firstHour = movements.length > 0
-      ? Math.min(...movements.map((m) => parseDate(m.createdAt ?? m.date).getHours()))
-      : 0;
-    const lastHour = movements.length > 0
-      ? Math.max(...movements.map((m) => parseDate(m.createdAt ?? m.date).getHours()))
-      : 23;
-
     return [...slots.entries()]
-      .filter(([h]) => h >= firstHour && h <= lastHour || movements.length === 0)
       .map(([hour, v]) => ({
         label: `${String(hour).padStart(2, '0')}:00`,
         income: v.income,
@@ -393,13 +387,23 @@ export class DashboardService {
       });
   }
 
-  private buildCategoryMap(movements: MovementResponse[]): { name: string; total: number }[] {
-    const catMap = new Map<string, number>();
+  private buildCategoryMap(movements: MovementResponse[]): { name: string; total: number; icon: string; color: string }[] {
+    const catMap = new Map<string, { name: string; total: number; icon: string; color: string }>();
     for (const m of movements) {
       if (m.type !== 'Expense') continue;
-      const key = m.categoryName ?? 'Sin categor\u00eda';
-      catMap.set(key, (catMap.get(key) ?? 0) + (m.amountBase ?? 0));
+      const key = m.categoryId ?? '__none__';
+      const existing = catMap.get(key);
+      if (existing) {
+        existing.total += m.amountBase ?? 0;
+      } else {
+        catMap.set(key, {
+          name: m.categoryName ?? this.i18n.t('dashboard.sin_categoria'),
+          total: m.amountBase ?? 0,
+          icon: m.categoryIcon ?? 'tag',
+          color: m.categoryColor ?? '#6b7280',
+        });
+      }
     }
-    return [...catMap.entries()].map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total);
+    return [...catMap.values()].sort((a, b) => b.total - a.total);
   }
 }

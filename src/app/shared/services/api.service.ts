@@ -68,10 +68,12 @@ export class ApiService {
 
   // ── Categories ────────────────────────────────────────────────────────
   getCategories(): Observable<CategoryResponse[]> { return this.categoriesApi.getCategories(); }
-  createCategory(req: { name: string; color: string; icon: string; type: 'Income' | 'Expense' }): Observable<CategoryResponse> { return this.categoriesApi.createCategory(req); }
+  createCategory(req: { name: string; color: string; icon: string; type: 'Income' | 'Expense'; translations?: import('../models/category.model').CategoryTranslations }): Observable<CategoryResponse> { return this.categoriesApi.createCategory(req); }
+  deleteCategory(id: string): Observable<void> { return this.categoriesApi.deleteCategory(id); }
+  updateCategory(id: string, req: { name: string; color: string; icon: string; type: 'Income' | 'Expense'; translations?: import('../models/category.model').CategoryTranslations }): Observable<CategoryResponse> { return this.categoriesApi.updateCategory(id, req); }
 
   // ── Movements ─────────────────────────────────────────────────────────
-  getMovements(yearMonth: string, page = 1, pageSize = 20): Observable<PagedResult<MovementResponse>> { return this.movementsApi.getMovements(yearMonth, page, pageSize); }
+  getMovements(yearMonth: string, page = 1, pageSize = 20, filters?: { currency?: string; categoryId?: string; accountId?: string }): Observable<PagedResult<MovementResponse>> { return this.movementsApi.getMovements(yearMonth, page, pageSize, filters); }
   getMovementSummary(yearMonth: string): Observable<MovementSummary> { return this.movementsApi.getMovementSummary(yearMonth); }
   createMovement(req: MovementRequest): Observable<MovementResponse> { return this.movementsApi.createMovement(req); }
   deleteMovement(id: string): Observable<void> { return this.movementsApi.deleteMovement(id); }

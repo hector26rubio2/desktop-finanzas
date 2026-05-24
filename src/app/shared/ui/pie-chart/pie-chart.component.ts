@@ -15,6 +15,8 @@ Chart.register(...registerables);
 export interface CategoryExpense {
   name: string;
   total: number;
+  icon?: string;
+  color?: string;
 }
 
 @Component({

@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import type { Locale, TranslationKey } from './locale.types';
+import type { CategoryTranslations } from '../models/category.model';
 import es from './translations/es-CO';
 import en from './translations/en-US';
 import pt from './translations/pt-BR';
@@ -26,5 +27,11 @@ export class I18nService {
   t(key: string): string;
   t(key: string): string {
     return this.translations()[key] ?? this.locales['es-CO'][key] ?? key;
+  }
+
+  catName(name: string, translations: CategoryTranslations | null | undefined): string {
+    if (!translations) return name;
+    const locale = this.currentLocale();
+    return translations[locale] ?? translations['es-CO'] ?? name;
   }
 }

@@ -1,54 +1,16 @@
 <div class="view">
-  <!-- KPI strip -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('accounts.title') }}</div>
-      <div class="num-md" style="margin-top: 8px">{{ accounts().length }}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('accounts.total_ars') }}</div>
-      <div class="num-md" style="margin-top: 8px">$ {{ arsTotal() | number: '1.0-0' }}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('accounts.acciones') }}</div>
-      <div style="margin-top: 10px; display: flex; gap: 6px">
-        <button class="btn btn--ghost" style="font-size: 11px">{{ i18n.t('accounts.sincronizar') }}</button>
-        <button class="btn btn--primary" style="font-size: 11px" (click)="openCreate()">
-          {{ i18n.t('accounts.nueva') }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Form -->
-  @if (showForm) {
-    <div class="card empty-card">
-      <div class="account-form-h">
-        <h3>{{ editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title') }}</h3>
-        <button class="btn btn--ghost btn--icon" (click)="cancelForm()">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M1 1l14 14M15 1L1 15" />
-          </svg>
-        </button>
-      </div>
+  @if (showModal()) {
+    <app-modal [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title')" (close)="closeModal()" (overlayClick)="closeModal()">
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="form-row">
-          <label class="wide">
-            {{ i18n.t('accounts.nombre') }}
-            <input formControlName="name" placeholder="{{ i18n.t('accounts.nombre_placeholder') }}" />
-            @if (form.get('name')?.invalid && form.get('name')?.touched) {
-              <span class="field-error">{{ i18n.t('accounts.required') }}</span>
-            }
-          </label>
-          <label>
+        <label class="form-label">
+          {{ i18n.t('accounts.nombre') }}
+          <input formControlName="name" placeholder="{{ i18n.t('accounts.nombre_placeholder') }}" />
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <span class="field-error">{{ i18n.t('accounts.required') }}</span>
+          }
+        </label>
+        <div class="acc-form-row">
+          <label class="form-label" style="flex: 1">
             {{ i18n.t('accounts.tipo') }}
             <select formControlName="type" (change)="onTypeChange()">
               <option value="Cash">{{ i18n.t('accounts.tipo_efectivo') }}</option>
@@ -56,7 +18,7 @@
               <option value="Credit">{{ i18n.t('accounts.tipo_credito') }}</option>
             </select>
           </label>
-          <label>
+          <label class="form-label" style="flex: 1">
             {{ i18n.t('accounts.moneda') }}
             <select formControlName="currency">
               <option>ARS</option>
@@ -67,71 +29,81 @@
           </label>
         </div>
         @if (isNotCash) {
-          <div class="form-row">
-            <label class="wide">
+          <div class="acc-form-row">
+            <label class="form-label" style="flex: 1">
               {{ i18n.t('accounts.banco') }}
               <input formControlName="bank" placeholder="{{ i18n.t('accounts.banco_placeholder') }}" />
             </label>
-            <label>
+            <label class="form-label" style="flex: 0 0 120px">
               {{ i18n.t('accounts.ultimos_digitos') }}
-              <input
-                formControlName="lastFour"
-                maxlength="4"
-                placeholder="{{ i18n.t('accounts.ultimos_digitos_placeholder') }}"
-              />
+              <input formControlName="lastFour" maxlength="4" placeholder="{{ i18n.t('accounts.ultimos_digitos_placeholder') }}" />
             </label>
           </div>
         }
         @if (isCreditType) {
-          <div class="form-row">
-            <label>
-              {{ i18n.t('accounts.limite') }}
-              <input
-                type="number"
-                formControlName="creditLimit"
-                min="0"
-                step="1000"
-                placeholder="{{ i18n.t('accounts.limite_placeholder') }}"
-              />
-            </label>
-            <label>
+          <div style="margin-top: 8px; margin-bottom: 4px">
+            <span class="acc-section-title">{{ i18n.t('accounts.tipo_credito') }}</span>
+          </div>
+          <label class="form-label">
+            {{ i18n.t('accounts.limite') }}
+            <input type="number" formControlName="creditLimit" min="0" step="1000" placeholder="{{ i18n.t('accounts.limite_placeholder') }}" />
+          </label>
+          <div class="acc-form-row">
+            <label class="form-label" style="flex: 1">
               {{ i18n.t('accounts.dia_cierre') }}
               <input type="number" formControlName="billingDay" min="1" max="31" />
             </label>
-            <label>
+            <label class="form-label" style="flex: 1">
               {{ i18n.t('accounts.dia_vencimiento') }}
               <input type="number" formControlName="paymentDay" min="1" max="31" />
             </label>
-            <label>
-              {{ i18n.t('accounts.tasa_mensual') }}
-              <input type="number" formControlName="interestRate" min="0" step="0.01" />
-            </label>
           </div>
+          <label class="form-label">
+            {{ i18n.t('accounts.tasa_mensual') }}
+            <input type="number" formControlName="interestRate" min="0" step="0.01" />
+          </label>
         }
-        <div class="form-actions">
-          <button type="button" class="btn btn--ghost" (click)="cancelForm()">{{ i18n.t('common.cancel') }}</button>
+        <div class="form-actions" style="margin-top: 16px">
+          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
           <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
             {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
           </button>
         </div>
       </form>
-    </div>
+    </app-modal>
   }
 
-  <!-- Accounts table -->
+  @if (showDeleteModal()) {
+    <app-modal [title]="i18n.t('accounts.desactivar_confirm')" (close)="cancelRemove()" (overlayClick)="cancelRemove()">
+      <p style="color: var(--fg-2); font-size: 13px; margin-bottom: 16px">{{ i18n.t('accounts.desactivar_confirm') }}<br><strong style="color: var(--fg-0)">{{ deleting()?.name }}</strong></p>
+      <div class="form-actions">
+        <button class="btn btn--ghost" (click)="cancelRemove()">{{ i18n.t('common.cancel') }}</button>
+        <button class="btn btn--primary" style="background: var(--negative); border-color: var(--negative)" (click)="confirmRemove()">{{ i18n.t('accounts.desactivar_tooltip') }}</button>
+      </div>
+    </app-modal>
+  }
+
   @if (loading()) {
-    <div class="empty-state">
-      <p>{{ i18n.t('accounts.cargando') }}</p>
-    </div>
-  } @else if (accounts().length === 0 && !showForm) {
+    <div class="empty-state"><p>{{ i18n.t('accounts.cargando') }}</p></div>
+  } @else if (accounts().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('accounts.sin_cuentas') }}</div>
       <p>{{ i18n.t('accounts.sin_cuentas_desc') }}</p>
-      <button class="btn btn--primary" style="margin-top: 16px" (click)="openCreate()">
-        {{ i18n.t('accounts.nueva_btn') }}
-      </button>
     </div>
-  } @else if (accounts().length > 0) {
+  } @else {
+    <div class="cat-toolbar">
+      <div class="cat-toolbar-left">
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">{{ i18n.t('common.all') }}</button>
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Debit'" (click)="setFilter('Debit')">{{ i18n.t('accounts.tipo_debito') }}</button>
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Credit'" (click)="setFilter('Credit')">{{ i18n.t('accounts.tipo_credito') }}</button>
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Cash'" (click)="setFilter('Cash')">{{ i18n.t('accounts.tipo_efectivo') }}</button>
+      </div>
+      <div class="cat-toolbar-right">
+        <input class="cat-search" type="text" [placeholder]="i18n.t('common.search')" (input)="onSearch($any($event.target).value)" />
+        <button class="btn btn--primary" style="font-size: 11px" (click)="openCreate()">{{ i18n.t('accounts.nueva') }}</button>
+      </div>
+    </div>
+
     <div class="card" style="padding: 0; overflow: hidden">
       <table class="table">
         <thead>
@@ -147,12 +119,10 @@
           </tr>
         </thead>
         <tbody>
-          @for (a of accounts(); track a.id) {
+          @for (a of paged(); track a.id) {
             <tr>
               <td>
-                <span class="account-icon">
-                  {{ (a.bank ?? a.name).slice(0, 2).toUpperCase() }}
-                </span>
+                <span class="account-icon">{{ (a.bank ?? a.name).slice(0, 2).toUpperCase() }}</span>
               </td>
               <td>
                 <div class="account-name">{{ a.name }}</div>
@@ -162,7 +132,7 @@
               </td>
               <td class="muted">{{ a.bank ?? '—' }}</td>
               <td>
-                <span class="tag" [class]="'tag--' + a.type.toLowerCase()">{{ typeLabel(a.type) }}</span>
+                <span [class]="typeTagClass(a.type)">{{ typeLabel(a.type) }}</span>
               </td>
               <td class="mono" style="font-size: 12px">{{ a.currency }}</td>
               <td class="num mono">{{ a.currency === 'ARS' ? '$ ' : '' }}{{ 0 | number: '1.0-0' }}</td>
@@ -176,47 +146,45 @@
               </td>
               <td>
                 <div class="action-cell">
-                  <button
-                    class="btn btn--ghost btn--icon"
-                    (click)="openEdit(a)"
-                    [title]="i18n.t('accounts.editar_tooltip')"
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                    >
-                      <path d="M11 2l3 3-9 9H2v-3z" />
-                    </svg>
+                  <button class="btn btn--ghost btn--icon" (click)="openEdit(a)" [title]="i18n.t('accounts.editar_tooltip')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg>
                   </button>
-                  <button
-                    class="btn btn--ghost btn--icon"
-                    style="color: var(--negative)"
-                    (click)="remove(a.id)"
-                    [title]="i18n.t('accounts.desactivar_tooltip')"
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                    >
-                      <path d="M1 1l14 14M15 1L1 15" />
-                    </svg>
+                  <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="askRemove(a)" [title]="i18n.t('accounts.desactivar_tooltip')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l14 14M15 1L1 15"/></svg>
                   </button>
                 </div>
               </td>
             </tr>
           }
+          @if (filtered().length === 0) {
+            <tr>
+              <td colspan="8" class="empty-table-msg">
+                <div class="serif">{{ i18n.t('common.no_results') }}</div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
+      <div class="cat-footer">
+        <div class="cat-footer-left">
+          <span class="cat-count-inline">{{ rowCount() }} {{ i18n.t('accounts.title').toLowerCase() }}</span>
+          @if (totalPages() > 1) {
+            <span class="cat-footer-sep"></span>
+            <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
+            </button>
+            <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
+            <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
+            </button>
+          }
+        </div>
+        <div class="cat-footer-right">
+          @for (size of pageSizes; track size) {
+            <button class="cat-page-size" [class.cat-page-size--active]="pageSize() === size" (click)="setPageSize(size)">{{ size }}</button>
+          }
+        </div>
+      </div>
     </div>
   }
 </div>

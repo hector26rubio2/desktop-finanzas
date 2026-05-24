@@ -9,9 +9,12 @@ export class MovementsApiService {
   private http = inject(HttpClient);
   private base = environment.apiUrl;
 
-  getMovements(yearMonth: string, page = 1, pageSize = 20): Observable<PagedResult<MovementResponse>> {
+  getMovements(yearMonth: string, page = 1, pageSize = 20, filters?: { currency?: string; categoryId?: string; accountId?: string }): Observable<PagedResult<MovementResponse>> {
     const [year, month] = yearMonth.split('-').map(Number);
-    const params = new HttpParams().set('year', year).set('month', month).set('page', page).set('pageSize', pageSize);
+    let params = new HttpParams().set('year', year).set('month', month).set('page', page).set('pageSize', pageSize);
+    if (filters?.currency) params = params.set('currency', filters.currency);
+    if (filters?.categoryId) params = params.set('categoryId', filters.categoryId);
+    if (filters?.accountId) params = params.set('accountId', filters.accountId);
     return this.http.get<PagedResult<MovementResponse>>(`${this.base}/movements`, { params });
   }
 

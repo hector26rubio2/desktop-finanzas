@@ -10,6 +10,8 @@ export interface DataPoint {
 export interface CategoryExpense {
   name: string;
   total: number;
+  icon?: string;
+  color?: string;
 }
 
 export interface RecentMovement {
@@ -22,4 +24,5 @@ export interface RecentMovement {
   amountBase: number;
   categoryName: string | null;
   categoryColor: string | null;
+  categoryIcon: string | null;
 }

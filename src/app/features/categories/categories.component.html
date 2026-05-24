@@ -1,24 +1,40 @@
 <div class="view">
-  <div class="row-flex">
-    <h3 class="serif" style="font-size: 22px; font-weight: 400; flex: 1">{{ i18n.t('categories.title') }}</h3>
-    <button class="btn btn--primary" (click)="showForm = !showForm">{{ i18n.t('categories.nueva') }}</button>
+  <div class="cat-header">
+    <h3 class="serif">{{ i18n.t('categories.title') }}</h3>
+    <button class="btn btn--primary btn--sm" (click)="openCreate()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
+      {{ i18n.t('categories.nueva') }}
+    </button>
   </div>
 
-  @if (showForm) {
-    <div class="card" style="padding: var(--pad-x)">
+  @if (categories().length > 0) {
+    <div class="cat-toolbar">
+      <div class="cat-search">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M12 12l3 3"/></svg>
+        <input [placeholder]="i18n.t('common.search')" (input)="onSearch($any($event.target).value)" />
+      </div>
+      <div class="cat-filters">
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">{{ i18n.t('common.all') }}</button>
+        <button class="cat-filter-btn cat-filter-btn--expense" [class.cat-filter-btn--active]="filterType() === 'Expense'" (click)="setFilter('Expense')">{{ i18n.t('categories.expense') }}</button>
+        <button class="cat-filter-btn cat-filter-btn--income" [class.cat-filter-btn--active]="filterType() === 'Income'" (click)="setFilter('Income')">{{ i18n.t('categories.income') }}</button>
+      </div>
+    </div>
+  }
+
+  @if (showModal()) {
+    <app-modal [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('categories.nueva')" (close)="closeModal()" (overlayClick)="closeModal()">
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap">
-          <label style="flex: 2; min-width: 160px">
+        <div class="cat-form-row">
+          <label style="flex: 2; min-width: 140px">
             {{ i18n.t('categories.nombre') }}
-            <input formControlName="name" placeholder="{{ i18n.t('categories.nombre_placeholder') }}" />
+            <input formControlName="name" [placeholder]="i18n.t('categories.nombre_placeholder')" />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <span class="field-error">{{ i18n.t('accounts.required') }}</span>
+            }
           </label>
-          <label style="flex: 1; min-width: 80px">
+          <label style="flex: 0 0 60px">
             {{ i18n.t('categories.color') }}
             <input type="color" formControlName="color" style="height: 38px; padding: 4px" />
-          </label>
-          <label style="flex: 1; min-width: 80px">
-            {{ i18n.t('categories.icono') }}
-            <input formControlName="icon" placeholder="tag" />
           </label>
           <label style="flex: 1; min-width: 100px">
             {{ i18n.t('categories.tipo') }}
@@ -27,55 +43,121 @@
               <option value="Expense">{{ i18n.t('categories.expense') }}</option>
             </select>
           </label>
-          <div style="display: flex; gap: 6px">
-            <button type="button" class="btn btn--ghost" (click)="showForm = false">
-              {{ i18n.t('common.cancel') }}
-            </button>
-            <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
-              {{ saving() ? '…' : i18n.t('common.save') }}
-            </button>
-          </div>
+        </div>
+        <div class="cat-form-row" style="margin-top: 10px">
+          <label style="flex: 1; min-width: 140px">
+            {{ i18n.t('categories.icono') }}
+            <div class="icon-preview-selected" [style.background]="form.value.color">
+              <app-cat-icon [icon]="form.value.icon ?? 'tag'" [size]="18"></app-cat-icon>
+            </div>
+            <app-icon-picker [selectedIcon]="form.value.icon ?? 'tag'" (iconChange)="onIconSelect($event)"></app-icon-picker>
+          </label>
+        </div>
+        <div style="margin-top: 14px; margin-bottom: 4px">
+          <span class="cat-section-title">Traducciones</span>
+        </div>
+        <div class="cat-form-row">
+          <label style="flex: 1; min-width: 100px">
+            <span class="lang-badge">🇨🇴</span> ES
+            <input formControlName="nameEs" placeholder="Nombre en español" />
+          </label>
+          <label style="flex: 1; min-width: 100px">
+            <span class="lang-badge">🇺🇸</span> EN
+            <input formControlName="nameEn" placeholder="Name in English" />
+          </label>
+          <label style="flex: 1; min-width: 100px">
+            <span class="lang-badge">🇧🇷</span> PT
+            <input formControlName="namePt" placeholder="Nome em português" />
+          </label>
+        </div>
+        <div class="form-actions" style="margin-top: 16px">
+          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
+          <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
+            {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
+          </button>
         </div>
       </form>
-    </div>
+    </app-modal>
   }
 
   @if (loading()) {
-    <div class="empty-state">
-      <p>{{ i18n.t('categories.cargando') }}</p>
-    </div>
+    <div class="empty-state"><p>{{ i18n.t('categories.cargando') }}</p></div>
   } @else if (categories().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('categories.sin_categorias') }}</div>
       <p>{{ i18n.t('categories.sin_categorias_desc') }}</p>
     </div>
   } @else {
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--gutter)">
-      @for (c of categories(); track c.id) {
-        <div class="card" style="padding: 14px; display: flex; align-items: center; gap: 12px">
-          <span
-            style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0"
-            [style.background]="c.color"
-          ></span>
-          <div style="flex: 1; min-width: 0">
-            <div style="font-weight: 500; color: var(--fg-0)">{{ c.name }}</div>
-            <div class="mono subtle" style="font-size: 10px; margin-top: 2px">id: {{ c.id.slice(0, 8) }}</div>
-          </div>
-          <button class="btn btn--ghost btn--icon" style="color: var(--negative)">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            >
-              <path d="M1 1l14 14M15 1L1 15" />
-            </svg>
-          </button>
+    <div class="card" style="padding: 0; overflow: hidden">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width: 36px"></th>
+            <th>{{ i18n.t('categories.nombre') }}</th>
+            <th style="width: 80px">{{ i18n.t('categories.tipo') }}</th>
+            <th style="width: 60px">{{ i18n.t('categories.icono') }}</th>
+            <th>ES</th>
+            <th>EN</th>
+            <th>PT</th>
+            <th style="width: 60px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of paged(); track c.id) {
+            <tr class="cat-table-row" (click)="openEdit(c)">
+              <td>
+                <span class="cat-icon-chip" [style.background]="c.color">
+                  <app-cat-icon [icon]="c.icon" [size]="14"></app-cat-icon>
+                </span>
+              </td>
+              <td>
+                <span class="cat-cell-name">{{ catName(c) }}</span>
+              </td>
+              <td>
+                <span class="tag" [class.tag--income]="c.type === 'Income'" [class.tag--expense]="c.type === 'Expense'">
+                  {{ c.type === 'Income' ? i18n.t('categories.income') : i18n.t('categories.expense') }}
+                </span>
+              </td>
+              <td class="mono" style="font-size: 11px; color: var(--fg-3)">{{ c.icon }}</td>
+              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['es-CO'] ?? '—' }}</td>
+              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['en-US'] ?? '—' }}</td>
+              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['pt-BR'] ?? '—' }}</td>
+              <td>
+                <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="deleteCat(c.id); $event.stopPropagation()" [title]="i18n.t('common.delete')">
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l14 14M15 1L1 15"/></svg>
+                </button>
+              </td>
+            </tr>
+          }
+          @if (filtered().length === 0) {
+            <tr>
+              <td colspan="8" class="empty-table-msg">
+                <div class="serif">{{ i18n.t('common.no_results') }}</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="cat-footer">
+        <div class="cat-footer-left">
+          <span class="cat-count-inline">{{ rowCount() }} {{ i18n.t('categories.title').toLowerCase() }}</span>
+          @if (totalPages() > 1) {
+            <span class="cat-footer-sep"></span>
+            <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
+            </button>
+            <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
+            <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
+            </button>
+          }
         </div>
-      }
+        <div class="cat-footer-right">
+          @for (size of pageSizes; track size) {
+            <button class="cat-page-size" [class.cat-page-size--active]="pageSize() === size" (click)="setPageSize(size)">{{ size }}</button>
+          }
+        </div>
+      </div>
     </div>
   }
 </div>

@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-modal',
@@ -12,4 +12,9 @@ export class ModalComponent {
   ariaLabel = input('');
   close = output<void>();
   overlayClick = output<void>();
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.close.emit();
+  }
 }

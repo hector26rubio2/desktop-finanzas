@@ -4,6 +4,8 @@ export interface MovementResponse {
   subType: 'Income' | 'Expense' | 'LoanReceived' | 'LoanGiven' | 'Saving' | null;
   sourceType: 'Cash' | 'OwnAccount' | 'CreditCard' | 'Loan' | null;
   loanParty: string | null;
+  loanInstallments: number | null;
+  loanInterestRate: number | null;
   amount: number;
   currency: string;
   trmApplied: number;
@@ -13,6 +15,7 @@ export interface MovementResponse {
   categoryId: string | null;
   categoryName: string | null;
   categoryColor: string | null;
+  categoryIcon: string | null;
   accountId: string | null;
   accountName: string | null;
   createdAt: string;
@@ -23,6 +26,8 @@ export interface MovementRequest {
   subType?: string;
   sourceType?: string;
   loanParty?: string;
+  loanInstallments?: number;
+  loanInterestRate?: number;
   amount: number;
   currency: string;
   trmApplied: number;

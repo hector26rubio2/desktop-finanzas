@@ -1,14 +1,15 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, AccountResponse, AccountRequest } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
+import { ModalComponent } from '../../shared/ui/modal/modal.component';
 
 @Component({
   selector: 'app-accounts',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',
 })
@@ -20,13 +21,31 @@ export class AccountsComponent implements OnInit {
   accounts = signal<AccountResponse[]>([]);
   loading = signal(true);
   saving = signal(false);
+  showModal = signal(false);
+  showDeleteModal = signal(false);
+  deleting = signal<AccountResponse | null>(null);
   editing = signal<AccountResponse | null>(null);
-  showForm = false;
+  filterType = signal<'' | 'Cash' | 'Debit' | 'Credit'>('');
+  searchQuery = signal('');
 
-  arsTotal = () =>
-    this.accounts()
-      .filter((a) => a.currency === 'ARS')
-      .reduce((s, _) => s, 0);
+  filtered = computed(() => {
+    const q = this.searchQuery().toLowerCase();
+    const ft = this.filterType();
+    return this.accounts().filter((a) => {
+      if (ft && a.type !== ft) return false;
+      if (q && !a.name.toLowerCase().includes(q) && !(a.bank ?? '').toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
+
+  pageSize = signal(10);
+  page = signal(1);
+  pageSizes = [5, 10, 15];
+  totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize()) || 1);
+  paged = computed(() => {
+    const start = (this.page() - 1) * this.pageSize();
+    return this.filtered().slice(start, start + this.pageSize());
+  });
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -43,32 +62,67 @@ export class AccountsComponent implements OnInit {
   get isNotCash(): boolean {
     return this.form.value.type !== 'Cash';
   }
+
   get isCreditType(): boolean {
     return this.form.value.type === 'Credit';
+  }
+
+  typeTagClass(type: string): string {
+    if (type === 'Credit') return 'tag tag--negative';
+    if (type === 'Debit') return 'tag tag--accent';
+    return 'tag tag--info';
+  }
+
+  typeLabel(t: string): string {
+    return t === 'Cash'
+      ? this.i18n.t('accounts.tipo_efectivo')
+      : t === 'Debit'
+        ? this.i18n.t('accounts.tipo_debito')
+        : this.i18n.t('accounts.tipo_credito');
+  }
+
+  setFilter(type: '' | 'Cash' | 'Debit' | 'Credit') {
+    this.filterType.set(type);
+    this.page.set(1);
+  }
+
+  onSearch(q: string) {
+    this.searchQuery.set(q);
+    this.page.set(1);
+  }
+
+  setPageSize(size: number) {
+    this.pageSize.set(size);
+    this.page.set(1);
+  }
+
+  prevPage() {
+    if (this.page() > 1) this.page.update((p) => p - 1);
+  }
+
+  nextPage() {
+    if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
   }
 
   ngOnInit() {
     this.load();
   }
 
-  load() {
+  private load() {
     this.loading.set(true);
     this.api.getAccounts().subscribe({
       next: (list) => {
         this.accounts.set(list);
         this.loading.set(false);
       },
-      error: (err) => {
-        console.error('[accounts] load error:', err);
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
   openCreate() {
     this.editing.set(null);
     this.form.reset({ type: 'Debit', currency: 'ARS' });
-    this.showForm = true;
+    this.showModal.set(true);
   }
 
   openEdit(a: AccountResponse) {
@@ -84,11 +138,11 @@ export class AccountsComponent implements OnInit {
       paymentDay: a.paymentDay,
       interestRate: a.interestRate,
     });
-    this.showForm = true;
+    this.showModal.set(true);
   }
 
-  cancelForm() {
-    this.showForm = false;
+  closeModal() {
+    this.showModal.set(false);
     this.editing.set(null);
   }
 
@@ -113,11 +167,12 @@ export class AccountsComponent implements OnInit {
       paymentDay: v.paymentDay ?? undefined,
       interestRate: v.interestRate ?? undefined,
     };
-    const op = this.editing() ? this.api.updateAccount(this.editing()!.id, req) : this.api.createAccount(req);
+    const editingAcc = this.editing();
+    const op = editingAcc ? this.api.updateAccount(editingAcc!.id, req) : this.api.createAccount(req);
     op.subscribe({
       next: () => {
         this.saving.set(false);
-        this.showForm = false;
+        this.showModal.set(false);
         this.editing.set(null);
         this.load();
       },
@@ -125,16 +180,29 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  remove(id: string) {
-    if (!confirm(this.i18n.t('accounts.desactivar_confirm'))) return;
-    this.api.deleteAccount(id).subscribe(() => this.load());
+  askRemove(a: AccountResponse) {
+    this.showModal.set(false);
+    this.editing.set(null);
+    this.deleting.set(a);
+    this.showDeleteModal.set(true);
   }
 
-  typeLabel(t: string): string {
-    return t === 'Cash'
-      ? this.i18n.t('accounts.tipo_efectivo')
-      : t === 'Debit'
-        ? this.i18n.t('accounts.tipo_debito')
-        : this.i18n.t('accounts.tipo_credito');
+  confirmRemove() {
+    const a = this.deleting();
+    if (!a) return;
+    this.showDeleteModal.set(false);
+    this.api.deleteAccount(a.id).subscribe(() => {
+      this.deleting.set(null);
+      this.load();
+    });
+  }
+
+  cancelRemove() {
+    this.showDeleteModal.set(false);
+    this.deleting.set(null);
+  }
+
+  rowCount(): number {
+    return this.filtered().length;
   }
 }
