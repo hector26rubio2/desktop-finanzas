@@ -18,7 +18,8 @@ export function buildAmortization(
   let balance = principal;
 
   if (type === 'French') {
-    const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1);
+    const payment =
+      (principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) / (Math.pow(1 + monthlyRate, termMonths) - 1);
     for (let m = 1; m <= termMonths; m++) {
       const interest = balance * monthlyRate;
       const principalPortion = payment - interest;
@@ -38,7 +39,13 @@ export function buildAmortization(
     for (let m = 1; m <= termMonths; m++) {
       const principalPortion = m === termMonths ? principal : 0;
       const payment = interestOnly + principalPortion;
-      rows.push({ month: m, payment, interest: interestOnly, principal: principalPortion, balance: m === termMonths ? 0 : principal });
+      rows.push({
+        month: m,
+        payment,
+        interest: interestOnly,
+        principal: principalPortion,
+        balance: m === termMonths ? 0 : principal,
+      });
     }
   }
 

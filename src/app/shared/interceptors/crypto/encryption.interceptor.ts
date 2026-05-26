@@ -6,7 +6,11 @@ function tryDecrypt(event: HttpEvent<unknown>): Observable<HttpEvent<unknown>> {
   if (event instanceof HttpResponse) {
     const b = event.body as Record<string, unknown> | null;
     if (b && typeof b === 'object' && b['encrypted']) {
-      return from(decrypt(b['encrypted'] as string).then<HttpEvent<unknown>>((decrypted: unknown) => event.clone({ body: decrypted })));
+      return from(
+        decrypt(b['encrypted'] as string).then<HttpEvent<unknown>>((decrypted: unknown) =>
+          event.clone({ body: decrypted }),
+        ),
+      );
     }
   }
   return of(event);
@@ -23,7 +27,5 @@ export const encryptionInterceptor: HttpInterceptorFn = (req, next) => {
     );
   }
 
-  return next(req).pipe(
-    switchMap((event: HttpEvent<unknown>) => tryDecrypt(event)),
-  );
+  return next(req).pipe(switchMap((event: HttpEvent<unknown>) => tryDecrypt(event)));
 };

@@ -3,8 +3,15 @@ export function parseDate(s: string): Date {
     const [datePart, timePart] = s.split(' ');
     const parts = datePart.split('/').map(Number);
     let y: number, m: number, d: number;
-    if (parts[2] > 100) { y = parts[2]; m = parts[1]; d = parts[0]; }
-    else { y = parts[0]; m = parts[1]; d = parts[2]; }
+    if (parts[2] > 100) {
+      y = parts[2];
+      m = parts[1];
+      d = parts[0];
+    } else {
+      y = parts[0];
+      m = parts[1];
+      d = parts[2];
+    }
     if (timePart) {
       const [hh, mi, ss] = timePart.split(':').map(Number);
       return new Date(y, m - 1, d, hh ?? 0, mi ?? 0, ss ?? 0);

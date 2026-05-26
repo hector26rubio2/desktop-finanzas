@@ -1,12 +1,4 @@
-import {
-  Component,
-  OnDestroy,
-  effect,
-  input,
-  ViewChild,
-  ElementRef,
-  ChangeDetectionStrategy,
-} from '@angular/core';
+import { Component, OnDestroy, effect, input, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 
@@ -49,7 +41,9 @@ export class PieChartComponent implements OnDestroy {
     });
   }
 
-  ngOnDestroy() { this.chart?.destroy(); }
+  ngOnDestroy() {
+    this.chart?.destroy();
+  }
 
   private render() {
     this.chart?.destroy();
@@ -75,30 +69,64 @@ export class PieChartComponent implements OnDestroy {
     this.chart = new Chart(this.canvasRef.nativeElement, {
       type: 'doughnut',
       data: {
-        labels: cats.map(c => c.name),
-        datasets: [{ data: cats.map(c => c.total), backgroundColor: colors, borderColor: bg1, borderWidth: 2, hoverOffset: 8 }],
+        labels: cats.map((c) => c.name),
+        datasets: [
+          { data: cats.map((c) => c.total), backgroundColor: colors, borderColor: bg1, borderWidth: 2, hoverOffset: 8 },
+        ],
       },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 600 },
         cutout: '68%',
         plugins: {
-          legend: { position: 'right', labels: { color: fg1, font: { family: 'Geist', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 12, usePointStyle: true } },
-          tooltip: { backgroundColor: bg1, titleColor: fg0, bodyColor: fg1, borderColor: line1, borderWidth: 1, padding: 10, titleFont: { family: 'Geist', size: 12 }, bodyFont: { family: 'Geist Mono', size: 11 } },
+          legend: {
+            position: 'right',
+            labels: {
+              color: fg1,
+              font: { family: 'Geist', size: 11 },
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 12,
+              usePointStyle: true,
+            },
+          },
+          tooltip: {
+            backgroundColor: bg1,
+            titleColor: fg0,
+            bodyColor: fg1,
+            borderColor: line1,
+            borderWidth: 1,
+            padding: 10,
+            titleFont: { family: 'Geist', size: 12 },
+            bodyFont: { family: 'Geist Mono', size: 11 },
+          },
         },
       },
-      plugins: [{
-        id: 'centerText',
-        afterDraw: (chart: Chart) => {
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return;
-          const cx = (chartArea.left + chartArea.right) / 2, cy = (chartArea.top + chartArea.bottom) / 2;
-          ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillStyle = fg1; ctx.font = '500 10px "Geist Mono"'; ctx.fillText(this.totalLabel(), cx, cy - 14);
-          ctx.fillStyle = fg0; ctx.font = '600 18px "Geist Mono"'; ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
-          ctx.fillStyle = fg1; ctx.font = '400 9px "Geist Mono"'; ctx.fillText(ccy, cx, cy + 20);
-          ctx.restore();
+      plugins: [
+        {
+          id: 'centerText',
+          afterDraw: (chart: Chart) => {
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return;
+            const cx = (chartArea.left + chartArea.right) / 2,
+              cy = (chartArea.top + chartArea.bottom) / 2;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = fg1;
+            ctx.font = '500 10px "Geist Mono"';
+            ctx.fillText(this.totalLabel(), cx, cy - 14);
+            ctx.fillStyle = fg0;
+            ctx.font = '600 18px "Geist Mono"';
+            ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
+            ctx.fillStyle = fg1;
+            ctx.font = '400 9px "Geist Mono"';
+            ctx.fillText(ccy, cx, cy + 20);
+            ctx.restore();
+          },
         },
-      }],
+      ],
     } as any);
   }
 }

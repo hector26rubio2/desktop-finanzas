@@ -1,10 +1,6 @@
 <label class="field-label" [class.field-label--required]="required()">
   {{ label() }}
-  <select
-    class="field-select"
-    [disabled]="disabled()"
-    (change)="onChange($event)"
-  >
+  <select class="field-select" [disabled]="disabled()" (change)="onChange($event)">
     <ng-content />
   </select>
 </label>

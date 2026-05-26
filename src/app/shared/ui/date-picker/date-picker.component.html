@@ -6,7 +6,9 @@
       @if (granularity() === 'year') {
         <div class="dp-year-grid">
           @for (y of yearList(); track y) {
-            <button class="dp-year-btn" [class.dp-year-btn--active]="isYearActive(y)" (click)="selectYear(y)">{{ y }}</button>
+            <button class="dp-year-btn" [class.dp-year-btn--active]="isYearActive(y)" (click)="selectYear(y)">
+              {{ y }}
+            </button>
           }
         </div>
       } @else if (pickerMode() === 'year') {
@@ -27,7 +29,9 @@
       } @else {
         <div class="dp-head">
           <button class="dp-arrow" (click)="pickerPrevMonth()">&#9664;</button>
-          <button class="dp-title" (click)="pickerMode.set('year')">{{ MONTHS()[pickerMonth()] }} {{ pickerYear() }}</button>
+          <button class="dp-title" (click)="pickerMode.set('year')">
+            {{ MONTHS()[pickerMonth()] }} {{ pickerYear() }}
+          </button>
           <button class="dp-arrow" (click)="pickerNextMonth()">&#9654;</button>
         </div>
         <div class="dp-day-head">

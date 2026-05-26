@@ -100,7 +100,7 @@ export class AppComponent {
 
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
-      this.showCmdk.update(v => !v);
+      this.showCmdk.update((v) => !v);
     }
     if (e.key === 'Escape') {
       this.showCmdk.set(false);

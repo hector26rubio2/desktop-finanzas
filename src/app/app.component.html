@@ -1,4 +1,4 @@
-<div [class]="isAuthPage() ? '' : ('app-shell' + (sidebarCollapsed() ? ' sidebar-collapsed' : ''))">
+<div [class]="isAuthPage() ? '' : 'app-shell' + (sidebarCollapsed() ? ' sidebar-collapsed' : '')">
   @if (!isAuthPage()) {
     <app-sidebar
       [collapsed]="sidebarCollapsed()"
@@ -12,11 +12,7 @@
 
   <main [class]="isAuthPage() ? '' : 'content'">
     @if (!isAuthPage()) {
-      <app-shell-header
-        [headerTitle]="headerTitle()"
-        [headerSub]="headerSub()"
-        (openCmdk)="showCmdk.set(true)"
-      />
+      <app-shell-header [headerTitle]="headerTitle()" [headerSub]="headerSub()" (openCmdk)="showCmdk.set(true)" />
     }
 
     <div [class]="isAuthPage() ? '' : 'content__body'">

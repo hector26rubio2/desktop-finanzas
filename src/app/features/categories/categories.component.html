@@ -2,7 +2,17 @@
   <div class="cat-header">
     <h3 class="serif">{{ i18n.t('categories.title') }}</h3>
     <button class="btn btn--primary btn--sm" (click)="openCreate()">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      >
+        <path d="M8 1v14M1 8h14" />
+      </svg>
       {{ i18n.t('categories.nueva') }}
     </button>
   </div>
@@ -10,19 +20,48 @@
   @if (categories().length > 0) {
     <div class="cat-toolbar">
       <div class="cat-search">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M12 12l3 3"/></svg>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        >
+          <circle cx="7" cy="7" r="5" />
+          <path d="M12 12l3 3" />
+        </svg>
         <input [placeholder]="i18n.t('common.search')" (input)="onSearch($any($event.target).value)" />
       </div>
       <div class="cat-filters">
-        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">{{ i18n.t('common.all') }}</button>
-        <button class="cat-filter-btn cat-filter-btn--expense" [class.cat-filter-btn--active]="filterType() === 'Expense'" (click)="setFilter('Expense')">{{ i18n.t('categories.expense') }}</button>
-        <button class="cat-filter-btn cat-filter-btn--income" [class.cat-filter-btn--active]="filterType() === 'Income'" (click)="setFilter('Income')">{{ i18n.t('categories.income') }}</button>
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">
+          {{ i18n.t('common.all') }}
+        </button>
+        <button
+          class="cat-filter-btn cat-filter-btn--expense"
+          [class.cat-filter-btn--active]="filterType() === 'Expense'"
+          (click)="setFilter('Expense')"
+        >
+          {{ i18n.t('categories.expense') }}
+        </button>
+        <button
+          class="cat-filter-btn cat-filter-btn--income"
+          [class.cat-filter-btn--active]="filterType() === 'Income'"
+          (click)="setFilter('Income')"
+        >
+          {{ i18n.t('categories.income') }}
+        </button>
       </div>
     </div>
   }
 
   @if (showModal()) {
-    <app-modal [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('categories.nueva')" (close)="closeModal()" (overlayClick)="closeModal()">
+    <app-modal
+      [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('categories.nueva')"
+      (close)="closeModal()"
+      (overlayClick)="closeModal()"
+    >
       <form [formGroup]="form" (ngSubmit)="save()">
         <div class="cat-form-row">
           <label style="flex: 2; min-width: 140px">
@@ -50,7 +89,10 @@
             <div class="icon-preview-selected" [style.background]="form.value.color">
               <app-cat-icon [icon]="form.value.icon ?? 'tag'" [size]="18"></app-cat-icon>
             </div>
-            <app-icon-picker [selectedIcon]="form.value.icon ?? 'tag'" (iconChange)="onIconSelect($event)"></app-icon-picker>
+            <app-icon-picker
+              [selectedIcon]="form.value.icon ?? 'tag'"
+              (iconChange)="onIconSelect($event)"
+            ></app-icon-picker>
           </label>
         </div>
         <div style="margin-top: 14px; margin-bottom: 4px">
@@ -81,7 +123,9 @@
   }
 
   @if (loading()) {
-    <div class="empty-state"><p>{{ i18n.t('categories.cargando') }}</p></div>
+    <div class="empty-state">
+      <p>{{ i18n.t('categories.cargando') }}</p>
+    </div>
   } @else if (categories().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('categories.sin_categorias') }}</div>
@@ -123,8 +167,23 @@
               <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['en-US'] ?? '—' }}</td>
               <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['pt-BR'] ?? '—' }}</td>
               <td>
-                <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="deleteCat(c.id); $event.stopPropagation()" [title]="i18n.t('common.delete')">
-                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l14 14M15 1L1 15"/></svg>
+                <button
+                  class="btn btn--ghost btn--icon"
+                  style="color: var(--negative)"
+                  (click)="deleteCat(c.id); $event.stopPropagation()"
+                  [title]="i18n.t('common.delete')"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <path d="M1 1l14 14M15 1L1 15" />
+                  </svg>
                 </button>
               </td>
             </tr>
@@ -144,17 +203,43 @@
           @if (totalPages() > 1) {
             <span class="cat-footer-sep"></span>
             <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M10 3L5 8l5 5" />
+              </svg>
             </button>
             <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
             <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M6 3l5 5-5 5" />
+              </svg>
             </button>
           }
         </div>
         <div class="cat-footer-right">
           @for (size of pageSizes; track size) {
-            <button class="cat-page-size" [class.cat-page-size--active]="pageSize() === size" (click)="setPageSize(size)">{{ size }}</button>
+            <button
+              class="cat-page-size"
+              [class.cat-page-size--active]="pageSize() === size"
+              (click)="setPageSize(size)"
+            >
+              {{ size }}
+            </button>
           }
         </div>
       </div>

@@ -43,15 +43,7 @@ export class SettingsComponent implements OnInit {
     { id: 'acerca', labelKey: 'settings.about' },
   ];
 
-  private validSections: Section[] = [
-    'ajustes',
-    'perfil',
-    'apariencia',
-    'idioma',
-    'monedas',
-    'atajos',
-    'acerca',
-  ];
+  private validSections: Section[] = ['ajustes', 'perfil', 'apariencia', 'idioma', 'monedas', 'atajos', 'acerca'];
 
   ngOnInit() {
     const section = this.route.snapshot.queryParamMap.get('section');

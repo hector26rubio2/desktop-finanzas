@@ -29,7 +29,11 @@ export class UserMenuComponent {
   userEmail = computed(() => this.auth.currentUser()?.email ?? '');
   userInitials = computed(() => {
     const n = this.auth.currentUser()?.name ?? 'U';
-    return n.split(' ').slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
+    return n
+      .split(' ')
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join('');
   });
 
   iconSvg(name: string): string {

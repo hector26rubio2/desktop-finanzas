@@ -216,7 +216,8 @@ export class DashboardService {
       periodData = this.cache.filter((m) => parseDate(m.date).getFullYear() === year);
     } else if (g === 'month') {
       const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
-      const y = d.getFullYear(), mo = d.getMonth();
+      const y = d.getFullYear(),
+        mo = d.getMonth();
       periodData = this.cache.filter((m) => {
         const md = parseDate(m.date);
         return md.getFullYear() === y && md.getMonth() === mo;
@@ -258,7 +259,9 @@ export class DashboardService {
 
     this.categoryExpenses.set(this.buildCategoryMap(periodData));
 
-    this.recentMovements.set(periodData.sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()).slice(0, 8));
+    this.recentMovements.set(
+      periodData.sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()).slice(0, 8),
+    );
     this.transactionCount.set(periodData.length);
   }
 
@@ -274,12 +277,11 @@ export class DashboardService {
       else e.expense += m.amountBase;
     }
 
-    return [...slots.entries()]
-      .map(([hour, v]) => ({
-        label: `${String(hour).padStart(2, '0')}:00`,
-        income: v.income,
-        expense: v.expense,
-      }));
+    return [...slots.entries()].map(([hour, v]) => ({
+      label: `${String(hour).padStart(2, '0')}:00`,
+      income: v.income,
+      expense: v.expense,
+    }));
   }
 
   private aggregateByDay(movements: MovementResponse[]): DataPoint[] {
@@ -312,7 +314,10 @@ export class DashboardService {
     if (g === 'week') {
       const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off * 7);
       const range = getWeekRange(base);
-      const fmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', { weekday: 'short', day: 'numeric' });
+      const fmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', {
+        weekday: 'short',
+        day: 'numeric',
+      });
       const map = new Map<string, { income: number; expense: number; sortKey: number }>();
       let idx = 0;
       const tmp = new Date(range.start);
@@ -339,7 +344,10 @@ export class DashboardService {
         });
     }
 
-    const dateFmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', { day: 'numeric', month: 'short' });
+    const dateFmt = new Intl.DateTimeFormat(lang === 'en' ? 'en' : lang === 'pt' ? 'pt' : 'es', {
+      day: 'numeric',
+      month: 'short',
+    });
     const dayMap = new Map<string, { income: number; expense: number }>();
     for (const m of movements) {
       const day = toDateKey(parseDate(m.date));
@@ -387,7 +395,9 @@ export class DashboardService {
       });
   }
 
-  private buildCategoryMap(movements: MovementResponse[]): { name: string; total: number; icon: string; color: string }[] {
+  private buildCategoryMap(
+    movements: MovementResponse[],
+  ): { name: string; total: number; icon: string; color: string }[] {
     const catMap = new Map<string, { name: string; total: number; icon: string; color: string }>();
     for (const m of movements) {
       if (m.type !== 'Expense') continue;

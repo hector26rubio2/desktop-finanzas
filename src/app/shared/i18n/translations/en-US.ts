@@ -281,6 +281,26 @@ const en: Record<TranslationKey, string> = {
   'cards.ciclo_facturacion': 'Billing cycle',
   'cards.cierre_dia': 'Closing day',
   'cards.vence_dia': 'Due day',
+  'cards.compras_ciclo': 'Cycle purchases',
+  'cards.movimientos': 'transactions',
+  'cards.all_banks': 'All banks',
+  'cards.all_currencies': 'All currencies',
+  'cards.filter_bank': 'Bank',
+  'cards.brand_visa': 'VISA',
+  'cards.brand_mastercard': 'MASTERCARD',
+  'cards.brand_amex': 'AMEX',
+  'cards.cuota': 'Installment',
+  'cards.cuota_de': 'of',
+  'cards.interes': 'Interest',
+  'cards.total_cuota': 'Installment total',
+  'cards.resumen_pago': 'Payment summary',
+  'cards.pagar': 'Pay',
+  'cards.extracto': 'Statement',
+  'cards.total_a_pagar': 'Total due',
+  'cards.gastos_ciclo': 'Cycle expenses',
+  'cards.interes_estimado': 'Estimated interest',
+  'cards.pago_minimo': 'Minimum payment',
+  'cards.pago_total': 'Total payment',
 
   'installments.title': 'Installments & purchases',
   'installments.nueva_compra': '+ New purchase',
@@ -497,6 +517,8 @@ const en: Record<TranslationKey, string> = {
   'common.search_dialog': 'Quick search',
   'common.search_input': 'Search',
   'common.new_movement_dialog': 'New transaction',
+
+  'calendar.detail_title': 'Movement details',
 };
 
 export default en;

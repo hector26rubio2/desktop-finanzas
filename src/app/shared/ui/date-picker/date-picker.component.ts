@@ -54,7 +54,8 @@ export class DatePickerComponent {
   });
 
   dayGrid = computed(() => {
-    const y = this.pickerYear(), m = this.pickerMonth();
+    const y = this.pickerYear(),
+      m = this.pickerMonth();
     const first = new Date(y, m, 1).getDay();
     const total = new Date(y, m + 1, 0).getDate();
     const off = first === 0 ? 6 : first - 1;
@@ -89,7 +90,8 @@ export class DatePickerComponent {
   }
 
   selectDay(d: number) {
-    const y = this.pickerYear(), m = this.pickerMonth();
+    const y = this.pickerYear(),
+      m = this.pickerMonth();
     const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     this.selectDate.emit(key);
     this.show.set(false);
@@ -106,13 +108,21 @@ export class DatePickerComponent {
   }
 
   pickerPrevMonth() {
-    if (this.pickerMonth() === 0) { this.pickerMonth.set(11); this.pickerYear.update(y => y - 1); }
-    else { this.pickerMonth.update(m => m - 1); }
+    if (this.pickerMonth() === 0) {
+      this.pickerMonth.set(11);
+      this.pickerYear.update((y) => y - 1);
+    } else {
+      this.pickerMonth.update((m) => m - 1);
+    }
   }
 
   pickerNextMonth() {
-    if (this.pickerMonth() === 11) { this.pickerMonth.set(0); this.pickerYear.update(y => y + 1); }
-    else { this.pickerMonth.update(m => m + 1); }
+    if (this.pickerMonth() === 11) {
+      this.pickerMonth.set(0);
+      this.pickerYear.update((y) => y + 1);
+    } else {
+      this.pickerMonth.update((m) => m + 1);
+    }
   }
 
   isToday(d: number | null) {
@@ -125,13 +135,13 @@ export class DatePickerComponent {
     if (!d) return false;
     const parts = this.activeLabelKey().split('-').map(Number);
     if (parts.length < 3) return false;
-    return parts[0] === this.pickerYear() && (parts[1] - 1) === this.pickerMonth() && parts[2] === d;
+    return parts[0] === this.pickerYear() && parts[1] - 1 === this.pickerMonth() && parts[2] === d;
   }
 
   isMonthActive(m: number) {
     const parts = this.activeLabelKey().split('-').map(Number);
     if (parts.length < 2) return false;
-    return parts[0] === this.pickerYear() && (parts[1] - 1) === m;
+    return parts[0] === this.pickerYear() && parts[1] - 1 === m;
   }
 
   isYearActive(y: number) {

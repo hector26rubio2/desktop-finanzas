@@ -1,6 +1,10 @@
 <div class="view">
   @if (showModal()) {
-    <app-modal [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title')" (close)="closeModal()" (overlayClick)="closeModal()">
+    <app-modal
+      [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title')"
+      (close)="closeModal()"
+      (overlayClick)="closeModal()"
+    >
       <form [formGroup]="form" (ngSubmit)="save()">
         <label class="form-label">
           {{ i18n.t('accounts.nombre') }}
@@ -36,7 +40,11 @@
             </label>
             <label class="form-label" style="flex: 0 0 120px">
               {{ i18n.t('accounts.ultimos_digitos') }}
-              <input formControlName="lastFour" maxlength="4" placeholder="{{ i18n.t('accounts.ultimos_digitos_placeholder') }}" />
+              <input
+                formControlName="lastFour"
+                maxlength="4"
+                placeholder="{{ i18n.t('accounts.ultimos_digitos_placeholder') }}"
+              />
             </label>
           </div>
         }
@@ -46,7 +54,13 @@
           </div>
           <label class="form-label">
             {{ i18n.t('accounts.limite') }}
-            <input type="number" formControlName="creditLimit" min="0" step="1000" placeholder="{{ i18n.t('accounts.limite_placeholder') }}" />
+            <input
+              type="number"
+              formControlName="creditLimit"
+              min="0"
+              step="1000"
+              placeholder="{{ i18n.t('accounts.limite_placeholder') }}"
+            />
           </label>
           <div class="acc-form-row">
             <label class="form-label" style="flex: 1">
@@ -75,16 +89,28 @@
 
   @if (showDeleteModal()) {
     <app-modal [title]="i18n.t('accounts.desactivar_confirm')" (close)="cancelRemove()" (overlayClick)="cancelRemove()">
-      <p style="color: var(--fg-2); font-size: 13px; margin-bottom: 16px">{{ i18n.t('accounts.desactivar_confirm') }}<br><strong style="color: var(--fg-0)">{{ deleting()?.name }}</strong></p>
+      <p style="color: var(--fg-2); font-size: 13px; margin-bottom: 16px">
+        {{ i18n.t('accounts.desactivar_confirm') }}<br /><strong style="color: var(--fg-0)">{{
+          deleting()?.name
+        }}</strong>
+      </p>
       <div class="form-actions">
         <button class="btn btn--ghost" (click)="cancelRemove()">{{ i18n.t('common.cancel') }}</button>
-        <button class="btn btn--primary" style="background: var(--negative); border-color: var(--negative)" (click)="confirmRemove()">{{ i18n.t('accounts.desactivar_tooltip') }}</button>
+        <button
+          class="btn btn--primary"
+          style="background: var(--negative); border-color: var(--negative)"
+          (click)="confirmRemove()"
+        >
+          {{ i18n.t('accounts.desactivar_tooltip') }}
+        </button>
       </div>
     </app-modal>
   }
 
   @if (loading()) {
-    <div class="empty-state"><p>{{ i18n.t('accounts.cargando') }}</p></div>
+    <div class="empty-state">
+      <p>{{ i18n.t('accounts.cargando') }}</p>
+    </div>
   } @else if (accounts().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('accounts.sin_cuentas') }}</div>
@@ -93,14 +119,41 @@
   } @else {
     <div class="cat-toolbar">
       <div class="cat-toolbar-left">
-        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">{{ i18n.t('common.all') }}</button>
-        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Debit'" (click)="setFilter('Debit')">{{ i18n.t('accounts.tipo_debito') }}</button>
-        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Credit'" (click)="setFilter('Credit')">{{ i18n.t('accounts.tipo_credito') }}</button>
-        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === 'Cash'" (click)="setFilter('Cash')">{{ i18n.t('accounts.tipo_efectivo') }}</button>
+        <button class="cat-filter-btn" [class.cat-filter-btn--active]="filterType() === ''" (click)="setFilter('')">
+          {{ i18n.t('common.all') }}
+        </button>
+        <button
+          class="cat-filter-btn"
+          [class.cat-filter-btn--active]="filterType() === 'Debit'"
+          (click)="setFilter('Debit')"
+        >
+          {{ i18n.t('accounts.tipo_debito') }}
+        </button>
+        <button
+          class="cat-filter-btn"
+          [class.cat-filter-btn--active]="filterType() === 'Credit'"
+          (click)="setFilter('Credit')"
+        >
+          {{ i18n.t('accounts.tipo_credito') }}
+        </button>
+        <button
+          class="cat-filter-btn"
+          [class.cat-filter-btn--active]="filterType() === 'Cash'"
+          (click)="setFilter('Cash')"
+        >
+          {{ i18n.t('accounts.tipo_efectivo') }}
+        </button>
       </div>
       <div class="cat-toolbar-right">
-        <input class="cat-search" type="text" [placeholder]="i18n.t('common.search')" (input)="onSearch($any($event.target).value)" />
-        <button class="btn btn--primary" style="font-size: 11px" (click)="openCreate()">{{ i18n.t('accounts.nueva') }}</button>
+        <input
+          class="cat-search"
+          type="text"
+          [placeholder]="i18n.t('common.search')"
+          (input)="onSearch($any($event.target).value)"
+        />
+        <button class="btn btn--primary" style="font-size: 11px" (click)="openCreate()">
+          {{ i18n.t('accounts.nueva') }}
+        </button>
       </div>
     </div>
 
@@ -146,11 +199,40 @@
               </td>
               <td>
                 <div class="action-cell">
-                  <button class="btn btn--ghost btn--icon" (click)="openEdit(a)" [title]="i18n.t('accounts.editar_tooltip')">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg>
+                  <button
+                    class="btn btn--ghost btn--icon"
+                    (click)="openEdit(a)"
+                    [title]="i18n.t('accounts.editar_tooltip')"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    >
+                      <path d="M11 2l3 3-9 9H2v-3z" />
+                    </svg>
                   </button>
-                  <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="askRemove(a)" [title]="i18n.t('accounts.desactivar_tooltip')">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l14 14M15 1L1 15"/></svg>
+                  <button
+                    class="btn btn--ghost btn--icon"
+                    style="color: var(--negative)"
+                    (click)="askRemove(a)"
+                    [title]="i18n.t('accounts.desactivar_tooltip')"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    >
+                      <path d="M1 1l14 14M15 1L1 15" />
+                    </svg>
                   </button>
                 </div>
               </td>
@@ -171,17 +253,43 @@
           @if (totalPages() > 1) {
             <span class="cat-footer-sep"></span>
             <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M10 3L5 8l5 5" />
+              </svg>
             </button>
             <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
             <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M6 3l5 5-5 5" />
+              </svg>
             </button>
           }
         </div>
         <div class="cat-footer-right">
           @for (size of pageSizes; track size) {
-            <button class="cat-page-size" [class.cat-page-size--active]="pageSize() === size" (click)="setPageSize(size)">{{ size }}</button>
+            <button
+              class="cat-page-size"
+              [class.cat-page-size--active]="pageSize() === size"
+              (click)="setPageSize(size)"
+            >
+              {{ size }}
+            </button>
           }
         </div>
       </div>

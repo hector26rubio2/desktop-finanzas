@@ -1,4 +1,14 @@
-import { Component, OnInit, OnDestroy, signal, inject, computed, ChangeDetectionStrategy, Pipe, PipeTransform } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  inject,
+  computed,
+  ChangeDetectionStrategy,
+  Pipe,
+  PipeTransform,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -50,6 +60,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   saving = signal(false);
   showModal = signal(false);
   showDeleteModal = signal(false);
+  showDetailModal = signal(false);
+  selectedMovement = signal<MovementResponse | null>(null);
   deletingIds = signal<string[]>([]);
 
   formAccountId = signal('');
@@ -60,7 +72,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
   filterCcy = '';
   filterCat = '';
   filterAcc = '';
-  searchQuery = '';
+  searchQuery = signal('');
 
   public i18n = inject(I18nService);
   private api = inject(ApiService);
@@ -76,19 +88,19 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return Math.ceil(p.total / p.pageSize) || 1;
   });
 
-  debitAccounts = computed(() => this.accounts().filter(a => a.type === 'Debit'));
-  creditAccounts = computed(() => this.accounts().filter(a => a.type === 'Credit'));
-  cashAccounts = computed(() => this.accounts().filter(a => a.type === 'Cash'));
+  debitAccounts = computed(() => this.accounts().filter((a) => a.type === 'Debit'));
+  creditAccounts = computed(() => this.accounts().filter((a) => a.type === 'Credit'));
+  cashAccounts = computed(() => this.accounts().filter((a) => a.type === 'Cash'));
 
   filteredCategories = computed(() => {
     const type = this.formType();
-    return this.categories().filter(c => c.type === type);
+    return this.categories().filter((c) => c.type === type);
   });
 
   selectedAccount = computed(() => {
     const aid = this.formAccountId();
     if (!aid) return null;
-    return this.accounts().find(a => a.id === aid) ?? null;
+    return this.accounts().find((a) => a.id === aid) ?? null;
   });
 
   selectedAccountBalance = computed(() => {
@@ -98,7 +110,6 @@ export class MovementsComponent implements OnInit, OnDestroy {
   });
 
   canChangeCurrency = computed(() => {
-    const src = this.formSourceType();
     const acc = this.selectedAccount();
     if (acc) return false;
     return true;
@@ -168,29 +179,38 @@ export class MovementsComponent implements OnInit, OnDestroy {
   filteredItems = computed(() => {
     const p = this.page();
     if (!p) return [];
-    return p.items;
+    const q = this.searchQuery().toLowerCase().trim();
+    if (!q) return p.items;
+    return p.items.filter(
+      (m) =>
+        (m.description ?? '').toLowerCase().includes(q) ||
+        (m.categoryName ?? '').toLowerCase().includes(q) ||
+        (m.accountName ?? '').toLowerCase().includes(q) ||
+        m.amount.toString().includes(q) ||
+        m.currency.toLowerCase().includes(q),
+    );
   });
 
   ngOnInit() {
     this.sub.add(
-      this.movForm.valueChanges.subscribe(v => {
+      this.movForm.valueChanges.subscribe((v) => {
         this.formAccountId.set(v.accountId ?? '');
         this.formCurrency.set(v.currency ?? 'ARS');
         this.formSourceType.set(v.sourceType ?? 'Cash');
         this.formType.set(v.type ?? 'Expense');
-      })
+      }),
     );
     this.loadPage(1);
     this.api.getCategories().subscribe({ next: (c) => this.categories.set(c) });
     this.api.getAccounts().subscribe({
       next: (a) => {
         this.accounts.set(a);
-        a.forEach(acc => {
+        a.forEach((acc) => {
           this.api.getAccountBalance(acc.id).subscribe({
-            next: (b) => this.accountBalances.update(m => ({ ...m, [acc.id]: b }))
+            next: (b) => this.accountBalances.update((m) => ({ ...m, [acc.id]: b })),
           });
         });
-      }
+      },
     });
   }
 
@@ -209,7 +229,12 @@ export class MovementsComponent implements OnInit, OnDestroy {
   }
 
   setSource(source: string) {
-    const patches: Record<string, unknown> = { sourceType: source, accountId: '', loanInstallments: null, loanInterestRate: null };
+    const patches: Record<string, unknown> = {
+      sourceType: source,
+      accountId: '',
+      loanInstallments: null,
+      loanInterestRate: null,
+    };
     if (source !== 'Loan') patches['loanParty'] = '';
     this.movForm.patchValue(patches);
     this.formSourceType.set(source);
@@ -367,6 +392,16 @@ export class MovementsComponent implements OnInit, OnDestroy {
   toggleAll() {
     const p = this.page();
     if (!p) return;
+  }
+
+  openDetail(m: MovementResponse) {
+    this.selectedMovement.set(m);
+    this.showDetailModal.set(true);
+  }
+
+  closeDetail() {
+    this.showDetailModal.set(false);
+    this.selectedMovement.set(null);
   }
 
   subTypeLabel(st: string): string {

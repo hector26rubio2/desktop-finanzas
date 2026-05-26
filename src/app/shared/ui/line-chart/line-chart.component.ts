@@ -1,17 +1,6 @@
-import {
-  Component,
-  AfterViewInit,
-  OnDestroy,
-  effect,
-  input,
-  ViewChild,
-  ElementRef,
-  ChangeDetectionStrategy,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, OnDestroy, effect, input, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, registerables } from 'chart.js';
+import { Chart } from 'chart.js';
 export interface DataPoint {
   label: string;
   income: number;
@@ -49,7 +38,9 @@ export class LineChartComponent implements OnDestroy {
     });
   }
 
-  ngOnDestroy() { this.chart?.destroy(); }
+  ngOnDestroy() {
+    this.chart?.destroy();
+  }
 
   private render() {
     this.chart?.destroy();
@@ -64,10 +55,24 @@ export class LineChartComponent implements OnDestroy {
     this.chart = new Chart(this.canvasRef.nativeElement, {
       type: 'line',
       data: {
-        labels: this.labels().length ? this.labels() : d.map(p => p.label),
+        labels: this.labels().length ? this.labels() : d.map((p) => p.label),
         datasets: [
-          { label: this.incomeLabel(), data: d.map(p => p.income), borderColor: positive, backgroundColor: positive + '1A', tension: 0.3, fill: true },
-          { label: this.expenseLabel(), data: d.map(p => p.expense), borderColor: negative, backgroundColor: negative + '1A', tension: 0.3, fill: true },
+          {
+            label: this.incomeLabel(),
+            data: d.map((p) => p.income),
+            borderColor: positive,
+            backgroundColor: positive + '1A',
+            tension: 0.3,
+            fill: true,
+          },
+          {
+            label: this.expenseLabel(),
+            data: d.map((p) => p.expense),
+            borderColor: negative,
+            backgroundColor: negative + '1A',
+            tension: 0.3,
+            fill: true,
+          },
         ],
       },
       options: {

@@ -1,0 +1,524 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+:host .view {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--gutter) !important;
+}
+
+.cards-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.cards-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.cards-filter {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--fg-0);
+  outline: none;
+  height: 30px;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.cards-filter:focus {
+  border-color: var(--accent);
+}
+
+.cards-search {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--fg-0);
+  outline: none;
+  height: 30px;
+  width: 140px;
+  transition: border-color 120ms ease, width 200ms ease;
+}
+
+.cards-search::placeholder {
+  color: var(--fg-3);
+}
+
+.cards-search:focus {
+  border-color: var(--accent);
+  width: 200px;
+}
+
+.cards-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cards-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.cards-summary-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.cards-summary-val {
+  font-family: 'Geist Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg-0);
+}
+
+.cards-summary-sep {
+  width: 1px;
+  height: 32px;
+  background: var(--line);
+}
+
+.cards-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cards-track {
+  display: flex;
+  gap: var(--gutter);
+  padding-bottom: 4px;
+}
+
+.cc-card {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line-2, var(--line));
+  background: var(--bg-1);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.cc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-1);
+  border-color: var(--accent-soft);
+}
+
+.cc-card--selected {
+  border-color: var(--accent);
+  border-width: 2px;
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-2);
+}
+
+.cc-card--selected:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-2);
+}
+
+.cc-card:active {
+  transform: scale(0.98);
+  transition: transform 80ms ease;
+}
+
+.cc-card-visual {
+  position: relative;
+  padding: 12px 14px 10px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.cc-card-visual::before {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  opacity: 0.2;
+  top: -30px;
+  right: -20px;
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.cc-card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+.cc-card-bank {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.cc-card-brand {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-top: 1px;
+}
+
+.cc-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--fg-0);
+  max-width: 60%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-card-number {
+  font-family: 'Geist Mono', monospace;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--fg-0);
+  margin: 6px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cc-card-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 1;
+}
+
+.cc-card-eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: 2px;
+}
+
+.cc-card-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-0);
+}
+
+.cc-card-right {
+  text-align: right;
+}
+
+.cc-card-date {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--fg-2);
+}
+
+.cc-card-body {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cc-card-row.three-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.cc-card-metric {
+  padding: 5px 4px 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg-2);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.cc-card-metric-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  line-height: 1.2;
+}
+
+.cc-card-metric-value {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-0);
+  white-space: nowrap;
+}
+
+.cc-card-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cards-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cards-transactions-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.cards-transactions-title {
+  display: flex;
+  align-items: baseline;
+}
+
+.cards-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: var(--gutter);
+  align-items: start;
+  flex: 1;
+  min-height: 0;
+}
+
+.cards-layout-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cards-layout-side {
+  position: sticky;
+  top: var(--gutter);
+}
+
+.cards-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card, 8px);
+  scrollbar-width: thin;
+}
+
+.cards-table-wrap .table {
+  margin: 0;
+}
+
+.cards-table-wrap .table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-2);
+}
+
+.payment-summary {
+  padding: 14px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-summary-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2px;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.payment-row--total {
+  padding: 8px 0 4px;
+  border-top: 1px solid var(--line);
+}
+
+.payment-label {
+  font-size: 12px;
+  color: var(--fg-2);
+}
+
+.payment-value {
+  font-size: 13px;
+  color: var(--fg-0);
+}
+
+.payment-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+.cards-table-row {
+  transition: background 120ms ease;
+  cursor: pointer;
+}
+
+.cards-table-row:hover {
+  background: var(--accent-soft, color-mix(in oklab, var(--accent) 8%, var(--bg-1)));
+}
+
+.cards-row-sub {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-3);
+  margin-top: 2px;
+}
+
+.cards-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+}
+
+.cards-pagination-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cards-pagination-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--line);
+}
+
+.cards-page-size {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.cards-page-size:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+  border-color: var(--line-2);
+}
+
+.cards-page-size--active {
+  background: color-mix(in oklab, var(--accent) 15%, var(--bg-1));
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm, 4px);
+  white-space: nowrap;
+}
+
+.tag--pos {
+  background: var(--positive-soft, rgba(34, 197, 94, 0.12));
+  color: var(--positive, #22c55e);
+}
+
+.tag--neg {
+  background: var(--negative-soft, rgba(239, 68, 68, 0.12));
+  color: var(--negative, #ef4444);
+}
+
+.mov-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mov-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mov-detail-row:last-child {
+  border-bottom: none;
+}
+
+.mov-detail-label {
+  font-size: 12px;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Geist Mono', monospace;
+}
+
+.mov-detail-value {
+  font-size: 13px;
+  color: var(--fg-0);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

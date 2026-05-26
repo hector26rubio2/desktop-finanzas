@@ -282,6 +282,26 @@ const pt: Record<TranslationKey, string> = {
   'cards.ciclo_facturacion': 'Ciclo de faturamento',
   'cards.cierre_dia': 'Fechamento',
   'cards.vence_dia': 'Vencimento',
+  'cards.compras_ciclo': 'Compras do ciclo',
+  'cards.movimientos': 'transações',
+  'cards.all_banks': 'Todos os bancos',
+  'cards.all_currencies': 'Todas as moedas',
+  'cards.filter_bank': 'Banco',
+  'cards.brand_visa': 'VISA',
+  'cards.brand_mastercard': 'MASTERCARD',
+  'cards.brand_amex': 'AMEX',
+  'cards.cuota': 'Parcela',
+  'cards.cuota_de': 'de',
+  'cards.interes': 'Juros',
+  'cards.total_cuota': 'Total da parcela',
+  'cards.resumen_pago': 'Resumo do pagamento',
+  'cards.pagar': 'Pagar',
+  'cards.extracto': 'Extrato',
+  'cards.total_a_pagar': 'Total a pagar',
+  'cards.gastos_ciclo': 'Despesas do ciclo',
+  'cards.interes_estimado': 'Juros estimados',
+  'cards.pago_minimo': 'Pagamento mínimo',
+  'cards.pago_total': 'Pagamento total',
 
   'installments.title': 'Parcelas e compras',
   'installments.nueva_compra': '+ Nova compra',
@@ -498,6 +518,8 @@ const pt: Record<TranslationKey, string> = {
   'common.search_dialog': 'Busca rápida',
   'common.search_input': 'Buscar',
   'common.new_movement_dialog': 'Novo movimento',
+
+  'calendar.detail_title': 'Detalhes do movimento',
 };
 
 export default pt;

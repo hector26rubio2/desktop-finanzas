@@ -283,6 +283,26 @@ const es: Record<TranslationKey, string> = {
   'cards.ciclo_facturacion': 'Ciclo de facturación',
   'cards.cierre_dia': 'Cierre día',
   'cards.vence_dia': 'Vence día',
+  'cards.compras_ciclo': 'Compras del ciclo',
+  'cards.movimientos': 'movimientos',
+  'cards.all_banks': 'Todos los bancos',
+  'cards.all_currencies': 'Todas las monedas',
+  'cards.filter_bank': 'Banco',
+  'cards.brand_visa': 'VISA',
+  'cards.brand_mastercard': 'MASTERCARD',
+  'cards.brand_amex': 'AMEX',
+  'cards.cuota': 'Cuota',
+  'cards.cuota_de': 'de',
+  'cards.interes': 'Interés',
+  'cards.total_cuota': 'Total cuota',
+  'cards.resumen_pago': 'Resumen de pago',
+  'cards.pagar': 'Pagar',
+  'cards.extracto': 'Extracto',
+  'cards.total_a_pagar': 'Total a pagar',
+  'cards.gastos_ciclo': 'Gastos del ciclo',
+  'cards.interes_estimado': 'Interés estimado',
+  'cards.pago_minimo': 'Pago mínimo',
+  'cards.pago_total': 'Pago total',
 
   'installments.title': 'Cuotas y compras',
   'installments.nueva_compra': '+ Nueva compra',
@@ -499,6 +519,8 @@ const es: Record<TranslationKey, string> = {
   'common.search_dialog': 'Búsqueda rápida',
   'common.search_input': 'Buscar',
   'common.new_movement_dialog': 'Nuevo movimiento',
+
+  'calendar.detail_title': 'Detalle del movimiento',
 };
 
 export default es;

@@ -1,4 +1,15 @@
-import { Component, OnInit, OnDestroy, effect, ViewChild, ElementRef, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  effect,
+  ViewChild,
+  ElementRef,
+  inject,
+  computed,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -82,7 +93,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   });
 
   dayGrid = computed(() => {
-    const y = this.pickerYear(), m = this.pickerMonth();
+    const y = this.pickerYear(),
+      m = this.pickerMonth();
     const first = new Date(y, m, 1).getDay();
     const total = new Date(y, m + 1, 0).getDate();
     const off = first === 0 ? 6 : first - 1;
@@ -102,19 +114,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
       this.pickerMode.set('month');
     }
-    this.showPicker.update(v => !v);
+    this.showPicker.update((v) => !v);
   }
 
-  closePicker() { this.showPicker.set(false); }
+  closePicker() {
+    this.showPicker.set(false);
+  }
 
   pickerPrevMonth() {
-    if (this.pickerMonth() === 0) { this.pickerMonth.set(11); this.pickerYear.update(y => y - 1); }
-    else { this.pickerMonth.update(m => m - 1); }
+    if (this.pickerMonth() === 0) {
+      this.pickerMonth.set(11);
+      this.pickerYear.update((y) => y - 1);
+    } else {
+      this.pickerMonth.update((m) => m - 1);
+    }
   }
 
   pickerNextMonth() {
-    if (this.pickerMonth() === 11) { this.pickerMonth.set(0); this.pickerYear.update(y => y + 1); }
-    else { this.pickerMonth.update(m => m + 1); }
+    if (this.pickerMonth() === 11) {
+      this.pickerMonth.set(0);
+      this.pickerYear.update((y) => y + 1);
+    } else {
+      this.pickerMonth.update((m) => m + 1);
+    }
   }
 
   selectMonth(m: number) {
@@ -123,7 +145,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   selectDay(d: number) {
-    const y = this.pickerYear(), m = this.pickerMonth();
+    const y = this.pickerYear(),
+      m = this.pickerMonth();
     this.ds.jumpTo(`${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
     this.closePicker();
   }
@@ -147,12 +170,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isDayActive(d: number | null) {
     if (!d) return false;
     const [cy, cm, cd] = this.ds.currentLabelKey().split('-').map(Number);
-    return cy === this.pickerYear() && (cm - 1) === this.pickerMonth() && cd === d;
+    return cy === this.pickerYear() && cm - 1 === this.pickerMonth() && cd === d;
   }
 
   isMonthActive(m: number) {
     const [cy, cm] = this.ds.currentLabelKey().split('-').map(Number);
-    return cy === this.pickerYear() && (cm - 1) === m;
+    return cy === this.pickerYear() && cm - 1 === m;
   }
 
   isYearActive(y: number) {
@@ -172,18 +195,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() { this.ds.load(); }
-  ngOnDestroy() { this.lineChart?.destroy(); this.pieChart?.destroy(); }
+  ngOnInit() {
+    this.ds.load();
+  }
+  ngOnDestroy() {
+    this.lineChart?.destroy();
+    this.pieChart?.destroy();
+  }
 
   fmtDate(dateStr: string): string {
     const d = parseDate(dateStr);
-    return d.toLocaleDateString(this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString(
+      this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR',
+      { day: 'numeric', month: 'short' },
+    );
   }
 
   fmtDateTime(dateStr: string): string {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    const date = d.toLocaleDateString(this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'short' });
+    const date = d.toLocaleDateString(
+      this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR',
+      { day: 'numeric', month: 'short' },
+    );
     const hours = String(d.getHours()).padStart(2, '0');
     const mins = String(d.getMinutes()).padStart(2, '0');
     return `${date} ${hours}:${mins}`;
@@ -200,7 +234,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return map[st] ?? st;
   }
 
-catName(cat: { name: string; translations: any }): string {
+  catName(cat: { name: string; translations: any }): string {
     return this.i18n.catName(cat.name, cat.translations);
   }
 
@@ -223,7 +257,7 @@ catName(cat: { name: string; translations: any }): string {
         const data = this.ds.lineData();
         const g = this.ds.granularity();
         const maxTicksLimit = g === 'day' ? 12 : g === 'year' ? 12 : g === 'week' ? 7 : 15;
-        const allValues = data.flatMap(d => [d.income, d.expense]).filter(v => v > 0);
+        const allValues = data.flatMap((d) => [d.income, d.expense]).filter((v) => v > 0);
         const maxVal = allValues.length > 0 ? Math.max(...allValues) : 0;
         const minVal = allValues.length > 0 ? Math.min(...allValues) : 0;
         const yMax = maxVal + maxVal * 0.15;
@@ -235,7 +269,7 @@ catName(cat: { name: string; translations: any }): string {
             datasets: [
               {
                 label: this.i18n.t('dashboard.ingresos'),
-                data: data.map(d => d.income),
+                data: data.map((d) => d.income),
                 borderColor: positive,
                 borderWidth: 2,
                 pointRadius: 0,
@@ -246,7 +280,7 @@ catName(cat: { name: string; translations: any }): string {
               },
               {
                 label: this.i18n.t('dashboard.gastos'),
-                data: data.map(d => d.expense),
+                data: data.map((d) => d.expense),
                 borderColor: negative,
                 borderWidth: 2,
                 pointRadius: 0,
@@ -262,10 +296,40 @@ catName(cat: { name: string; translations: any }): string {
             maintainAspectRatio: false,
             animation: false,
             interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: false }, tooltip: { backgroundColor: this.cssVar('--bg-3') || 'oklch(90% 0 0)', titleColor: this.cssVar('--fg-0') || 'oklch(20% 0 0)', bodyColor: this.cssVar('--fg-1') || textColor, borderColor: this.cssVar('--line-1') || gridColor, borderWidth: 1, padding: 8, titleFont: { family: 'Geist', size: 11 }, bodyFont: { family: 'Geist Mono', size: 11 }, callbacks: { label: (ctx: any) => `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}` } } },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: this.cssVar('--bg-3') || 'oklch(90% 0 0)',
+                titleColor: this.cssVar('--fg-0') || 'oklch(20% 0 0)',
+                bodyColor: this.cssVar('--fg-1') || textColor,
+                borderColor: this.cssVar('--line-1') || gridColor,
+                borderWidth: 1,
+                padding: 8,
+                titleFont: { family: 'Geist', size: 11 },
+                bodyFont: { family: 'Geist Mono', size: 11 },
+                callbacks: {
+                  label: (ctx: any) =>
+                    `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}`,
+                },
+              },
+            },
             scales: {
-              x: { ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, maxTicksLimit, autoSkip: true }, grid: { color: gridColor, drawTicks: false }, border: { color: gridColor } },
-              y: { min: yMin, suggestedMax: yMax, ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, callback: (v: any) => new Intl.NumberFormat('es', { notation: 'compact' }).format(v as number) }, grid: { color: gridColor, drawTicks: false }, border: { color: gridColor } },
+              x: {
+                ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, maxTicksLimit, autoSkip: true },
+                grid: { color: gridColor, drawTicks: false },
+                border: { color: gridColor },
+              },
+              y: {
+                min: yMin,
+                suggestedMax: yMax,
+                ticks: {
+                  color: textColor,
+                  font: { family: 'Geist Mono', size: 10 },
+                  callback: (v: any) => new Intl.NumberFormat('es', { notation: 'compact' }).format(v as number),
+                },
+                grid: { color: gridColor, drawTicks: false },
+                border: { color: gridColor },
+              },
             },
           },
         });
@@ -276,46 +340,86 @@ catName(cat: { name: string; translations: any }): string {
         this.pieChart = undefined;
         const cats = this.ds.categoryExpenses();
         if (cats.length > 0) {
-        const fg0 = this.cssVar('--fg-0') || 'oklch(20% 0 0)';
-        const fg1 = this.cssVar('--fg-1') || textColor;
-        const bg1 = this.cssVar('--bg-1') || 'oklch(98% 0 0)';
-        const bg3 = this.cssVar('--bg-3') || 'oklch(90% 0 0)';
-        const line1 = this.cssVar('--line-1') || gridColor;
-        const info = this.cssVar('--info') || accent2;
-        const warning = this.cssVar('--warning') || accent3;
-        const palette = [accent, accent2, accent3, info, positive, warning, negative];
-        const colors = cats.map((_, i) => palette[i % palette.length]);
-        const total = cats.reduce((s, c) => s + c.total, 0);
-        const baseCcy = this.baseCurrency;
+          const fg0 = this.cssVar('--fg-0') || 'oklch(20% 0 0)';
+          const fg1 = this.cssVar('--fg-1') || textColor;
+          const bg1 = this.cssVar('--bg-1') || 'oklch(98% 0 0)';
+          const bg3 = this.cssVar('--bg-3') || 'oklch(90% 0 0)';
+          const line1 = this.cssVar('--line-1') || gridColor;
+          const info = this.cssVar('--info') || accent2;
+          const warning = this.cssVar('--warning') || accent3;
+          const palette = [accent, accent2, accent3, info, positive, warning, negative];
+          const colors = cats.map((_, i) => palette[i % palette.length]);
+          const total = cats.reduce((s, c) => s + c.total, 0);
+          const baseCcy = this.baseCurrency;
 
-        this.pieChart = new Chart(this.pieCanvasRef.nativeElement, {
-          type: 'doughnut',
-          data: {
-            labels: cats.map((c) => c.name),
-            datasets: [{ data: cats.map((c) => c.total), backgroundColor: colors, borderColor: bg1, borderWidth: 2, hoverOffset: 8 }],
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
-            cutout: '68%',
-            plugins: {
-              legend: { position: 'bottom', labels: { color: fg1, font: { family: 'Geist', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10, usePointStyle: true } },
-              tooltip: { backgroundColor: bg3, titleColor: fg0, bodyColor: fg1, borderColor: line1, borderWidth: 1, padding: 10, titleFont: { family: 'Geist', size: 12 }, bodyFont: { family: 'Geist Mono', size: 11 } },
+          this.pieChart = new Chart(this.pieCanvasRef.nativeElement, {
+            type: 'doughnut',
+            data: {
+              labels: cats.map((c) => c.name),
+              datasets: [
+                {
+                  data: cats.map((c) => c.total),
+                  backgroundColor: colors,
+                  borderColor: bg1,
+                  borderWidth: 2,
+                  hoverOffset: 8,
+                },
+              ],
             },
-          },
-          plugins: [{
-            id: 'centerText',
-            afterDraw: (chart: Chart) => {
-              const { ctx, chartArea } = chart;
-              if (!chartArea) return;
-              const cx = (chartArea.left + chartArea.right) / 2, cy = (chartArea.top + chartArea.bottom) / 2;
-              ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-              ctx.fillStyle = fg1; ctx.font = '500 10px "Geist Mono"'; ctx.fillText('TOTAL', cx, cy - 14);
-              ctx.fillStyle = fg0; ctx.font = '600 18px "Geist Mono"'; ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
-              ctx.fillStyle = fg1; ctx.font = '400 9px "Geist Mono"'; ctx.fillText(baseCcy, cx, cy + 20);
-              ctx.restore();
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 600 },
+              cutout: '68%',
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: fg1,
+                    font: { family: 'Geist', size: 11 },
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    padding: 10,
+                    usePointStyle: true,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: bg3,
+                  titleColor: fg0,
+                  bodyColor: fg1,
+                  borderColor: line1,
+                  borderWidth: 1,
+                  padding: 10,
+                  titleFont: { family: 'Geist', size: 12 },
+                  bodyFont: { family: 'Geist Mono', size: 11 },
+                },
+              },
             },
-          }],
-        } as any);
+            plugins: [
+              {
+                id: 'centerText',
+                afterDraw: (chart: Chart) => {
+                  const { ctx, chartArea } = chart;
+                  if (!chartArea) return;
+                  const cx = (chartArea.left + chartArea.right) / 2,
+                    cy = (chartArea.top + chartArea.bottom) / 2;
+                  ctx.save();
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillStyle = fg1;
+                  ctx.font = '500 10px "Geist Mono"';
+                  ctx.fillText('TOTAL', cx, cy - 14);
+                  ctx.fillStyle = fg0;
+                  ctx.font = '600 18px "Geist Mono"';
+                  ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
+                  ctx.fillStyle = fg1;
+                  ctx.font = '400 9px "Geist Mono"';
+                  ctx.fillText(baseCcy, cx, cy + 20);
+                  ctx.restore();
+                },
+              },
+            ],
+          } as any);
         }
       }
     } catch (e) {

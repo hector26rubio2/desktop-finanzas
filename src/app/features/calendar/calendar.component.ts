@@ -1,29 +1,64 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  inject,
+  computed,
+  ChangeDetectionStrategy,
+  Pipe,
+  PipeTransform,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { TranslationKey } from '../../shared/i18n/locale.types';
+import { ApiService, MovementResponse, PagedResult } from '../../shared/services/api.service';
+import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
+import { Subscription } from 'rxjs';
+
+@Pipe({ standalone: true, name: 'calDate' })
+export class CalDatePipe implements PipeTransform {
+  transform(value: string | null | undefined): string {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${mins}`;
+  }
+}
 
 interface CalEvent {
+  movement: MovementResponse;
   day: number;
-  payee: string;
-  amount: number;
-  ccy: string;
-  kind: string;
 }
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule],
+  imports: [CommonModule, ModalComponent, CatIconComponent, CalDatePipe],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit, OnDestroy {
   public i18n = inject(I18nService);
+  private api = inject(ApiService);
+  private sub = new Subscription();
 
   today = new Date();
   currentDate = signal(new Date());
+  movements = signal<MovementResponse[]>([]);
+  page = signal<PagedResult<MovementResponse> | null>(null);
+  currentPage = signal(1);
+  pageSize = signal(10);
+  selectedMovement = signal<MovementResponse | null>(null);
+  loading = signal(true);
+
   days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
 
   monthNames = [
@@ -41,6 +76,12 @@ export class CalendarComponent {
     'calendar.mes_diciembre',
   ];
 
+  totalPages = computed(() => {
+    const p = this.page();
+    if (!p) return 1;
+    return Math.ceil(p.total / p.pageSize) || 1;
+  });
+
   month() {
     return this.currentDate().getMonth();
   }
@@ -54,34 +95,43 @@ export class CalendarComponent {
     return this.month() === this.today.getMonth() && this.year() === this.today.getFullYear();
   }
 
-  // Sample events
-  private events: CalEvent[] = [
-    { day: 24, payee: 'Visa Galicia', amount: 1248904, ccy: 'ARS', kind: 'card' },
-    { day: 6, payee: 'Amex Gold', amount: 384220, ccy: 'ARS', kind: 'card' },
-    { day: 1, payee: 'Naranja X', amount: 422800, ccy: 'ARS', kind: 'card' },
-    { day: 14, payee: 'Préstamo Personal', amount: 248440, ccy: 'ARS', kind: 'loan' },
-    { day: 22, payee: 'Prendario Auto', amount: 412800, ccy: 'ARS', kind: 'loan' },
-    { day: 5, payee: 'MacBook Pro cuota 4/12', amount: 183, ccy: 'USD', kind: 'cuota' },
-  ];
-
-  eventsThisMonth() {
-    return this.events;
+  yearMonth() {
+    const m = String(this.month() + 1).padStart(2, '0');
+    return `${this.year()}-${m}`;
   }
+
+  eventsThisMonth(): CalEvent[] {
+    return this.movements()
+      .filter((m) => m.type === 'Expense')
+      .map((m) => {
+        const d = new Date(m.date);
+        return { movement: m, day: d.getDate() };
+      });
+  }
+
   totalCommitted() {
-    return this.events.reduce((s, e) => s + e.amount, 0);
-  }
-  nextEvent() {
-    const today = this.today.getDate();
-    const next = this.events.filter((e) => e.day >= today).sort((a, b) => a.day - b.day)[0];
-    return next ? `${next.day} — ${next.payee}` : '—';
+    return this.eventsThisMonth().reduce((s, e) => s + e.movement.amount, 0);
   }
 
-  upcoming() {
-    return this.events
-      .slice()
-      .sort((a, b) => a.day - b.day)
-      .slice(0, 8);
+  nextEvent(): string {
+    const todayDay = this.today.getDate();
+    const upcoming = this.eventsThisMonth()
+      .filter((e) => e.day >= todayDay)
+      .sort((a, b) => a.day - b.day);
+    if (upcoming.length === 0) return '—';
+    const next = upcoming[0];
+    return `${next.day} — ${next.movement.description ?? next.movement.categoryName ?? '—'}`;
   }
+
+  eventsForDay(day: number): CalEvent[] {
+    return this.eventsThisMonth().filter((e) => e.day === day);
+  }
+
+  pendingItems = computed(() => {
+    const p = this.page();
+    if (!p) return [];
+    return p.items;
+  });
 
   calendarCells() {
     const year = this.year();
@@ -92,7 +142,7 @@ export class CalendarComponent {
     const cells: { day: number; events: CalEvent[] }[] = [];
     for (let i = 0; i < offset; i++) cells.push({ day: 0, events: [] });
     for (let d = 1; d <= daysInMonth; d++) {
-      cells.push({ day: d, events: this.events.filter((e) => e.day === d) });
+      cells.push({ day: d, events: this.eventsForDay(d) });
     }
     while (cells.length % 7 !== 0) cells.push({ day: 0, events: [] });
     return cells;
@@ -101,12 +151,108 @@ export class CalendarComponent {
   prevMonth() {
     const d = this.currentDate();
     this.currentDate.set(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+    this.loadData();
   }
+
   nextMonth() {
     const d = this.currentDate();
     this.currentDate.set(new Date(d.getFullYear(), d.getMonth() + 1, 1));
+    this.loadData();
   }
+
   goToToday() {
     this.currentDate.set(new Date());
+    this.loadData();
+  }
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
+
+  loadData() {
+    this.loading.set(true);
+    this.sub.add(
+      this.api.getMovements(this.yearMonth(), 1, 200).subscribe({
+        next: (r) => {
+          this.movements.set(r.items);
+          this.loading.set(false);
+          this.loadTablePage(1);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  loadTablePage(p: number) {
+    this.currentPage.set(p);
+    this.sub.add(
+      this.api.getMovements(this.yearMonth(), p, this.pageSize()).subscribe({
+        next: (r) => this.page.set(r),
+      }),
+    );
+  }
+
+  setPageSize(size: number) {
+    this.pageSize.set(size);
+    this.loadTablePage(1);
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) this.loadTablePage(this.currentPage() - 1);
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) this.loadTablePage(this.currentPage() + 1);
+  }
+
+  openDetail(m: MovementResponse) {
+    this.selectedMovement.set(m);
+  }
+
+  closeDetail() {
+    this.selectedMovement.set(null);
+  }
+
+  kindFromMovement(m: MovementResponse): string {
+    if (m.sourceType === 'CreditCard') return 'card';
+    if (m.subType === 'LoanGiven' || m.subType === 'LoanReceived') return 'loan';
+    return 'expense';
+  }
+
+  kindLabel(kind: string): string {
+    if (kind === 'card') return this.i18n.t('calendar.tag_tarjeta');
+    if (kind === 'loan') return this.i18n.t('calendar.tag_prestamo');
+    return this.i18n.t('calendar.tag_cuota');
+  }
+
+  sourceLabel(st: string | null): string {
+    if (!st) return '—';
+    const map: Record<string, string> = {
+      Cash: this.i18n.t('transactions.cash'),
+      OwnAccount: this.i18n.t('transactions.own_account'),
+      CreditCard: this.i18n.t('transactions.credit_card'),
+      Loan: this.i18n.t('transactions.loan'),
+    };
+    return map[st] ?? st;
+  }
+
+  subTypeLabel(st: string | null): string {
+    if (!st) return '—';
+    const map: Record<string, string> = {
+      Income: this.i18n.t('transactions.income'),
+      Expense: this.i18n.t('transactions.expense'),
+      LoanReceived: this.i18n.t('transactions.loan_received'),
+      LoanGiven: this.i18n.t('transactions.loan_given'),
+      Saving: this.i18n.t('transactions.saving'),
+    };
+    return map[st] ?? st;
+  }
+
+  rowCount(): number {
+    return this.page()?.total ?? 0;
   }
 }

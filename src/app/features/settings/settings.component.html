@@ -2,7 +2,11 @@
   <!-- Sections sidebar -->
   <nav class="settings-nav">
     @for (s of sections; track s.id) {
-      <button class="settings-nav__item" [class.settings-nav__item--active]="activeSection() === s.id" (click)="activeSection.set(s.id)">
+      <button
+        class="settings-nav__item"
+        [class.settings-nav__item--active]="activeSection() === s.id"
+        (click)="activeSection.set(s.id)"
+      >
         {{ sectionLabel(s) }}
       </button>
     }
@@ -34,15 +38,27 @@
           {{ i18n.t('settings.ajustes_intro') }}
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px">
-          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('perfil')">
+          <button
+            class="card card--padded"
+            style="cursor: pointer; text-align: left"
+            (click)="activeSection.set('perfil')"
+          >
             <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.profile') }}</div>
             <div style="font-size: 12px; color: var(--fg-2)">{{ userName() }}</div>
           </button>
-          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('apariencia')">
+          <button
+            class="card card--padded"
+            style="cursor: pointer; text-align: left"
+            (click)="activeSection.set('apariencia')"
+          >
             <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.appearance') }}</div>
             <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('theme.' + theme.theme()) }}</div>
           </button>
-          <button class="card card--padded" style="cursor: pointer; text-align: left" (click)="activeSection.set('idioma')">
+          <button
+            class="card card--padded"
+            style="cursor: pointer; text-align: left"
+            (click)="activeSection.set('idioma')"
+          >
             <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.language') }}</div>
             <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.currentLocale() }}</div>
           </button>
@@ -66,7 +82,9 @@
                 gap: 14px;
                 text-align: left;
                 border: 2px solid;
-                transition: border-color 0.15s, background 0.15s;
+                transition:
+                  border-color 0.15s,
+                  background 0.15s;
               "
               [style.border-color]="i18n.currentLocale() === l.id ? 'var(--accent)' : 'var(--line)'"
               [style.background]="i18n.currentLocale() === l.id ? 'var(--accent-soft)' : 'var(--bg-1)'"
@@ -302,9 +320,9 @@
                 <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent3 }}</span>
               </label>
               <label style="margin: 0; display: flex; align-items: center; gap: 8px">
-                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
-                  >{{ i18n.t('settings.fondo_base') }}</span
-                >
+                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0">{{
+                  i18n.t('settings.fondo_base')
+                }}</span>
                 <input
                   type="color"
                   [(ngModel)]="newThemeBg"

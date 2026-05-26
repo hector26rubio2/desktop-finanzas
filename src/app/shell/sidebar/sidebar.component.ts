@@ -1,4 +1,13 @@
-import { Component, computed, EventEmitter, inject, input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  EventEmitter,
+  inject,
+  input,
+  Output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../shared/services/auth/auth.service';
@@ -85,7 +94,11 @@ export class SidebarComponent {
   userEmail = computed(() => this.auth.currentUser()?.email ?? '');
   userInitials = computed(() => {
     const n = this.auth.currentUser()?.name ?? 'U';
-    return n.split(' ').slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
+    return n
+      .split(' ')
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join('');
   });
 
   navGroups = computed(() =>
@@ -99,8 +112,12 @@ export class SidebarComponent {
     return (this.iconCache() as Record<string, string>)[name] ?? ICONS[name] ?? '';
   }
 
-  toggleUserMenu() { this.showUserMenu.update(v => !v); }
-  closeUserMenu() { this.showUserMenu.set(false); }
+  toggleUserMenu() {
+    this.showUserMenu.update((v) => !v);
+  }
+  closeUserMenu() {
+    this.showUserMenu.set(false);
+  }
 
   onUserMenuNavigate(event: { path: string; queryParams?: Record<string, string> }) {
     if (event.queryParams) {

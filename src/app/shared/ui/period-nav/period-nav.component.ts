@@ -22,6 +22,6 @@ export class PeriodNavComponent {
   showPicker = signal(false);
 
   togglePicker() {
-    this.showPicker.update(v => !v);
+    this.showPicker.update((v) => !v);
   }
 }

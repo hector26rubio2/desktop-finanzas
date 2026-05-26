@@ -1,5 +1,94 @@
 <div class="view">
-  <!-- Month nav -->
+  @if (selectedMovement(); as m) {
+    <app-modal
+      [title]="i18n.t('calendar.detail_title')"
+      (close)="closeDetail()"
+      (overlayClick)="closeDetail()"
+    >
+      <div class="cal-detail">
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.type') }}</span>
+          <span class="cal-detail-value">
+            <span
+              class="tag"
+              [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'"
+            >
+              {{ m.type === 'Income' ? i18n.t('transactions.income') : i18n.t('transactions.expense') }}
+            </span>
+          </span>
+        </div>
+        @if (m.subType) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.subtype') }}</span>
+            <span class="cal-detail-value">{{ subTypeLabel(m.subType) }}</span>
+          </div>
+        }
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.description') }}</span>
+          <span class="cal-detail-value">{{ m.description ?? '—' }}</span>
+        </div>
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.amount') }}</span>
+          <span
+            class="cal-detail-value mono"
+            [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
+          >
+            {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+          </span>
+        </div>
+        @if (m.currency !== 'ARS' && m.trmApplied && m.trmApplied !== 1) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.trm') }}</span>
+            <span class="cal-detail-value mono">{{ m.trmApplied | number: '1.2-2' }}</span>
+          </div>
+        }
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.date') }}</span>
+          <span class="cal-detail-value">{{ m.date | calDate }}</span>
+        </div>
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.source') }}</span>
+          <span class="cal-detail-value">{{ sourceLabel(m.sourceType) }}</span>
+        </div>
+        @if (m.sourceType === 'Loan' && m.loanParty) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.lender') }}</span>
+            <span class="cal-detail-value">{{ m.loanParty }}</span>
+          </div>
+        }
+        @if (m.loanInstallments) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.installments') }}</span>
+            <span class="cal-detail-value">{{ m.loanInstallments }}</span>
+          </div>
+        }
+        @if (m.loanInterestRate) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.interest_rate') }}</span>
+            <span class="cal-detail-value">{{ m.loanInterestRate }}%</span>
+          </div>
+        }
+        <div class="cal-detail-row">
+          <span class="cal-detail-label">{{ i18n.t('transactions.category') }}</span>
+          <span class="cal-detail-value">
+            @if (m.categoryIcon && m.categoryColor) {
+              <span class="cat-icon-badge" [style.background]="m.categoryColor" style="margin-right: 6px">
+                <app-cat-icon [icon]="m.categoryIcon" [size]="12"></app-cat-icon>
+              </span>
+            }
+            {{ m.categoryName ?? i18n.t('transactions.no_category') }}
+          </span>
+        </div>
+        @if (m.accountName) {
+          <div class="cal-detail-row">
+            <span class="cal-detail-label">{{ i18n.t('transactions.account') }}</span>
+            <span class="cal-detail-value">{{ m.accountName }}</span>
+          </div>
+        }
+      </div>
+    </app-modal>
+  }
+
   <div class="row-flex">
     <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
       <svg
@@ -37,7 +126,6 @@
     </div>
   </div>
 
-  <!-- KPI strip -->
   <div class="kpi-grid">
     <div class="kpi-card">
       <div class="eyebrow">{{ i18n.t('calendar.pagos_mes') }}</div>
@@ -55,7 +143,6 @@
     </div>
   </div>
 
-  <!-- Calendar grid -->
   <div class="card" style="padding: 0; overflow: hidden">
     <div style="display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line)">
       @for (d of days; track d) {
@@ -93,18 +180,26 @@
             >
               {{ cell.day }}
             </div>
-            @for (ev of cell.events; track ev.payee) {
+            @for (ev of cell.events; track ev.movement.id) {
               <div
+                class="cal-event"
                 style="
                   margin-bottom: 3px;
                   padding: 2px 5px;
                   border-radius: var(--radius-sm);
                   background: var(--bg-2);
                   border-left: 2px solid;
+                  cursor: pointer;
                 "
                 [style.border-left-color]="
-                  ev.kind === 'card' ? 'var(--accent)' : ev.kind === 'loan' ? 'var(--info)' : 'var(--negative)'
+                  kindFromMovement(ev.movement) === 'card'
+                    ? 'var(--accent)'
+                    : kindFromMovement(ev.movement) === 'loan'
+                      ? 'var(--info)'
+                      : 'var(--negative)'
                 "
+                (click)="openDetail(ev.movement)"
+                [title]="ev.movement.description ?? ev.movement.categoryName ?? ''"
               >
                 <div
                   style="
@@ -115,9 +210,11 @@
                     color: var(--fg-0);
                   "
                 >
-                  {{ ev.payee }}
+                  {{ ev.movement.description ?? ev.movement.categoryName ?? '—' }}
                 </div>
-                <div class="mono" style="font-size: 9px; color: var(--fg-3)">$ {{ ev.amount | number: '1.0-0' }}</div>
+                <div class="mono" style="font-size: 9px; color: var(--fg-3)">
+                  − $ {{ ev.movement.amount | number: '1.0-0' }} {{ ev.movement.currency }}
+                </div>
               </div>
             }
           }
@@ -126,40 +223,125 @@
     </div>
   </div>
 
-  <!-- Upcoming list -->
   <div class="card" style="padding: 0; overflow: hidden">
     <div class="card__h">
       <span class="card__title">{{ i18n.t('calendar.proximos_dias') }}</span>
     </div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th style="width: 80px">{{ i18n.t('calendar.table_dia') }}</th>
-          <th>{{ i18n.t('calendar.table_concepto') }}</th>
-          <th>{{ i18n.t('calendar.table_tipo') }}</th>
-          <th class="num">{{ i18n.t('calendar.table_monto') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (ev of upcoming(); track ev.payee + ev.day) {
+    @if (page() === null) {
+      <div style="padding: 24px; text-align: center; color: var(--fg-3)">
+        {{ i18n.t('common.loading') }}
+      </div>
+    } @else {
+      <table class="table">
+        <thead>
           <tr>
-            <td class="mono" style="font-size: 16px; color: var(--fg-0); letter-spacing: -0.02em">{{ ev.day }}</td>
-            <td style="color: var(--fg-0)">{{ ev.payee }}</td>
-            <td>
-              <span class="tag" [class]="ev.kind === 'card' ? 'tag--accent' : ev.kind === 'loan' ? 'tag--info' : ''">
-                {{
-                  ev.kind === 'card'
-                    ? i18n.t('calendar.tag_tarjeta')
-                    : ev.kind === 'loan'
-                      ? i18n.t('calendar.tag_prestamo')
-                      : i18n.t('calendar.tag_cuota')
-                }}
-              </span>
-            </td>
-            <td class="num mono" style="color: var(--negative)">− $ {{ ev.amount | number: '1.0-0' }}</td>
+            <th style="width: 110px">{{ i18n.t('transactions.table_fecha') }}</th>
+            <th>{{ i18n.t('transactions.table_concepto') }}</th>
+            <th>{{ i18n.t('transactions.table_categoria') }}</th>
+            <th>{{ i18n.t('transactions.source') }}</th>
+            <th style="width: 70px">{{ i18n.t('transactions.table_tipo') }}</th>
+            <th class="num">{{ i18n.t('transactions.table_monto') }}</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (m of pendingItems(); track m.id) {
+            <tr class="cal-table-row" (click)="openDetail(m)" style="cursor: pointer">
+              <td class="mono" style="font-size: 13px; color: var(--fg-0); letter-spacing: -0.02em">
+                {{ m.date | calDate }}
+              </td>
+              <td style="color: var(--fg-0)">
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px">
+                  {{ m.description ?? '—' }}
+                </div>
+                @if (m.subType) {
+                  <div class="mov-row-sub">{{ subTypeLabel(m.subType) }}</div>
+                }
+              </td>
+              <td>
+                <span class="cat-cell">
+                  @if (m.categoryColor) {
+                    <span class="cat-icon-badge" [style.background]="m.categoryColor">
+                      <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
+                    </span>
+                  } @else {
+                    <span class="cat-icon-badge cat-icon-badge--empty">—</span>
+                  }
+                  <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
+                </span>
+              </td>
+              <td>
+                <span class="source-tag">{{ sourceLabel(m.sourceType) }}</span>
+              </td>
+              <td>
+                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+                  {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
+                </span>
+              </td>
+              <td
+                class="num mono"
+                style="white-space: nowrap"
+                [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
+              >
+                {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
+                {{ m.currency }}
+              </td>
+            </tr>
+          }
+          @if (pendingItems().length === 0) {
+            <tr>
+              <td colspan="6" class="empty-table-msg">
+                <div class="serif">{{ i18n.t('common.no_results') }}</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="mov-footer">
+        <div class="mov-footer-left">
+          <span class="mov-count-inline">{{ rowCount() }} {{ i18n.t('header.movements').toLowerCase() }}</span>
+          @if (totalPages() > 1) {
+            <span class="mov-footer-sep"></span>
+            <button class="btn btn--ghost btn--icon" [disabled]="currentPage() === 1" (click)="prevPage()">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M10 3L5 8l5 5" />
+              </svg>
+            </button>
+            <span class="mov-page-info">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button class="btn btn--ghost btn--icon" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M6 3l5 5-5 5" />
+              </svg>
+            </button>
+          }
+        </div>
+        <div class="mov-footer-right">
+          @for (size of [10, 20, 50]; track size) {
+            <button
+              class="mov-page-size"
+              [class.mov-page-size--active]="pageSize() === size"
+              (click)="setPageSize(size)"
+            >
+              {{ size }}
+            </button>
+          }
+        </div>
+      </div>
+    }
   </div>
 </div>

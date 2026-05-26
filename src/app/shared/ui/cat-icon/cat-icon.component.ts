@@ -9,7 +9,15 @@ import { CAT_ICON_MAP } from '../../cat-icons';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `<span [innerHTML]="svgHtml()"></span>`,
-  styles: [`:host { display: inline-flex; align-items: center; justify-content: center; }`],
+  styles: [
+    `
+      :host {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    `,
+  ],
 })
 export class CatIconComponent {
   private sanitizer = inject(DomSanitizer);

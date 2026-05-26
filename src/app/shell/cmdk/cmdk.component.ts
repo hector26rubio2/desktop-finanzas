@@ -1,4 +1,13 @@
-import { Component, computed, EventEmitter, inject, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth/auth.service';
@@ -21,21 +30,30 @@ interface NavGroup {
 }
 
 const NAV_GROUPS: NavGroup[] = [
-  { key: 'nav.vista_general', items: [
-    { id: 'dashboard', key: 'nav.dashboard', icon: 'dashboard', kbd: 'g d' },
-    { id: 'movements', key: 'nav.movements', icon: 'list', kbd: 'g m' },
-    { id: 'calendar', key: 'nav.calendar', icon: 'calendar' },
-  ]},
-  { key: 'nav.accounts', items: [
-    { id: 'accounts', key: 'nav.accounts', icon: 'account', kbd: 'g a' },
-    { id: 'cards', key: 'nav.cards', icon: 'card', kbd: 'g t' },
-    { id: 'installments', key: 'nav.installments', icon: 'installments', dot: true, kbd: 'g c' },
-    { id: 'loans', key: 'nav.loans', icon: 'loan' },
-  ]},
-  { key: 'nav.analisis', items: [
-    { id: 'reports', key: 'nav.reports', icon: 'reports', kbd: 'g r' },
-    { id: 'categories', key: 'nav.categories', icon: 'category', kbd: 'g k' },
-  ]},
+  {
+    key: 'nav.vista_general',
+    items: [
+      { id: 'dashboard', key: 'nav.dashboard', icon: 'dashboard', kbd: 'g d' },
+      { id: 'movements', key: 'nav.movements', icon: 'list', kbd: 'g m' },
+      { id: 'calendar', key: 'nav.calendar', icon: 'calendar' },
+    ],
+  },
+  {
+    key: 'nav.accounts',
+    items: [
+      { id: 'accounts', key: 'nav.accounts', icon: 'account', kbd: 'g a' },
+      { id: 'cards', key: 'nav.cards', icon: 'card', kbd: 'g t' },
+      { id: 'installments', key: 'nav.installments', icon: 'installments', dot: true, kbd: 'g c' },
+      { id: 'loans', key: 'nav.loans', icon: 'loan' },
+    ],
+  },
+  {
+    key: 'nav.analisis',
+    items: [
+      { id: 'reports', key: 'nav.reports', icon: 'reports', kbd: 'g r' },
+      { id: 'categories', key: 'nav.categories', icon: 'category', kbd: 'g k' },
+    ],
+  },
   { key: 'nav.app', items: [{ id: 'settings', key: 'nav.settings', icon: 'settings', kbd: 'g s' }] },
 ];
 
