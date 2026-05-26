@@ -13,7 +13,7 @@ const CSP = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https://*.google.com https://*.googleusercontent.com https://*.gstatic.com",
   "frame-src https://accounts.google.com https://*.google.com",
-  `connect-src 'self' http://localhost:5063 https://accounts.google.com https://*.googleapis.com https://*.gstatic.com${isDev ? ' ws://localhost:4200 ws://localhost:5063' : ''}`,
+  `connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com${isDev ? ' http://localhost:5063 ws://localhost:4200 ws://localhost:5063' : ''}`,
   "object-src 'none'",
   "base-uri 'self'",
 ].join('; ');

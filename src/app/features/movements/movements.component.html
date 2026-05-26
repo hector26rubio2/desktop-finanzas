@@ -1,4 +1,4 @@
-<div class="view">
+<div class="view" [attr.aria-busy]="page() === null">
   @if (showModal()) {
     <app-modal [title]="i18n.t('transactions.nuevo_title')" (close)="closeModal()" (overlayClick)="closeModal()">
       <form [formGroup]="movForm" (ngSubmit)="save()">
@@ -269,7 +269,7 @@
         @if (m.subType) {
           <div class="mov-detail-row">
             <span class="mov-detail-label">{{ i18n.t('transactions.subtype') }}</span>
-            <span class="mov-detail-value">{{ subTypeLabel(m.subType) }}</span>
+            <span class="mov-detail-value">{{ subTypeLabel(m.subType, i18n) }}</span>
           </div>
         }
         <div class="mov-detail-row">
@@ -297,7 +297,7 @@
         </div>
         <div class="mov-detail-row">
           <span class="mov-detail-label">{{ i18n.t('transactions.source') }}</span>
-          <span class="mov-detail-value">{{ sourceLabel(m.sourceType) }}</span>
+          <span class="mov-detail-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
         </div>
         @if (m.sourceType === 'Loan' && m.loanParty) {
           <div class="mov-detail-row">
@@ -339,7 +339,7 @@
   }
 
   @if (page() === null) {
-    <div class="empty-state">
+    <div class="empty-state" role="status" aria-live="polite">
       <p>{{ i18n.t('transactions.cargando') }}</p>
     </div>
   } @else {
@@ -349,6 +349,7 @@
         <input
           class="mov-search"
           type="text"
+          [attr.aria-label]="i18n.t('common.search')"
           [placeholder]="i18n.t('transactions.buscar')"
           [ngModel]="searchQuery()"
            (ngModelChange)="searchQuery.set($event)"
@@ -413,7 +414,7 @@
               <td>
                 <div class="mov-row-desc">{{ m.description ?? '—' }}</div>
                 @if (m.subType) {
-                  <div class="mov-row-sub">{{ subTypeLabel(m.subType) }}</div>
+                  <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
                 }
               </td>
               <td>
@@ -429,7 +430,7 @@
                 </span>
               </td>
               <td>
-                <span class="source-tag">{{ sourceLabel(m.sourceType) }}</span>
+                <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
               </td>
               <td>
                 <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthApiService } from '../api/auth-api.service';
 import type { AuthResponse } from '../../models/auth.model';
-import { tap } from 'rxjs';
+import { from, switchMap, EMPTY } from 'rxjs';
 import { TokenService } from './token.service';
 import { SessionService } from './session.service';
 
@@ -34,11 +34,21 @@ export class AuthService {
   }
 
   login(email: string, password: string, remember = false) {
-    return this.api.login(email, password).pipe(tap((r) => this.handleAuth(r, remember)));
+    return this.api.login(email, password).pipe(
+      switchMap(async (r) => {
+        await this.handleAuth(r, remember);
+        return r;
+      }),
+    );
   }
 
   loginWithGoogle(idToken: string) {
-    return this.api.loginWithGoogle(idToken).pipe(tap((r) => this.handleAuth(r)));
+    return this.api.loginWithGoogle(idToken).pipe(
+      switchMap(async (r) => {
+        await this.handleAuth(r);
+        return r;
+      }),
+    );
   }
 
   register(name: string, email: string, password: string, baseCurrency: string) {
@@ -61,8 +71,8 @@ export class AuthService {
     return this.api.resendVerification(email);
   }
 
-  logout() {
-    const rt = this.session.getRefreshToken();
+  async logout() {
+    const rt = await this.session.getRefreshToken();
     this.token.clear();
     this.session.clear();
     this.router.navigate(['/login']);
@@ -70,23 +80,34 @@ export class AuthService {
   }
 
   refreshAccessToken() {
-    const rt = this.session.getRefreshToken();
-    if (!rt) return null;
-    return this.api.refresh(rt).pipe(tap((r) => this.handleAuth(r)));
+    return from(this.session.getRefreshToken()).pipe(
+      switchMap((rt) => {
+        if (!rt) return EMPTY;
+        return this.api.refresh(rt).pipe(
+          switchMap(async (r) => {
+            await this.handleAuth(r, false);
+            return r;
+          }),
+        );
+      }),
+    );
   }
 
-  private handleAuth(r: AuthResponse, remember = false) {
+  private async handleAuth(r: AuthResponse, remember = false) {
     this.token.set(r.accessToken, r.user);
-    this.session.saveRefreshToken(r.refreshToken, remember);
+    await this.session.saveRefreshToken(r.refreshToken, remember);
   }
 
   private tryRestoreSession() {
     if (!this.session.hasStoredToken) return;
-    const rt = this.session.getRefreshToken();
-    if (!rt) return;
-    this.api.refresh(rt).subscribe({
-      next: (r) => this.token.set(r.accessToken, r.user),
-      error: () => this.session.clear(),
+    from(this.session.getRefreshToken()).subscribe({
+      next: (rt) => {
+        if (!rt) return;
+        this.api.refresh(rt).subscribe({
+          next: (r) => this.token.set(r.accessToken, r.user),
+          error: () => this.session.clear(),
+        });
+      },
     });
   }
 }

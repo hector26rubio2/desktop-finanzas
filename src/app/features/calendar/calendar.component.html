@@ -1,4 +1,4 @@
-<div class="view">
+<div class="view" [attr.aria-busy]="loading()">
   @if (selectedMovement(); as m) {
     <app-modal
       [title]="i18n.t('calendar.detail_title')"
@@ -20,7 +20,7 @@
         @if (m.subType) {
           <div class="cal-detail-row">
             <span class="cal-detail-label">{{ i18n.t('transactions.subtype') }}</span>
-            <span class="cal-detail-value">{{ subTypeLabel(m.subType) }}</span>
+            <span class="cal-detail-value">{{ subTypeLabel(m.subType, i18n) }}</span>
           </div>
         }
         <div class="cal-detail-row">
@@ -44,11 +44,11 @@
         }
         <div class="cal-detail-row">
           <span class="cal-detail-label">{{ i18n.t('transactions.date') }}</span>
-          <span class="cal-detail-value">{{ m.date | calDate }}</span>
+          <span class="cal-detail-value">{{ m.date | fmtDate }}</span>
         </div>
         <div class="cal-detail-row">
           <span class="cal-detail-label">{{ i18n.t('transactions.source') }}</span>
-          <span class="cal-detail-value">{{ sourceLabel(m.sourceType) }}</span>
+          <span class="cal-detail-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
         </div>
         @if (m.sourceType === 'Loan' && m.loanParty) {
           <div class="cal-detail-row">
@@ -228,7 +228,7 @@
       <span class="card__title">{{ i18n.t('calendar.proximos_dias') }}</span>
     </div>
     @if (page() === null) {
-      <div style="padding: 24px; text-align: center; color: var(--fg-3)">
+      <div style="padding: 24px; text-align: center; color: var(--fg-3)" role="status" aria-live="polite">
         {{ i18n.t('common.loading') }}
       </div>
     } @else {
@@ -247,14 +247,14 @@
           @for (m of pendingItems(); track m.id) {
             <tr class="cal-table-row" (click)="openDetail(m)" style="cursor: pointer">
               <td class="mono" style="font-size: 13px; color: var(--fg-0); letter-spacing: -0.02em">
-                {{ m.date | calDate }}
+                {{ m.date | fmtDate }}
               </td>
               <td style="color: var(--fg-0)">
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px">
                   {{ m.description ?? '—' }}
                 </div>
                 @if (m.subType) {
-                  <div class="mov-row-sub">{{ subTypeLabel(m.subType) }}</div>
+                  <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
                 }
               </td>
               <td>
@@ -270,7 +270,7 @@
                 </span>
               </td>
               <td>
-                <span class="source-tag">{{ sourceLabel(m.sourceType) }}</span>
+                <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
               </td>
               <td>
                 <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">

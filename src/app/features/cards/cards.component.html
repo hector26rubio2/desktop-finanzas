@@ -1,4 +1,4 @@
-<div class="view">
+<div class="view" [attr.aria-busy]="loading()">
   @if (selectedMovement(); as m) {
     <app-modal
       [title]="i18n.t('calendar.detail_title')"
@@ -17,7 +17,7 @@
         @if (m.subType) {
           <div class="mov-detail-row">
             <span class="mov-detail-label">{{ i18n.t('transactions.subtype') }}</span>
-            <span class="mov-detail-value">{{ subTypeLabel(m.subType) }}</span>
+            <span class="mov-detail-value">{{ subTypeLabel(m.subType, i18n) }}</span>
           </div>
         }
         <div class="mov-detail-row">
@@ -41,11 +41,11 @@
         }
         <div class="mov-detail-row">
           <span class="mov-detail-label">{{ i18n.t('transactions.date') }}</span>
-          <span class="mov-detail-value">{{ m.date | cardDate }}</span>
+          <span class="mov-detail-value">{{ m.date | fmtDate }}</span>
         </div>
         <div class="mov-detail-row">
           <span class="mov-detail-label">{{ i18n.t('transactions.source') }}</span>
-          <span class="mov-detail-value">{{ sourceLabel(m.sourceType) }}</span>
+          <span class="mov-detail-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
         </div>
         @if (m.sourceType === 'Loan' && m.loanParty) {
           <div class="mov-detail-row">
@@ -87,7 +87,7 @@
   }
 
   @if (loading()) {
-    <div class="empty-state">
+    <div class="empty-state" role="status" aria-live="polite">
       <p>{{ i18n.t('cards.cargando') }}</p>
     </div>
   } @else if (cards().length === 0) {
@@ -101,6 +101,7 @@
         <input
           class="cards-search"
           type="text"
+          [attr.aria-label]="i18n.t('common.search')"
           [placeholder]="i18n.t('common.search')"
           [ngModel]="searchQuery()"
           (ngModelChange)="searchQuery.set($event)"
@@ -142,6 +143,7 @@
           <div
             class="cc-card"
             [class.cc-card--selected]="selectedId() === card.id"
+            [attr.aria-label]="card.name"
             (click)="selectCard(card.id)"
           >
             <div class="cc-card-visual">
@@ -237,7 +239,7 @@
                   @for (m of movementItems(); track m.id) {
                     <tr class="cards-table-row" (click)="openDetail(m)">
                       <td class="mono" style="font-size: 11px; letter-spacing: 0.04em; color: var(--fg-3)">
-                        {{ m.date | cardDate }}
+                        {{ m.date | fmtDate }}
                       </td>
                       <td>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg-0)">

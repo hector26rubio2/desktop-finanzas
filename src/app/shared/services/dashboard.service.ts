@@ -1,6 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Subject, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, takeUntil } from 'rxjs/operators';
 import { MovementsApiService } from './api/movements-api.service';
 import { CategoriesApiService } from './api/categories-api.service';
 import type { MovementResponse } from '../models/movement.model';
@@ -23,9 +23,18 @@ function toDateStr(y: number, m: number, d: number): string {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
+  private destroy$ = new Subject<void>();
+
   private movementsApi = inject(MovementsApiService);
   private categoriesApi = inject(CategoriesApiService);
   private i18n = inject(I18nService);
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      this.destroy$.next();
+      this.destroy$.complete();
+    });
+  }
 
   private lang = computed(() => {
     const loc = this.i18n.currentLocale();
@@ -150,7 +159,7 @@ export class DashboardService {
   load() {
     this.loading.set(true);
     this.cache = [];
-    this.categoriesApi.getCategories().subscribe({
+    this.categoriesApi.getCategories().pipe(takeUntil(this.destroy$)).subscribe({
       next: (list) => this.categories.set(list),
       error: () => {},
     });
@@ -183,15 +192,20 @@ export class DashboardService {
   }
 
   private fetchAll(yms: string[]) {
-    forkJoin(
-      yms.map((ym) =>
-        this.movementsApi.getMovements(ym, 1, 1000).pipe(
-          catchError((err) => {
-            console.error(`[dashboard] error fetching ${ym}:`, err);
-            return of({ items: [], total: 0, page: 1, pageSize: 0 });
-          }),
-        ),
+    of(yms).pipe(
+      switchMap(ymList =>
+        forkJoin(
+          ymList.map((ym) =>
+            this.movementsApi.getMovements(ym, 1, 100).pipe(
+              catchError((err) => {
+                console.error(`[dashboard] error fetching ${ym}:`, err);
+                return of({ items: [], total: 0, page: 1, pageSize: 0 });
+              }),
+            ),
+          ),
+        )
       ),
+      takeUntil(this.destroy$),
     ).subscribe({
       next: (pages) => {
         this.cache = pages.flatMap((p) => p.items ?? []);

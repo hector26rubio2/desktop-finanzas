@@ -16,7 +16,6 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
       const doRefresh = () => {
         const refresh$ = auth.refreshAccessToken();
-        if (!refresh$) return null;
         return refresh$.pipe(
           switchMap(() => next(req)),
           catchError(() => {
@@ -29,11 +28,6 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
       if (!refreshing$) {
         refreshing$ = new BehaviorSubject<boolean>(true);
         const result$ = doRefresh();
-        if (!result$) {
-          refreshing$ = null;
-          auth.logout();
-          return throwError(() => err);
-        }
         result$.subscribe({
           complete: () => {
             refreshing$?.next(false);
@@ -49,7 +43,7 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
       return refreshing$.pipe(
         filter((v) => !v),
         take(1),
-        switchMap(() => doRefresh() ?? throwError(() => err)),
+        switchMap(() => doRefresh()),
       );
     }),
   );

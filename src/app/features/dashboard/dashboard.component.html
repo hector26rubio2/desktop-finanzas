@@ -1,4 +1,4 @@
-<div class="view">
+<div class="view" [attr.aria-busy]="ds.loading()">
   <div class="dash-nav">
     <div class="seg-ctrl">
       @for (opt of granularities; track opt.key) {
@@ -83,7 +83,7 @@
   </div>
 
   @if (ds.loading()) {
-    <div class="skeleton-kpis">
+    <div class="skeleton-kpis" role="status" aria-live="polite">
       <div class="skeleton skeleton--card h-78"></div>
       <div class="skeleton skeleton--card h-78"></div>
       <div class="skeleton skeleton--card h-78"></div>
@@ -231,7 +231,7 @@
                 }}</span>
               </td>
               <td>
-                <span class="source-tag">{{ sourceLabel(m.sourceType) }}</span>
+                <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
               </td>
               <td class="num mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
                 {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}

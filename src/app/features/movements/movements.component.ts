@@ -6,9 +6,9 @@ import {
   inject,
   computed,
   ChangeDetectionStrategy,
-  Pipe,
-  PipeTransform,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -24,21 +24,8 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
 import { ModalComponent } from '../../shared/ui/modal/modal.component';
-
-@Pipe({ standalone: true, name: 'fmtDate' })
-export class FmtDatePipe implements PipeTransform {
-  transform(value: string | null | undefined): string {
-    if (!value) return '—';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${mins}`;
-  }
-}
+import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
+import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 
 @Component({
   selector: 'app-movements',
@@ -75,9 +62,12 @@ export class MovementsComponent implements OnInit, OnDestroy {
   searchQuery = signal('');
 
   public i18n = inject(I18nService);
+  sourceLabel = sourceLabel;
+  subTypeLabel = subTypeLabel;
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
   private sub = new Subscription();
 
   baseCurrency = computed(() => this.auth.currentUser()?.baseCurrency ?? 'ARS');
@@ -201,12 +191,12 @@ export class MovementsComponent implements OnInit, OnDestroy {
       }),
     );
     this.loadPage(1);
-    this.api.getCategories().subscribe({ next: (c) => this.categories.set(c) });
-    this.api.getAccounts().subscribe({
+    this.api.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (c) => this.categories.set(c) });
+    this.api.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (a) => {
         this.accounts.set(a);
         a.forEach((acc) => {
-          this.api.getAccountBalance(acc.id).subscribe({
+          this.api.getAccountBalance(acc.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (b) => this.accountBalances.update((m) => ({ ...m, [acc.id]: b })),
           });
         });
@@ -281,10 +271,10 @@ export class MovementsComponent implements OnInit, OnDestroy {
     if (this.filterCcy) filters.currency = this.filterCcy;
     if (this.filterCat) filters.categoryId = this.filterCat;
     if (this.filterAcc) filters.accountId = this.filterAcc;
-    this.api.getMovements(this.currentMonth(), p, this.pageSize(), filters).subscribe({
+    this.api.getMovements(this.currentMonth(), p, this.pageSize(), filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (r) => this.page.set(r),
     });
-    this.api.getMovementSummary(this.currentMonth()).subscribe({
+    this.api.getMovementSummary(this.currentMonth()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (s) => this.summary.set(s),
     });
   }
@@ -359,6 +349,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
         categoryId: v.categoryId || undefined,
         accountId: v.accountId || undefined,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.saving.set(false);
@@ -402,28 +393,6 @@ export class MovementsComponent implements OnInit, OnDestroy {
   closeDetail() {
     this.showDetailModal.set(false);
     this.selectedMovement.set(null);
-  }
-
-  subTypeLabel(st: string): string {
-    const map: Record<string, string> = {
-      Income: this.i18n.t('transactions.income'),
-      Expense: this.i18n.t('transactions.expense'),
-      LoanReceived: this.i18n.t('transactions.loan_received'),
-      LoanGiven: this.i18n.t('transactions.loan_given'),
-      Saving: this.i18n.t('transactions.saving'),
-    };
-    return map[st] ?? st;
-  }
-
-  sourceLabel(st: string | null): string {
-    if (!st) return '—';
-    const map: Record<string, string> = {
-      Cash: this.i18n.t('transactions.cash'),
-      OwnAccount: this.i18n.t('transactions.own_account'),
-      CreditCard: this.i18n.t('transactions.credit_card'),
-      Loan: this.i18n.t('transactions.loan'),
-    };
-    return map[st] ?? st;
   }
 
   catName(cat: CategoryResponse | undefined): string {

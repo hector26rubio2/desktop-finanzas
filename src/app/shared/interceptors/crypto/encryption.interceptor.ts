@@ -1,5 +1,5 @@
 import { HttpInterceptorFn, HttpResponse, HttpEvent } from '@angular/common/http';
-import { from, Observable, of, switchMap } from 'rxjs';
+import { from, Observable, of, switchMap, catchError } from 'rxjs';
 import { encrypt, decrypt } from '../../utils/crypto';
 
 function tryDecrypt(event: HttpEvent<unknown>): Observable<HttpEvent<unknown>> {
@@ -10,6 +10,11 @@ function tryDecrypt(event: HttpEvent<unknown>): Observable<HttpEvent<unknown>> {
         decrypt(b['encrypted'] as string).then<HttpEvent<unknown>>((decrypted: unknown) =>
           event.clone({ body: decrypted }),
         ),
+      ).pipe(
+        catchError(() => {
+          console.warn('Decryption failed; passing response through unmodified.');
+          return of(event);
+        }),
       );
     }
   }
@@ -23,6 +28,9 @@ export const encryptionInterceptor: HttpInterceptorFn = (req, next) => {
   if (body && typeof body === 'object' && !skipEncrypt) {
     return from(encrypt(body)).pipe(
       switchMap((encrypted: string) => next(req.clone({ body: { encrypted } }))),
+      catchError((err) => {
+        throw err;
+      }),
       switchMap((event: HttpEvent<unknown>) => tryDecrypt(event)),
     );
   }

@@ -2,12 +2,13 @@ import {
   Component,
   inject,
   OnInit,
+  OnDestroy,
   signal,
   computed,
   ChangeDetectionStrategy,
-  Pipe,
-  PipeTransform,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -21,21 +22,8 @@ import {
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
 import { ModalComponent } from '../../shared/ui/modal/modal.component';
-
-@Pipe({ standalone: true, name: 'cardDate' })
-export class CardDatePipe implements PipeTransform {
-  transform(value: string | null | undefined): string {
-    if (!value) return '—';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${mins}`;
-  }
-}
+import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
+import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 
 interface CardWithBalance extends AccountResponse {
   balance: AccountBalance;
@@ -45,11 +33,11 @@ interface CardWithBalance extends AccountResponse {
   selector: 'app-cards',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, CatIconComponent, CardDatePipe, ModalComponent],
+  imports: [CommonModule, FormsModule, CatIconComponent, FmtDatePipe, ModalComponent],
   templateUrl: './cards.component.html',
   styleUrl: './cards.component.css',
 })
-export class CardsComponent implements OnInit {
+export class CardsComponent implements OnInit, OnDestroy {
   cards = signal<CardWithBalance[]>([]);
   loading = signal(true);
   filterCcy = signal('');
@@ -64,6 +52,9 @@ export class CardsComponent implements OnInit {
 
   private api = inject(ApiService);
   public i18n = inject(I18nService);
+  sourceLabel = sourceLabel;
+  subTypeLabel = subTypeLabel;
+  private destroyRef = inject(DestroyRef);
 
   uniqueCurrencies = computed(() => {
     const ccySet = new Set(this.cards().map((c) => c.currency));
@@ -142,14 +133,14 @@ export class CardsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api.getAccounts().subscribe({
+    this.api.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (accounts) => {
         const creditCards = accounts.filter((a) => a.type === 'Credit' && a.isActive);
         if (creditCards.length === 0) {
           this.loading.set(false);
           return;
         }
-        forkJoin(creditCards.map((c) => this.api.getAccountBalance(c.id))).subscribe({
+        forkJoin(creditCards.map((c) => this.api.getAccountBalance(c.id))).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: (balances) => {
             const combined = creditCards.map((c, i) => ({ ...c, balance: balances[i] }));
             this.cards.set(combined);
@@ -169,6 +160,8 @@ export class CardsComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {}
+
   selectCard(id: string) {
     this.selectedId.set(id);
     this.currentPage.set(1);
@@ -176,7 +169,7 @@ export class CardsComponent implements OnInit {
   }
 
   loadMovements(accountId: string) {
-    this.api.getMovements(this.currentMonth(), this.currentPage(), this.pageSize(), { accountId }).subscribe({
+    this.api.getMovements(this.currentMonth(), this.currentPage(), this.pageSize(), { accountId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (r) => this.cardMovements.set(r),
     });
   }
@@ -239,29 +232,6 @@ export class CardsComponent implements OnInit {
     if (n.includes('cabal')) return 'CABAL';
     if (n.includes('argentina')) return 'ARGENTINA';
     return '';
-  }
-
-  subTypeLabel(st: string | null): string {
-    if (!st) return '—';
-    const map: Record<string, string> = {
-      Income: this.i18n.t('transactions.income'),
-      Expense: this.i18n.t('transactions.expense'),
-      LoanReceived: this.i18n.t('transactions.loan_received'),
-      LoanGiven: this.i18n.t('transactions.loan_given'),
-      Saving: this.i18n.t('transactions.saving'),
-    };
-    return map[st] ?? st;
-  }
-
-  sourceLabel(st: string | null): string {
-    if (!st) return '—';
-    const map: Record<string, string> = {
-      Cash: this.i18n.t('transactions.cash'),
-      OwnAccount: this.i18n.t('transactions.own_account'),
-      CreditCard: this.i18n.t('transactions.credit_card'),
-      Loan: this.i18n.t('transactions.loan'),
-    };
-    return map[st] ?? st;
   }
 
   openDetail(m: MovementResponse) {

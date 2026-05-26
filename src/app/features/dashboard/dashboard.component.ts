@@ -18,6 +18,7 @@ import { parseDate } from '../../shared/utils/date';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DashboardService, type Granularity } from '../../shared/services/dashboard.service';
+import { sourceLabel } from '../../shared/utils/movement-labels';
 Chart.register(...registerables);
 
 @Component({
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public auth = inject(AuthService);
   public router = inject(Router);
   public i18n = inject(I18nService);
+  sourceLabel = sourceLabel;
   public ds = inject(DashboardService);
 
   baseCurrency = this.auth.currentUser()?.baseCurrency ?? 'ARS';
@@ -221,17 +223,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const hours = String(d.getHours()).padStart(2, '0');
     const mins = String(d.getMinutes()).padStart(2, '0');
     return `${date} ${hours}:${mins}`;
-  }
-
-  sourceLabel(st: string | null): string {
-    if (!st) return '—';
-    const map: Record<string, string> = {
-      Cash: this.i18n.t('transactions.cash'),
-      OwnAccount: this.i18n.t('transactions.own_account'),
-      CreditCard: this.i18n.t('transactions.credit_card'),
-      Loan: this.i18n.t('transactions.loan'),
-    };
-    return map[st] ?? st;
   }
 
   catName(cat: { name: string; translations: any }): string {

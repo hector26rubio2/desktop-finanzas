@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, HostListener, ElementRef, inject, effect } from '@angular/core';
 
 @Component({
   selector: 'app-modal',
@@ -12,6 +12,14 @@ export class ModalComponent {
   ariaLabel = input('');
   close = output<void>();
   overlayClick = output<void>();
+
+  private el = inject(ElementRef);
+
+  constructor() {
+    effect(() => {
+      this.el.nativeElement.querySelector('.overlay')?.focus();
+    });
+  }
 
   @HostListener('document:keydown.escape')
   onEscape() {

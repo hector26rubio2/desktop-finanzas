@@ -1,4 +1,4 @@
-<div class="view">
+<div class="view" [attr.aria-busy]="loading()">
   @if (showModal()) {
     <app-modal
       [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title')"
@@ -108,7 +108,7 @@
   }
 
   @if (loading()) {
-    <div class="empty-state">
+    <div class="empty-state" role="status" aria-live="polite">
       <p>{{ i18n.t('accounts.cargando') }}</p>
     </div>
   } @else if (accounts().length === 0) {
@@ -148,6 +148,7 @@
         <input
           class="cat-search"
           type="text"
+          [attr.aria-label]="i18n.t('common.search')"
           [placeholder]="i18n.t('common.search')"
           (input)="onSearch($any($event.target).value)"
         />

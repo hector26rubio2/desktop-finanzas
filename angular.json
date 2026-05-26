@@ -18,7 +18,11 @@
             "tsConfig": "tsconfig.app.json",
             "assets": ["src/assets", "public"],
             "styles": ["src/tailwind.css", "src/styles.css"],
-            "scripts": []
+            "scripts": [],
+            "budgets": [
+              { "type": "initial", "maximumWarning": "600kb", "maximumError": "1mb" },
+              { "type": "anyComponentStyle", "maximumWarning": "10kb", "maximumError": "15kb" }
+            ]
           }
         },
         "serve": {
