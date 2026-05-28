@@ -1,0 +1,39 @@
+appId: com.finanzas.desktop
+productName: Finanzas
+copyright: Copyright 2026
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - electron/**/*
+  - dist/browser/**/*
+  - "!dist/browser/stats.html"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  artifactName: "${productName}-${version}-Setup.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+  icon: build/icon.icns
+  artifactName: "${productName}-${version}-mac-${arch}.${ext}"
+
+publish:
+  provider: github
+  owner: hector26rubio2
+  repo: desktop-finanzas
+  releaseType: release

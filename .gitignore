@@ -2,6 +2,7 @@
 node_modules/
 node_modules_old_del/
 dist/
+release/
 .angular/
 .opencode/
 # IDE
@@ -20,6 +21,8 @@ opencode.json
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
 
 # Logs
 *.log
