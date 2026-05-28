@@ -36,6 +36,19 @@ jobs:
             VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Sync package.json version to tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('package.json version set to', pkg.version);
+          "
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -63,10 +76,10 @@ jobs:
       - name: Create .env.production from secrets
         shell: bash
         run: |
-          cat > .env.production << 'EOF'
+          cat > .env.production << EOF
           FINANZAS_ENCRYPTION_KEY=${{ secrets.FINANZAS_ENCRYPTION_KEY }}
           FINANZAS_GOOGLE_CLIENT_ID=${{ secrets.FINANZAS_GOOGLE_CLIENT_ID }}
-          FINANZAS_API_URL=https://api-finanzas-gjop.onrender.com
+          FINANZAS_API_URL=${{ secrets.FINANZAS_API_URL }}
           EOF
 
       - name: Build Angular app
@@ -89,6 +102,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" =~ refs/tags/v(.+) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Sync package.json version to tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('package.json version set to', pkg.version);
+          "
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -112,11 +149,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Create .env.production from secrets
+        shell: bash
         run: |
-          cat > .env.production << 'EOF'
+          cat > .env.production << EOF
           FINANZAS_ENCRYPTION_KEY=${{ secrets.FINANZAS_ENCRYPTION_KEY }}
           FINANZAS_GOOGLE_CLIENT_ID=${{ secrets.FINANZAS_GOOGLE_CLIENT_ID }}
-          FINANZAS_API_URL=https://api-finanzas-gjop.onrender.com
+          FINANZAS_API_URL=${{ secrets.FINANZAS_API_URL }}
           EOF
 
       - name: Build Angular app
@@ -126,17 +164,3 @@ jobs:
         run: npx electron-builder --mac --x64 --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-release:
-    name: Publish GitHub Release
-    needs: [build-windows, build-macos]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
-    steps:
-      - name: Publish release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: false
-          prerelease: false
