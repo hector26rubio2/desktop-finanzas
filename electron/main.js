@@ -334,7 +334,7 @@ function createWindow() {
     const distPath = path.join(__dirname, '..', 'dist', 'browser');
     startLocalServer(distPath).then(({ port, origin }) => {
       log('local server on port', port, '→', origin);
-      win.loadURL(`http://127.0.0.1:${port}`);
+      win.loadURL(`http://localhost:${port}`);
     });
   }
 
