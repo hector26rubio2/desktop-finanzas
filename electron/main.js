@@ -290,6 +290,14 @@ function sendToAllWindows(channel, data) {
 function createWindow() {
   log('creating window');
 
+  // Hide "Electron" from user-agent so Google OAuth popup works.
+  // Google blocks OAuth in detected WebViews/Electron environments.
+  const chromeUA = session.defaultSession.getUserAgent()
+    .replace(/Electron\/[\d.]+ /, '')
+    .replace(/electron\/[\d.]+ /i, '');
+  session.defaultSession.setUserAgent(chromeUA);
+  log('user-agent set to:', chromeUA);
+
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -307,7 +315,14 @@ function createWindow() {
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://accounts.google.com')) {
-      return { action: 'allow' };
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 500,
+          height: 620,
+          webPreferences: { sandbox: true, contextIsolation: true },
+        },
+      };
     }
     return { action: 'deny' };
   });
