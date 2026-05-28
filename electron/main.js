@@ -46,6 +46,13 @@ if (isDev) {
 const log = (msg, ...args) => console.log(`[main:finanzas] ${msg}`, ...args);
 const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);
 
+// Single instance lock
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  log('another instance already running — quitting');
+  app.quit();
+}
+
 const nonce = crypto.randomBytes(16).toString('base64');
 process.env.CSP_NONCE = nonce;
 
@@ -63,7 +70,7 @@ function buildCSP(nonceValue) {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://*.google.com https://*.googleusercontent.com https://*.gstatic.com",
     'frame-src https://accounts.google.com https://*.google.com',
-    `connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://github.com${
+    `connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://github.com https://api-finanzas-gjop.onrender.com${
       isDev ? ' http://localhost:5063 ws://localhost:4200 ws://localhost:5063' : ''
     }`,
     "object-src 'none'",
@@ -188,7 +195,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
-    show: isDev,
+    show: false,
     backgroundColor: '#0f172a',
     webPreferences: {
       sandbox: true,
@@ -217,6 +224,11 @@ function createWindow() {
     callback({ responseHeaders: headers });
   });
 
+  win.once('ready-to-show', () => {
+    win.show();
+    if (isDev) win.webContents.openDevTools({ mode: 'bottom' });
+  });
+
   if (isDev) {
     log('loading http://localhost:4200');
     win.loadURL('http://localhost:4200');
@@ -238,6 +250,14 @@ function createWindow() {
     console.log(`${prefix} ${message}`);
   });
 }
+
+app.on('second-instance', () => {
+  const [win] = BrowserWindow.getAllWindows();
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
+});
 
 app.whenReady().then(() => {
   log('app ready');
