@@ -22,30 +22,52 @@ const MIME_TYPES = {
   '.eot': 'application/vnd.ms-fontobject',
 };
 
+function createHttpServer(distPath) {
+  return http.createServer((req, res) => {
+    let urlPath = (req.url || '/').split('?')[0];
+    if (urlPath === '/') urlPath = '/index.html';
+
+    let filePath = path.join(distPath, urlPath);
+    if (!fs.existsSync(filePath)) filePath = path.join(distPath, 'index.html');
+
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+    try {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(fs.readFileSync(filePath));
+    } catch (_) {
+      res.writeHead(404);
+      res.end('Not found');
+    }
+  });
+}
+
+// Try port 80 first (→ http://localhost, no port in URL, Google OAuth friendly).
+// Fall back to fixed port 4269 if 80 is taken (e.g. IIS running).
+const FALLBACK_PORT = 4269;
+
 function startLocalServer(distPath) {
   return new Promise((resolve) => {
-    const server = http.createServer((req, res) => {
-      let urlPath = (req.url || '/').split('?')[0];
-      if (urlPath === '/') urlPath = '/index.html';
+    const server = createHttpServer(distPath);
 
-      let filePath = path.join(distPath, urlPath);
-      if (!fs.existsSync(filePath)) filePath = path.join(distPath, 'index.html');
-
-      const ext = path.extname(filePath).toLowerCase();
-      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-      try {
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(fs.readFileSync(filePath));
-      } catch (_) {
-        res.writeHead(404);
-        res.end('Not found');
-      }
+    server.listen(80, '127.0.0.1', () => {
+      resolve({ port: 80, origin: 'http://localhost' });
     });
 
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address();
-      resolve(port);
+    server.on('error', () => {
+      const s2 = createHttpServer(distPath);
+      s2.listen(FALLBACK_PORT, '127.0.0.1', () => {
+        resolve({ port: FALLBACK_PORT, origin: `http://localhost:${FALLBACK_PORT}` });
+      });
+      s2.on('error', () => {
+        // last resort: OS-assigned port
+        const s3 = createHttpServer(distPath);
+        s3.listen(0, '127.0.0.1', () => {
+          const { port } = s3.address();
+          resolve({ port, origin: `http://localhost:${port}` });
+        });
+      });
     });
   });
 }
@@ -310,8 +332,8 @@ function createWindow() {
     win.loadURL('http://localhost:4200');
   } else {
     const distPath = path.join(__dirname, '..', 'dist', 'browser');
-    startLocalServer(distPath).then((port) => {
-      log('local server started on port', port);
+    startLocalServer(distPath).then(({ port, origin }) => {
+      log('local server on port', port, '→', origin);
       win.loadURL(`http://127.0.0.1:${port}`);
     });
   }
