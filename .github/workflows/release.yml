@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: release-desktop-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -36,7 +36,7 @@ jobs:
             VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Detected version: $VERSION"
+          echo "Version: $VERSION"
 
       - name: Sync package.json version to tag
         shell: bash
@@ -47,7 +47,6 @@ jobs:
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg.version = '$VERSION';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('package.json version set to', pkg.version);
           "
 
       - name: Setup Node.js
@@ -86,10 +85,19 @@ jobs:
         run: pnpm run build
 
       - name: Package Windows installer
-        run: npx electron-builder --win --x64 --publish always
+        run: npx electron-builder --win --x64 --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/*.yml
+          retention-days: 1
 
   build-macos:
     name: Build macOS Installer
@@ -112,7 +120,6 @@ jobs:
             VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Detected version: $VERSION"
 
       - name: Sync package.json version to tag
         shell: bash
@@ -123,7 +130,6 @@ jobs:
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg.version = '$VERSION';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('package.json version set to', pkg.version);
           "
 
       - name: Setup Node.js
@@ -161,6 +167,48 @@ jobs:
         run: pnpm run build
 
       - name: Package macOS installer
-        run: npx electron-builder --mac --x64 --publish always
+        run: npx electron-builder --mac --x64 --publish never
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: |
+            release/*.dmg
+            release/*.dmg.blockmap
+            release/*.yml
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: release/
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-installer
+          path: release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Finanzas v${{ needs.build-windows.outputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            release/*.exe
+            release/*.dmg
+            release/*.blockmap
+            release/*.yml
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

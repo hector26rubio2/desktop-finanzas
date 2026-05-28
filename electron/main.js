@@ -43,8 +43,37 @@ if (isDev) {
   }
 }
 
-const log = (msg, ...args) => console.log(`[main:finanzas] ${msg}`, ...args);
-const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);
+// File logger — writes to %APPDATA%\Finanzas\logs\main.log
+let _logStream = null;
+function getLogStream() {
+  if (_logStream) return _logStream;
+  try {
+    const logsDir = path.join(app.getPath('userData'), 'logs');
+    fs.mkdirSync(logsDir, { recursive: true });
+    const logFile = path.join(logsDir, 'main.log');
+    _logStream = fs.createWriteStream(logFile, { flags: 'a' });
+    _logStream.write(`\n--- session start ${new Date().toISOString()} ---\n`);
+  } catch (e) {
+    console.error('[logger] failed to open log file:', e.message);
+  }
+  return _logStream;
+}
+
+function writeLine(prefix, msg, args) {
+  const line = `${new Date().toISOString()} ${prefix} ${msg}${args.length ? ' ' + args.map(String).join(' ') : ''}\n`;
+  process.stdout.write(line);
+  try { getLogStream()?.write(line); } catch (_) {}
+}
+
+const log = (msg, ...args) => writeLine('[main]', msg, args);
+const err = (msg, ...args) => writeLine('[ERR]', msg, args);
+
+process.on('uncaughtException', (e) => {
+  err('uncaughtException:', e.stack || e.message);
+});
+process.on('unhandledRejection', (reason) => {
+  err('unhandledRejection:', reason?.stack || String(reason));
+});
 
 // Single instance lock
 const gotLock = app.requestSingleInstanceLock();
