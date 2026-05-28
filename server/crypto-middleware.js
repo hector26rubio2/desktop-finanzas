@@ -40,8 +40,8 @@ function createHandlers(strategy) {
 
 // ── Proxy ───────────────────────────────────────────────────────────
 // El middleware expuesto es un Proxy que delega en la cadena interna.
-function encryptionMiddleware(passphrase) {
-  const strategy = createCrypto(passphrase);
+function encryptionMiddleware() {
+  const strategy = createCrypto();
   const handlers = createHandlers(strategy);
   return buildChain(handlers);
 }

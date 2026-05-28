@@ -1,10 +1,14 @@
 <div [class]="isAuthPage() ? '' : 'app-shell' + (sidebarCollapsed() ? ' sidebar-collapsed' : '')">
   @if (!isAuthPage()) {
+    <app-update-banner />
+  }
+
+  @if (!isAuthPage()) {
     <app-sidebar
       [collapsed]="sidebarCollapsed()"
       [activeView]="activeView()"
-      (toggle)="toggleSidebar()"
-      (navigate)="nav($event)"
+      (toggleSidebar)="toggleSidebar()"
+      (navigateTo)="nav($event)"
       (navigateWithParams)="navWithParams($event)"
       (openCmdk)="showCmdk.set(true)"
     />
@@ -24,8 +28,8 @@
 @if (!isAuthPage()) {
   <app-cmdk
     [visible]="showCmdk()"
-    (close)="showCmdk.set(false)"
-    (navigate)="nav($event)"
+    (closeModal)="showCmdk.set(false)"
+    (navigateTo)="nav($event)"
     (newMovement)="openNewMovement()"
   />
 }

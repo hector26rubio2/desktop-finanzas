@@ -78,7 +78,10 @@
   background: transparent;
   color: var(--fg-2);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
   line-height: 1.5;
   white-space: nowrap;
 }
@@ -147,8 +150,6 @@
   max-width: 120px;
 }
 
-
-
 .cat-footer {
   display: flex;
   align-items: center;
@@ -206,7 +207,10 @@
   background: var(--bg-2);
   color: var(--fg-3);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
 }
 
 .cat-page-size:hover {

@@ -23,7 +23,10 @@
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    border-color var(--duration-fast) var(--ease-btn);
 }
 
 .header-search-btn:hover {

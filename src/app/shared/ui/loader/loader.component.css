@@ -14,21 +14,35 @@
   animation: loader-bounce 1.2s infinite ease-in-out both;
 }
 
-.loader-dot:nth-child(1) { animation-delay: 0ms; }
-.loader-dot:nth-child(2) { animation-delay: 150ms; }
-.loader-dot:nth-child(3) { animation-delay: 300ms; }
+.loader-dot:nth-child(1) {
+  animation-delay: 0ms;
+}
+.loader-dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+.loader-dot:nth-child(3) {
+  animation-delay: 300ms;
+}
 
-:host.loader--sm .loader-dot {
+.loader--sm .loader-dot {
   width: 5px;
   height: 5px;
 }
 
-:host.loader--lg .loader-dot {
+.loader--lg .loader-dot {
   width: 12px;
   height: 12px;
 }
 
 @keyframes loader-bounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

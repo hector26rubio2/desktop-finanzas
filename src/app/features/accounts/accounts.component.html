@@ -2,7 +2,7 @@
   @if (showModal()) {
     <app-modal
       [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('accounts.nueva_title')"
-      (close)="closeModal()"
+      (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
@@ -88,23 +88,20 @@
   }
 
   @if (showDeleteModal()) {
-    <app-modal [title]="i18n.t('accounts.desactivar_confirm')" (close)="cancelRemove()" (overlayClick)="cancelRemove()">
-      <p style="color: var(--fg-2); font-size: 13px; margin-bottom: 16px">
-        {{ i18n.t('accounts.desactivar_confirm') }}<br /><strong style="color: var(--fg-0)">{{
-          deleting()?.name
-        }}</strong>
-      </p>
-      <div class="form-actions">
-        <button class="btn btn--ghost" (click)="cancelRemove()">{{ i18n.t('common.cancel') }}</button>
-        <button
-          class="btn btn--primary"
-          style="background: var(--negative); border-color: var(--negative)"
-          (click)="confirmRemove()"
-        >
-          {{ i18n.t('accounts.desactivar_tooltip') }}
-        </button>
-      </div>
-    </app-modal>
+    <app-confirm-dialog
+      [visible]="true"
+      [title]="i18n.t('accounts.desactivar_confirm')"
+      [message]="
+        i18n.t('accounts.desactivar_confirm') +
+        '<br /><strong style=color:var(--fg-0)>' +
+        (deleting()?.name ?? '') +
+        '</strong>'
+      "
+      [confirmLabel]="i18n.t('accounts.desactivar_tooltip')"
+      [danger]="true"
+      (confirmed)="confirmRemove()"
+      (cancelled)="cancelRemove()"
+    />
   }
 
   @if (loading()) {
@@ -115,6 +112,7 @@
     <div class="empty-state">
       <div class="serif">{{ i18n.t('accounts.sin_cuentas') }}</div>
       <p>{{ i18n.t('accounts.sin_cuentas_desc') }}</p>
+      <button class="btn btn--primary" (click)="openCreate()">{{ i18n.t('accounts.nueva_btn') }}</button>
     </div>
   } @else {
     <div class="cat-toolbar">
@@ -248,52 +246,16 @@
           }
         </tbody>
       </table>
-      <div class="cat-footer">
-        <div class="cat-footer-left">
-          <span class="cat-count-inline">{{ rowCount() }} {{ i18n.t('accounts.title').toLowerCase() }}</span>
-          @if (totalPages() > 1) {
-            <span class="cat-footer-sep"></span>
-            <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M10 3L5 8l5 5" />
-              </svg>
-            </button>
-            <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
-            <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M6 3l5 5-5 5" />
-              </svg>
-            </button>
-          }
-        </div>
-        <div class="cat-footer-right">
-          @for (size of pageSizes; track size) {
-            <button
-              class="cat-page-size"
-              [class.cat-page-size--active]="pageSize() === size"
-              (click)="setPageSize(size)"
-            >
-              {{ size }}
-            </button>
-          }
-        </div>
-      </div>
+      <app-pagination
+        [page]="page()"
+        [totalPages]="totalPages()"
+        [totalItems]="rowCount()"
+        [itemLabel]="i18n.t('accounts.title').toLowerCase()"
+        [pageSizes]="pageSizes"
+        [pageSize]="pageSize()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     </div>
   }
 </div>

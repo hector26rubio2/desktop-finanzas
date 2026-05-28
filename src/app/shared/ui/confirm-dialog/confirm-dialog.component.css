@@ -1,0 +1,21 @@
+:host {
+  display: contents;
+}
+
+.cd-message {
+  color: var(--fg-2);
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.cd-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cd-danger {
+  background: var(--negative);
+  border-color: var(--negative);
+}

@@ -2,7 +2,7 @@
   <button
     type="button"
     class="sidebar__head"
-    (click)="toggle.emit()"
+    (click)="toggleSidebar.emit()"
     [attr.title]="collapsed() ? i18n.t('common.expand_menu') : i18n.t('common.collapse_menu')"
   >
     <span class="sidebar__brand-mark">f</span>
@@ -35,7 +35,7 @@
           [class.nav-item--active]="activeView() === item.id"
           [attr.aria-current]="activeView() === item.id ? 'page' : null"
           [attr.title]="collapsed() ? item.label : null"
-          (click)="navigate.emit(item.id)"
+          (click)="navigateTo.emit(item.id)"
         >
           <svg
             class="nav-item__icon"
@@ -65,7 +65,7 @@
         [class.nav-item--active]="activeView() === 'admin'"
         [attr.aria-current]="activeView() === 'admin' ? 'page' : null"
         [attr.title]="collapsed() ? i18n.t('nav.admin') : null"
-        (click)="navigate.emit('admin')"
+        (click)="navigateTo.emit('admin')"
       >
         <svg
           class="nav-item__icon"
@@ -102,8 +102,8 @@
       }
       @if (showUserMenu()) {
         <app-user-menu
-          (close)="closeUserMenu()"
-          (navigate)="onUserMenuNavigate($event)"
+          (closeMenu)="closeUserMenu()"
+          (navigateTo)="onUserMenuNavigate($event)"
           (openCmdk)="openCmdk.emit(); closeUserMenu()"
         />
       }

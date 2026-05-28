@@ -1,8 +1,15 @@
-<div class="overlay" (click)="overlayClick.emit()" role="dialog" aria-modal="true" [attr.aria-label]="ariaLabel()" tabindex="-1">
+<div
+  class="overlay"
+  (click)="overlayClick.emit()"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="ariaLabel()"
+  tabindex="-1"
+>
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__h">
       <span class="modal__title">{{ title() }}</span>
-      <button class="btn btn--ghost btn--icon" (click)="close.emit()" aria-label="Close">
+      <button class="btn btn--ghost btn--icon" (click)="closeModal.emit()" aria-label="Close">
         <svg
           width="14"
           height="14"

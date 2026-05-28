@@ -100,6 +100,10 @@ export class ApiService {
     return this.accountsApi.getAccountBalance(id);
   }
 
+  getAccountBalances(ids: string[]): Observable<Record<string, AccountBalance>> {
+    return this.accountsApi.getAccountBalances(ids);
+  }
+
   // ── Categories ────────────────────────────────────────────────────────
   getCategories(): Observable<CategoryResponse[]> {
     return this.categoriesApi.getCategories();

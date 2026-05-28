@@ -1,17 +1,8 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  signal,
-  inject,
-  computed,
-  ChangeDetectionStrategy,
-  DestroyRef,
-} from '@angular/core';
+import { Component, OnInit, signal, inject, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import {
   ApiService,
   MovementResponse,
@@ -24,6 +15,9 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
 import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 
@@ -31,11 +25,21 @@ import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
   selector: 'app-movements',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FmtDatePipe, CatIconComponent, ModalComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    FmtDatePipe,
+    CatIconComponent,
+    ModalComponent,
+    PaginationComponent,
+    ConfirmDialogComponent,
+    MovementDetailModalComponent,
+  ],
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.css',
 })
-export class MovementsComponent implements OnInit, OnDestroy {
+export class MovementsComponent implements OnInit {
   page = signal<PagedResult<MovementResponse> | null>(null);
   summary = signal<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
   categories = signal<CategoryResponse[]>([]);
@@ -68,7 +72,6 @@ export class MovementsComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
-  private sub = new Subscription();
 
   baseCurrency = computed(() => this.auth.currentUser()?.baseCurrency ?? 'ARS');
 
@@ -182,30 +185,35 @@ export class MovementsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
-    this.sub.add(
-      this.movForm.valueChanges.subscribe((v) => {
-        this.formAccountId.set(v.accountId ?? '');
-        this.formCurrency.set(v.currency ?? 'ARS');
-        this.formSourceType.set(v.sourceType ?? 'Cash');
-        this.formType.set(v.type ?? 'Expense');
-      }),
-    );
-    this.loadPage(1);
-    this.api.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (c) => this.categories.set(c) });
-    this.api.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (a) => {
-        this.accounts.set(a);
-        a.forEach((acc) => {
-          this.api.getAccountBalance(acc.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (b) => this.accountBalances.update((m) => ({ ...m, [acc.id]: b })),
-          });
-        });
-      },
+    this.movForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((v) => {
+      this.formAccountId.set(v.accountId ?? '');
+      this.formCurrency.set(v.currency ?? 'ARS');
+      this.formSourceType.set(v.sourceType ?? 'Cash');
+      this.formType.set(v.type ?? 'Expense');
     });
-  }
-
-  ngOnDestroy() {
-    this.sub.unsubscribe();
+    this.loadPage(1);
+    this.api
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (c) => this.categories.set(c) });
+    this.api
+      .getAccounts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (a) => {
+          this.accounts.set(a);
+          const ids = a.map((acc) => acc.id);
+          if (ids.length > 0) {
+            this.api
+              .getAccountBalances(ids)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (balances) => this.accountBalances.set(balances),
+                error: () => {},
+              });
+          }
+        },
+      });
   }
 
   setType(type: 'Income' | 'Expense') {
@@ -271,25 +279,27 @@ export class MovementsComponent implements OnInit, OnDestroy {
     if (this.filterCcy) filters.currency = this.filterCcy;
     if (this.filterCat) filters.categoryId = this.filterCat;
     if (this.filterAcc) filters.accountId = this.filterAcc;
-    this.api.getMovements(this.currentMonth(), p, this.pageSize(), filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => this.page.set(r),
-    });
-    this.api.getMovementSummary(this.currentMonth()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (s) => this.summary.set(s),
-    });
+    this.api
+      .getMovements(this.currentMonth(), p, this.pageSize(), filters)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => this.page.set(r),
+      });
+    this.api
+      .getMovementSummary(this.currentMonth())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (s) => this.summary.set(s),
+      });
   }
 
-  setPageSize(size: number) {
+  onPageChange(p: number) {
+    this.loadPage(p);
+  }
+
+  onPageSizeChange(size: number) {
     this.pageSize.set(size);
     this.loadPage(1);
-  }
-
-  prevPage() {
-    if (this.currentPage() > 1) this.loadPage(this.currentPage() - 1);
-  }
-
-  nextPage() {
-    if (this.currentPage() < this.totalPages()) this.loadPage(this.currentPage() + 1);
   }
 
   onMonthChange(e: Event) {
@@ -369,20 +379,23 @@ export class MovementsComponent implements OnInit, OnDestroy {
     const ids = this.deletingIds();
     if (ids.length === 0) return;
     this.showDeleteModal.set(false);
-    Promise.all(ids.map((id) => this.api.deleteMovement(id).toPromise())).then(() => {
-      this.deletingIds.set([]);
-      this.loadPage(this.currentPage());
-    });
+    forkJoin(ids.map((id) => this.api.deleteMovement(id)))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deletingIds.set([]);
+          this.loadPage(this.currentPage());
+        },
+        error: () => {
+          this.deletingIds.set([]);
+          this.loadPage(this.currentPage());
+        },
+      });
   }
 
   cancelDelete() {
     this.showDeleteModal.set(false);
     this.deletingIds.set([]);
-  }
-
-  toggleAll() {
-    const p = this.page();
-    if (!p) return;
   }
 
   openDetail(m: MovementResponse) {
@@ -400,7 +413,5 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return this.i18n.catName(cat.name, cat.translations);
   }
 
-  rowCount(): number {
-    return this.page()?.total ?? 0;
-  }
+  rowCount = computed(() => this.page()?.total ?? 0);
 }

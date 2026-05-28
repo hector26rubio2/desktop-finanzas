@@ -6,13 +6,23 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { IconPickerComponent } from '../../shared/ui/icon-picker/icon-picker.component';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
 import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import type { CategoryTranslations } from '../../shared/models/category.model';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, IconPickerComponent, CatIconComponent, ModalComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IconPickerComponent,
+    CatIconComponent,
+    ModalComponent,
+    PaginationComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.css',
 })
@@ -25,6 +35,8 @@ export class CategoriesComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   showModal = signal(false);
+  showConfirm = signal(false);
+  deletingId = signal<string | null>(null);
   editing = signal<CategoryResponse | null>(null);
   filterType = signal<'' | 'Income' | 'Expense'>('');
   searchQuery = signal('');
@@ -47,6 +59,8 @@ export class CategoriesComponent implements OnInit {
     const start = (this.page() - 1) * this.pageSize();
     return this.filtered().slice(start, start + this.pageSize());
   });
+
+  rowCount = computed(() => this.filtered().length);
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -72,17 +86,13 @@ export class CategoriesComponent implements OnInit {
     this.page.set(1);
   }
 
-  setPageSize(size: number) {
+  onPageChange(p: number) {
+    this.page.set(p);
+  }
+
+  onPageSizeChange(size: number) {
     this.pageSize.set(size);
     this.page.set(1);
-  }
-
-  prevPage() {
-    if (this.page() > 1) this.page.update((p) => p - 1);
-  }
-
-  nextPage() {
-    if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
   }
 
   ngOnInit() {
@@ -157,16 +167,20 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  deleteCat(id: string) {
-    if (!confirm(this.i18n.t('transactions.delete_confirm'))) return;
+  askDelete(id: string) {
+    this.deletingId.set(id);
+    this.showConfirm.set(true);
+  }
+
+  confirmDelete() {
+    const id = this.deletingId();
+    if (!id) return;
+    this.showConfirm.set(false);
     this.api.deleteCategory(id).subscribe({ next: () => this.load() });
   }
 
-  rowCount(): number {
-    return this.filtered().length;
-  }
-
-  showPagination(): boolean {
-    return this.filtered().length > this.pageSize();
+  cancelDelete() {
+    this.showConfirm.set(false);
+    this.deletingId.set(null);
   }
 }

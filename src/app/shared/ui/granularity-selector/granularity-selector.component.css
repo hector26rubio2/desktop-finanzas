@@ -16,11 +16,18 @@
   border: 0;
   border-right: 1px solid var(--line-1);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
 }
 
-.seg-ctrl__btn:last-child { border-right: 0; }
-.seg-ctrl__btn:hover { background: var(--hover); color: var(--fg-0); }
+.seg-ctrl__btn:last-child {
+  border-right: 0;
+}
+.seg-ctrl__btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
 
 .seg-ctrl__btn--active {
   background: var(--accent-soft);

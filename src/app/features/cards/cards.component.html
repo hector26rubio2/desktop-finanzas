@@ -1,90 +1,5 @@
 <div class="view" [attr.aria-busy]="loading()">
-  @if (selectedMovement(); as m) {
-    <app-modal
-      [title]="i18n.t('calendar.detail_title')"
-      (close)="closeDetail()"
-      (overlayClick)="closeDetail()"
-    >
-      <div class="mov-detail">
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.type') }}</span>
-          <span class="mov-detail-value">
-            <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
-              {{ m.type === 'Income' ? i18n.t('transactions.income') : i18n.t('transactions.expense') }}
-            </span>
-          </span>
-        </div>
-        @if (m.subType) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.subtype') }}</span>
-            <span class="mov-detail-value">{{ subTypeLabel(m.subType, i18n) }}</span>
-          </div>
-        }
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.description') }}</span>
-          <span class="mov-detail-value">{{ m.description ?? '—' }}</span>
-        </div>
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.amount') }}</span>
-          <span
-            class="mov-detail-value mono"
-            [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-          >
-            {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
-          </span>
-        </div>
-        @if (m.currency !== 'ARS' && m.trmApplied && m.trmApplied !== 1) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.trm') }}</span>
-            <span class="mov-detail-value mono">{{ m.trmApplied | number: '1.2-2' }}</span>
-          </div>
-        }
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.date') }}</span>
-          <span class="mov-detail-value">{{ m.date | fmtDate }}</span>
-        </div>
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.source') }}</span>
-          <span class="mov-detail-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
-        </div>
-        @if (m.sourceType === 'Loan' && m.loanParty) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.lender') }}</span>
-            <span class="mov-detail-value">{{ m.loanParty }}</span>
-          </div>
-        }
-        @if (m.loanInstallments) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.installments') }}</span>
-            <span class="mov-detail-value">{{ m.loanInstallments }}</span>
-          </div>
-        }
-        @if (m.loanInterestRate) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.interest_rate') }}</span>
-            <span class="mov-detail-value">{{ m.loanInterestRate }}%</span>
-          </div>
-        }
-        <div class="mov-detail-row">
-          <span class="mov-detail-label">{{ i18n.t('transactions.category') }}</span>
-          <span class="mov-detail-value">
-            @if (m.categoryIcon && m.categoryColor) {
-              <span class="cat-icon-badge" [style.background]="m.categoryColor" style="margin-right: 6px">
-                <app-cat-icon [icon]="m.categoryIcon" [size]="12"></app-cat-icon>
-              </span>
-            }
-            {{ m.categoryName ?? i18n.t('transactions.no_category') }}
-          </span>
-        </div>
-        @if (m.accountName) {
-          <div class="mov-detail-row">
-            <span class="mov-detail-label">{{ i18n.t('transactions.account') }}</span>
-            <span class="mov-detail-value">{{ m.accountName }}</span>
-          </div>
-        }
-      </div>
-    </app-modal>
-  }
+  <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
 
   @if (loading()) {
     <div class="empty-state" role="status" aria-live="polite">
@@ -94,6 +9,7 @@
     <div class="empty-state">
       <div class="serif">{{ i18n.t('cards.sin_tarjetas') }}</div>
       <p>{{ i18n.t('cards.sin_tarjetas_desc') }}</p>
+      <a class="btn btn--primary" routerLink="/accounts">{{ i18n.t('accounts.nueva_btn') }}</a>
     </div>
   } @else {
     <div class="cards-toolbar">
@@ -160,9 +76,7 @@
               <div class="cc-card-bottom-row">
                 <div>
                   <div class="cc-card-eyebrow">{{ i18n.t('cards.disponible') }}</div>
-                  <div class="cc-card-amount mono">
-                    {{ card.currency }} {{ available(card) | number: '1.0-0' }}
-                  </div>
+                  <div class="cc-card-amount mono">{{ card.currency }} {{ available(card) | number: '1.0-0' }}</div>
                 </div>
                 <div class="cc-card-right">
                   <div class="cc-card-eyebrow">{{ i18n.t('cards.vence') }}</div>
@@ -177,7 +91,9 @@
               <div class="cc-card-row three-cols">
                 <div class="cc-card-metric">
                   <span class="cc-card-metric-label">{{ i18n.t('cards.label_limite') }}</span>
-                  <span class="cc-card-metric-value mono">{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span>
+                  <span class="cc-card-metric-value mono"
+                    >{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span
+                  >
                 </div>
                 <div class="cc-card-metric">
                   <span class="cc-card-metric-label">{{ i18n.t('cards.total_utilizado') }}</span>
@@ -248,7 +164,16 @@
                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px">
                           @if (m.categoryColor) {
                             <span
-                              style="width: 14px; height: 14px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; color: white; flex-shrink: 0"
+                              style="
+                                width: 14px;
+                                height: 14px;
+                                border-radius: 3px;
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                flex-shrink: 0;
+                              "
                               [style.background]="m.categoryColor"
                             >
                               <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="8"></app-cat-icon>
@@ -294,36 +219,16 @@
               </table>
             </div>
             @if (cardMovements()) {
-              <div class="cards-pagination">
-                <div class="cards-pagination-left">
-                  <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ rowCount() }} {{ i18n.t('cards.movimientos') }}</span>
-                  @if (totalPages() > 1) {
-                    <span class="cards-pagination-sep"></span>
-                    <button class="btn btn--ghost btn--icon" [disabled]="currentPage() === 1" (click)="prevPage()">
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M10 3L5 8l5 5" />
-                      </svg>
-                    </button>
-                    <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ currentPage() }} / {{ totalPages() }}</span>
-                    <button class="btn btn--ghost btn--icon" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M6 3l5 5-5 5" />
-                      </svg>
-                    </button>
-                  }
-                </div>
-                <div style="display: flex; gap: 4px">
-                  @for (size of [10, 20, 50]; track size) {
-                    <button
-                      class="cards-page-size"
-                      [class.cards-page-size--active]="pageSize() === size"
-                      (click)="setPageSize(size)"
-                    >
-                      {{ size }}
-                    </button>
-                  }
-                </div>
-              </div>
+              <app-pagination
+                [page]="currentPage()"
+                [totalPages]="totalPages()"
+                [totalItems]="rowCount()"
+                [itemLabel]="i18n.t('cards.movimientos')"
+                [pageSizes]="[10, 20, 50]"
+                [pageSize]="pageSize()"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+              />
             }
           </div>
 
@@ -339,18 +244,27 @@
               </div>
               @if (card.interestRate) {
                 <div class="payment-row">
-                  <span class="payment-label">{{ i18n.t('cards.interes_estimado') }} <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ card.interestRate }}%</span></span>
-                  <span class="payment-value mono" style="color: var(--warning)">{{ selectedTotalInterest() | number: '1.2-2' }}</span>
+                  <span class="payment-label"
+                    >{{ i18n.t('cards.interes_estimado') }}
+                    <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ card.interestRate }}%</span></span
+                  >
+                  <span class="payment-value mono" style="color: var(--warning)">{{
+                    selectedTotalInterest() | number: '1.2-2'
+                  }}</span>
                 </div>
               }
               <div class="payment-row payment-row--total">
                 <span class="payment-label" style="font-weight: 600">{{ i18n.t('cards.total_a_pagar') }}</span>
-                <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{ selectedTotalToPay() | number: '1.2-2' }}</span>
+                <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{
+                  selectedTotalToPay() | number: '1.2-2'
+                }}</span>
               </div>
               <div class="payment-divider"></div>
               <div class="payment-row">
                 <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.disponible') }}</span>
-                <span class="payment-value mono" style="color: var(--positive)">{{ available(card) | number: '1.0-0' }}</span>
+                <span class="payment-value mono" style="color: var(--positive)">{{
+                  available(card) | number: '1.0-0'
+                }}</span>
               </div>
               <div class="payment-row">
                 <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
@@ -365,8 +279,12 @@
                   ></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center">
-                  <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span>
-                  <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ card.creditLimit! | number: '1.0-0' }}</span>
+                  <span class="mono" style="font-size: 10px; color: var(--fg-3)"
+                    >{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span
+                  >
+                  <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{
+                    card.creditLimit! | number: '1.0-0'
+                  }}</span>
                 </div>
               </div>
             </div>

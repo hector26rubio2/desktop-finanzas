@@ -4,12 +4,14 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, AccountResponse, AccountRequest } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-accounts',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, PaginationComponent, ConfirmDialogComponent],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',
 })
@@ -46,6 +48,8 @@ export class AccountsComponent implements OnInit {
     const start = (this.page() - 1) * this.pageSize();
     return this.filtered().slice(start, start + this.pageSize());
   });
+
+  rowCount = computed(() => this.filtered().length);
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -91,17 +95,13 @@ export class AccountsComponent implements OnInit {
     this.page.set(1);
   }
 
-  setPageSize(size: number) {
+  onPageChange(p: number) {
+    this.page.set(p);
+  }
+
+  onPageSizeChange(size: number) {
     this.pageSize.set(size);
     this.page.set(1);
-  }
-
-  prevPage() {
-    if (this.page() > 1) this.page.update((p) => p - 1);
-  }
-
-  nextPage() {
-    if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
   }
 
   ngOnInit() {
@@ -200,9 +200,5 @@ export class AccountsComponent implements OnInit {
   cancelRemove() {
     this.showDeleteModal.set(false);
     this.deleting.set(null);
-  }
-
-  rowCount(): number {
-    return this.filtered().length;
   }
 }

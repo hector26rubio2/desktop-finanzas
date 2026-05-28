@@ -9,12 +9,14 @@ import {
   computed,
   signal,
   ChangeDetectionStrategy,
+  NgZone,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Chart, registerables } from 'chart.js';
+import { Chart, ChartOptions, Plugin, registerables } from 'chart.js';
 import { parseDate } from '../../shared/utils/date';
+import type { CategoryTranslations } from '../../shared/models/category.model';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DashboardService, type Granularity } from '../../shared/services/dashboard.service';
@@ -38,6 +40,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public i18n = inject(I18nService);
   sourceLabel = sourceLabel;
   public ds = inject(DashboardService);
+  private ngZone = inject(NgZone);
 
   baseCurrency = this.auth.currentUser()?.baseCurrency ?? 'ARS';
 
@@ -225,23 +228,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return `${date} ${hours}:${mins}`;
   }
 
-  catName(cat: { name: string; translations: any }): string {
+  catName(cat: { name: string; translations: CategoryTranslations | null }): string {
     return this.i18n.catName(cat.name, cat.translations);
-  }
-
-  private cssVar(name: string): string {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
   private renderCharts() {
     try {
-      const textColor = this.cssVar('--fg-3') || 'oklch(40% 0.008 80)';
-      const gridColor = this.cssVar('--line-1') || 'oklch(100% 0 0 / 0.08)';
-      const positive = this.cssVar('--positive') || 'oklch(76% 0.14 145)';
-      const negative = this.cssVar('--negative') || 'oklch(70% 0.16 25)';
-      const accent = this.cssVar('--accent') || 'oklch(80% 0.12 78)';
-      const accent2 = this.cssVar('--accent-2') || 'oklch(78% 0.1 198)';
-      const accent3 = this.cssVar('--accent-3') || 'oklch(76% 0.1 318)';
+      const styleCache: Record<string, string> = {};
+      const cssVar = (name: string): string => {
+        if (!styleCache[name]) {
+          styleCache[name] = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+        return styleCache[name];
+      };
+      const textColor = cssVar('--fg-3') || 'oklch(40% 0.008 80)';
+      const gridColor = cssVar('--line-1') || 'oklch(100% 0 0 / 0.08)';
+      const positive = cssVar('--positive') || 'oklch(76% 0.14 145)';
+      const negative = cssVar('--negative') || 'oklch(70% 0.16 25)';
+      const accent = cssVar('--accent') || 'oklch(80% 0.12 78)';
+      const accent2 = cssVar('--accent-2') || 'oklch(78% 0.1 198)';
+      const accent3 = cssVar('--accent-3') || 'oklch(76% 0.1 318)';
 
       if (this.lineCanvasRef) {
         this.lineChart?.destroy();
@@ -253,76 +259,88 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const minVal = allValues.length > 0 ? Math.min(...allValues) : 0;
         const yMax = maxVal + maxVal * 0.15;
         const yMin = minVal > 0 ? Math.max(0, minVal - minVal * 0.05) : 0;
-        this.lineChart = new Chart(this.lineCanvasRef.nativeElement, {
-          type: 'line',
-          data: {
-            labels: data.map((d) => d.label),
-            datasets: [
-              {
-                label: this.i18n.t('dashboard.ingresos'),
-                data: data.map((d) => d.income),
-                borderColor: positive,
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                pointHoverBackgroundColor: positive,
-                tension: 0.15,
-                fill: false,
-              },
-              {
-                label: this.i18n.t('dashboard.gastos'),
-                data: data.map((d) => d.expense),
-                borderColor: negative,
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                pointHoverBackgroundColor: negative,
-                tension: 0.15,
-                fill: false,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: this.cssVar('--bg-3') || 'oklch(90% 0 0)',
-                titleColor: this.cssVar('--fg-0') || 'oklch(20% 0 0)',
-                bodyColor: this.cssVar('--fg-1') || textColor,
-                borderColor: this.cssVar('--line-1') || gridColor,
-                borderWidth: 1,
-                padding: 8,
-                titleFont: { family: 'Geist', size: 11 },
-                bodyFont: { family: 'Geist Mono', size: 11 },
-                callbacks: {
-                  label: (ctx: any) =>
-                    `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}`,
-                },
-              },
-            },
-            scales: {
-              x: {
-                ticks: { color: textColor, font: { family: 'Geist Mono', size: 10 }, maxTicksLimit, autoSkip: true },
-                grid: { color: gridColor, drawTicks: false },
-                border: { color: gridColor },
-              },
-              y: {
-                min: yMin,
-                suggestedMax: yMax,
-                ticks: {
-                  color: textColor,
-                  font: { family: 'Geist Mono', size: 10 },
-                  callback: (v: any) => new Intl.NumberFormat('es', { notation: 'compact' }).format(v as number),
-                },
-                grid: { color: gridColor, drawTicks: false },
-                border: { color: gridColor },
+        const lineCanvas = this.lineCanvasRef.nativeElement;
+        const lineLabels = data.map((d) => d.label);
+        const lineIncomeData = data.map((d) => d.income);
+        const lineExpenseData = data.map((d) => d.expense);
+        const lineLabelIncome = this.i18n.t('dashboard.ingresos');
+        const lineLabelExpense = this.i18n.t('dashboard.gastos');
+        const xTickColor = textColor;
+        const xGridColor = gridColor;
+        const lineOpts: ChartOptions<'line'> = {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false as const,
+          interaction: { mode: 'index' as const, intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: cssVar('--bg-3') || 'oklch(90% 0 0)',
+              titleColor: cssVar('--fg-0') || 'oklch(20% 0 0)',
+              bodyColor: cssVar('--fg-1') || textColor,
+              borderColor: cssVar('--line-1') || gridColor,
+              borderWidth: 1,
+              padding: 8,
+              titleFont: { family: 'Geist', size: 11 },
+              bodyFont: { family: 'Geist Mono', size: 11 },
+              callbacks: {
+                label: (ctx: { dataset: { label?: string }; parsed: { y: number | null } }) =>
+                  `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}`,
               },
             },
           },
+          scales: {
+            x: {
+              ticks: { color: xTickColor, font: { family: 'Geist Mono', size: 10 }, maxTicksLimit, autoSkip: true },
+              grid: { color: xGridColor, drawTicks: false },
+              border: { color: xGridColor },
+            },
+            y: {
+              min: yMin,
+              suggestedMax: yMax,
+              ticks: {
+                color: xTickColor,
+                font: { family: 'Geist Mono', size: 10 },
+                callback: (v: string | number) =>
+                  new Intl.NumberFormat('es', { notation: 'compact' }).format(Number(v)),
+              },
+              grid: { color: xGridColor, drawTicks: false },
+              border: { color: xGridColor },
+            },
+          },
+        };
+        this.ngZone.runOutsideAngular(() => {
+          this.lineChart = new Chart(lineCanvas, {
+            type: 'line',
+            data: {
+              labels: lineLabels,
+              datasets: [
+                {
+                  label: lineLabelIncome,
+                  data: lineIncomeData,
+                  borderColor: positive,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 3,
+                  pointHoverBackgroundColor: positive,
+                  tension: 0.15,
+                  fill: false,
+                },
+                {
+                  label: lineLabelExpense,
+                  data: lineExpenseData,
+                  borderColor: negative,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 3,
+                  pointHoverBackgroundColor: negative,
+                  tension: 0.15,
+                  fill: false,
+                },
+              ],
+            },
+            options: lineOpts as ChartOptions,
+          });
         });
       }
 
@@ -331,86 +349,90 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.pieChart = undefined;
         const cats = this.ds.categoryExpenses();
         if (cats.length > 0) {
-          const fg0 = this.cssVar('--fg-0') || 'oklch(20% 0 0)';
-          const fg1 = this.cssVar('--fg-1') || textColor;
-          const bg1 = this.cssVar('--bg-1') || 'oklch(98% 0 0)';
-          const bg3 = this.cssVar('--bg-3') || 'oklch(90% 0 0)';
-          const line1 = this.cssVar('--line-1') || gridColor;
-          const info = this.cssVar('--info') || accent2;
-          const warning = this.cssVar('--warning') || accent3;
+          const fg0 = cssVar('--fg-0') || 'oklch(20% 0 0)';
+          const fg1 = cssVar('--fg-1') || textColor;
+          const bg1 = cssVar('--bg-1') || 'oklch(98% 0 0)';
+          const bg3 = cssVar('--bg-3') || 'oklch(90% 0 0)';
+          const line1 = cssVar('--line-1') || gridColor;
+          const info = cssVar('--info') || accent2;
+          const warning = cssVar('--warning') || accent3;
           const palette = [accent, accent2, accent3, info, positive, warning, negative];
           const colors = cats.map((_, i) => palette[i % palette.length]);
           const total = cats.reduce((s, c) => s + c.total, 0);
           const baseCcy = this.baseCurrency;
-
-          this.pieChart = new Chart(this.pieCanvasRef.nativeElement, {
-            type: 'doughnut',
-            data: {
-              labels: cats.map((c) => c.name),
-              datasets: [
-                {
-                  data: cats.map((c) => c.total),
-                  backgroundColor: colors,
-                  borderColor: bg1,
-                  borderWidth: 2,
-                  hoverOffset: 8,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: { duration: 600 },
-              cutout: '68%',
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: {
-                    color: fg1,
-                    font: { family: 'Geist', size: 11 },
-                    boxWidth: 10,
-                    boxHeight: 10,
-                    padding: 10,
-                    usePointStyle: true,
-                  },
-                },
-                tooltip: {
-                  backgroundColor: bg3,
-                  titleColor: fg0,
-                  bodyColor: fg1,
-                  borderColor: line1,
-                  borderWidth: 1,
+          const pieLabels = cats.map((c) => c.name);
+          const pieData = cats.map((c) => c.total);
+          const pieCanvas = this.pieCanvasRef.nativeElement;
+          const pieOpts: ChartOptions<'doughnut'> = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600 },
+            cutout: '68%',
+            plugins: {
+              legend: {
+                position: 'bottom' as const,
+                labels: {
+                  color: fg1,
+                  font: { family: 'Geist', size: 11 },
+                  boxWidth: 10,
+                  boxHeight: 10,
                   padding: 10,
-                  titleFont: { family: 'Geist', size: 12 },
-                  bodyFont: { family: 'Geist Mono', size: 11 },
+                  usePointStyle: true,
                 },
+              },
+              tooltip: {
+                backgroundColor: bg3,
+                titleColor: fg0,
+                bodyColor: fg1,
+                borderColor: line1,
+                borderWidth: 1,
+                padding: 10,
+                titleFont: { family: 'Geist', size: 12 },
+                bodyFont: { family: 'Geist Mono', size: 11 },
               },
             },
-            plugins: [
-              {
-                id: 'centerText',
-                afterDraw: (chart: Chart) => {
-                  const { ctx, chartArea } = chart;
-                  if (!chartArea) return;
-                  const cx = (chartArea.left + chartArea.right) / 2,
-                    cy = (chartArea.top + chartArea.bottom) / 2;
-                  ctx.save();
-                  ctx.textAlign = 'center';
-                  ctx.textBaseline = 'middle';
-                  ctx.fillStyle = fg1;
-                  ctx.font = '500 10px "Geist Mono"';
-                  ctx.fillText('TOTAL', cx, cy - 14);
-                  ctx.fillStyle = fg0;
-                  ctx.font = '600 18px "Geist Mono"';
-                  ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
-                  ctx.fillStyle = fg1;
-                  ctx.font = '400 9px "Geist Mono"';
-                  ctx.fillText(baseCcy, cx, cy + 20);
-                  ctx.restore();
-                },
+          };
+          const centerTextPlugin: Plugin<'doughnut'> = {
+            id: 'centerText',
+            afterDraw: (chart: Chart) => {
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return;
+              const cx = (chartArea.left + chartArea.right) / 2,
+                cy = (chartArea.top + chartArea.bottom) / 2;
+              ctx.save();
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = fg1;
+              ctx.font = '500 10px "Geist Mono"';
+              ctx.fillText('TOTAL', cx, cy - 14);
+              ctx.fillStyle = fg0;
+              ctx.font = '600 18px "Geist Mono"';
+              ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
+              ctx.fillStyle = fg1;
+              ctx.font = '400 9px "Geist Mono"';
+              ctx.fillText(baseCcy, cx, cy + 20);
+              ctx.restore();
+            },
+          };
+          this.ngZone.runOutsideAngular(() => {
+            this.pieChart = new Chart(pieCanvas, {
+              type: 'doughnut',
+              data: {
+                labels: pieLabels,
+                datasets: [
+                  {
+                    data: pieData,
+                    backgroundColor: colors,
+                    borderColor: bg1,
+                    borderWidth: 2,
+                    hoverOffset: 8,
+                  },
+                ],
               },
-            ],
-          } as any);
+              options: pieOpts,
+              plugins: [centerTextPlugin],
+            });
+          });
         }
       }
     } catch (e) {

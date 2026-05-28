@@ -1,0 +1,52 @@
+<div class="pg-footer">
+  <div class="pg-footer-left">
+    <span class="pg-count">{{ totalItems() }} {{ itemLabel() }}</span>
+    @if (totalPages() > 1) {
+      <span class="pg-sep"></span>
+      <button
+        class="btn btn--ghost btn--icon"
+        [disabled]="page() === 1"
+        (click)="goPrev()"
+        [attr.aria-label]="'Previous page'"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M10 3L5 8l5 5" />
+        </svg>
+      </button>
+      <span class="pg-info">{{ page() }} / {{ totalPages() }}</span>
+      <button
+        class="btn btn--ghost btn--icon"
+        [disabled]="page() >= totalPages()"
+        (click)="goNext()"
+        [attr.aria-label]="'Next page'"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M6 3l5 5-5 5" />
+        </svg>
+      </button>
+    }
+  </div>
+  <div class="pg-footer-right">
+    @for (size of pageSizes(); track size) {
+      <button class="pg-size" [class.pg-size--active]="pageSize() === size" (click)="changePageSize(size)">
+        {{ size }}
+      </button>
+    }
+  </div>
+</div>

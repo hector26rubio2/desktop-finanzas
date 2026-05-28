@@ -1,93 +1,5 @@
 <div class="view" [attr.aria-busy]="loading()">
-  @if (selectedMovement(); as m) {
-    <app-modal
-      [title]="i18n.t('calendar.detail_title')"
-      (close)="closeDetail()"
-      (overlayClick)="closeDetail()"
-    >
-      <div class="cal-detail">
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.type') }}</span>
-          <span class="cal-detail-value">
-            <span
-              class="tag"
-              [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'"
-            >
-              {{ m.type === 'Income' ? i18n.t('transactions.income') : i18n.t('transactions.expense') }}
-            </span>
-          </span>
-        </div>
-        @if (m.subType) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.subtype') }}</span>
-            <span class="cal-detail-value">{{ subTypeLabel(m.subType, i18n) }}</span>
-          </div>
-        }
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.description') }}</span>
-          <span class="cal-detail-value">{{ m.description ?? '—' }}</span>
-        </div>
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.amount') }}</span>
-          <span
-            class="cal-detail-value mono"
-            [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-          >
-            {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
-          </span>
-        </div>
-        @if (m.currency !== 'ARS' && m.trmApplied && m.trmApplied !== 1) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.trm') }}</span>
-            <span class="cal-detail-value mono">{{ m.trmApplied | number: '1.2-2' }}</span>
-          </div>
-        }
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.date') }}</span>
-          <span class="cal-detail-value">{{ m.date | fmtDate }}</span>
-        </div>
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.source') }}</span>
-          <span class="cal-detail-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
-        </div>
-        @if (m.sourceType === 'Loan' && m.loanParty) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.lender') }}</span>
-            <span class="cal-detail-value">{{ m.loanParty }}</span>
-          </div>
-        }
-        @if (m.loanInstallments) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.installments') }}</span>
-            <span class="cal-detail-value">{{ m.loanInstallments }}</span>
-          </div>
-        }
-        @if (m.loanInterestRate) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.interest_rate') }}</span>
-            <span class="cal-detail-value">{{ m.loanInterestRate }}%</span>
-          </div>
-        }
-        <div class="cal-detail-row">
-          <span class="cal-detail-label">{{ i18n.t('transactions.category') }}</span>
-          <span class="cal-detail-value">
-            @if (m.categoryIcon && m.categoryColor) {
-              <span class="cat-icon-badge" [style.background]="m.categoryColor" style="margin-right: 6px">
-                <app-cat-icon [icon]="m.categoryIcon" [size]="12"></app-cat-icon>
-              </span>
-            }
-            {{ m.categoryName ?? i18n.t('transactions.no_category') }}
-          </span>
-        </div>
-        @if (m.accountName) {
-          <div class="cal-detail-row">
-            <span class="cal-detail-label">{{ i18n.t('transactions.account') }}</span>
-            <span class="cal-detail-value">{{ m.accountName }}</span>
-          </div>
-        }
-      </div>
-    </app-modal>
-  }
+  <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
 
   <div class="row-flex">
     <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
@@ -296,52 +208,16 @@
           }
         </tbody>
       </table>
-      <div class="mov-footer">
-        <div class="mov-footer-left">
-          <span class="mov-count-inline">{{ rowCount() }} {{ i18n.t('header.movements').toLowerCase() }}</span>
-          @if (totalPages() > 1) {
-            <span class="mov-footer-sep"></span>
-            <button class="btn btn--ghost btn--icon" [disabled]="currentPage() === 1" (click)="prevPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M10 3L5 8l5 5" />
-              </svg>
-            </button>
-            <span class="mov-page-info">{{ currentPage() }} / {{ totalPages() }}</span>
-            <button class="btn btn--ghost btn--icon" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M6 3l5 5-5 5" />
-              </svg>
-            </button>
-          }
-        </div>
-        <div class="mov-footer-right">
-          @for (size of [10, 20, 50]; track size) {
-            <button
-              class="mov-page-size"
-              [class.mov-page-size--active]="pageSize() === size"
-              (click)="setPageSize(size)"
-            >
-              {{ size }}
-            </button>
-          }
-        </div>
-      </div>
+      <app-pagination
+        [page]="currentPage()"
+        [totalPages]="totalPages()"
+        [totalItems]="rowCount()"
+        [itemLabel]="i18n.t('header.movements').toLowerCase()"
+        [pageSizes]="[10, 20, 50]"
+        [pageSize]="pageSize()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     }
   </div>
 </div>

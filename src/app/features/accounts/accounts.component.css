@@ -71,7 +71,10 @@
   background: var(--bg-2);
   color: var(--fg-3);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
 }
 
 .cat-filter-btn:hover {
@@ -159,7 +162,10 @@
   background: var(--bg-2);
   color: var(--fg-3);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
 }
 
 .cat-page-size:hover {

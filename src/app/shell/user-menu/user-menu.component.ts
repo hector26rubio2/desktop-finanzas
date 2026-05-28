@@ -16,8 +16,8 @@ import { ICONS } from '../../shared/icons';
   styleUrl: './user-menu.component.css',
 })
 export class UserMenuComponent {
-  @Output() close = new EventEmitter<void>();
-  @Output() navigate = new EventEmitter<{ path: string; queryParams?: Record<string, string> }>();
+  @Output() closeMenu = new EventEmitter<void>();
+  @Output() navigateTo = new EventEmitter<{ path: string; queryParams?: Record<string, string> }>();
   @Output() openCmdk = new EventEmitter<void>();
 
   public auth = inject(AuthService);

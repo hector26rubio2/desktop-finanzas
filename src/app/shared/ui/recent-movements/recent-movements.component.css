@@ -1,3 +1,14 @@
-:host { display: block; }
-.td-date { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.04em; color: var(--fg-3); }
-.empty-state { text-align: center; padding: 40px; color: var(--fg-2); }
+:host {
+  display: block;
+}
+.td-date {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--fg-2);
+}

@@ -1,0 +1,11 @@
+@if (visible()) {
+  <app-modal [title]="title()" (closeModal)="onCancel()" (overlayClick)="onCancel()">
+    <p class="cd-message" [innerHtml]="message()"></p>
+    <div class="cd-actions">
+      <button class="btn btn--ghost" (click)="onCancel()">{{ cancelLabel() }}</button>
+      <button class="btn btn--primary" [class.cd-danger]="danger()" (click)="onConfirm()">
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </app-modal>
+}

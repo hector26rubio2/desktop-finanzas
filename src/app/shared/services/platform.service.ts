@@ -1,11 +1,5 @@
 import { Injectable } from '@angular/core';
 
-declare global {
-  interface Window {
-    electronAPI?: { platform: string };
-  }
-}
-
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
   readonly platform: string = window.electronAPI?.platform ?? navigator.platform ?? 'win32';

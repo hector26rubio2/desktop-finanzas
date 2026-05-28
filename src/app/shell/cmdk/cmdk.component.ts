@@ -67,8 +67,8 @@ const NAV_GROUPS: NavGroup[] = [
 })
 export class CmdkComponent {
   @Input() visible = false;
-  @Output() close = new EventEmitter<void>();
-  @Output() navigate = new EventEmitter<string>();
+  @Output() closeModal = new EventEmitter<void>();
+  @Output() navigateTo = new EventEmitter<string>();
   @Output() newMovement = new EventEmitter<void>();
 
   query = signal('');
@@ -98,24 +98,24 @@ export class CmdkComponent {
   }
 
   onNavigate(id: string) {
-    this.navigate.emit(id);
-    this.close.emit();
+    this.navigateTo.emit(id);
+    this.closeModal.emit();
     this.query.set('');
   }
 
   onNewMovement() {
     this.newMovement.emit();
-    this.close.emit();
+    this.closeModal.emit();
     this.query.set('');
   }
 
   onTheme() {
     this.theme.cycleTheme();
-    this.close.emit();
+    this.closeModal.emit();
   }
 
   onLogout() {
     this.auth.logout();
-    this.close.emit();
+    this.closeModal.emit();
   }
 }

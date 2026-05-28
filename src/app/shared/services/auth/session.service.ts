@@ -2,25 +2,11 @@ import { Injectable } from '@angular/core';
 
 const STORAGE_KEY = '_rt';
 
-function obfuscate(value: string): string {
-  const chars = value.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ (i % 256)));
-  return btoa(chars.join(''));
-}
-
-function deobfuscate(encoded: string): string {
-  const chars = atob(encoded)
-    .split('')
-    .map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ (i % 256)));
-  return chars.join('');
-}
-
 async function deriveStorageKey(): Promise<CryptoKey> {
-  const raw = new TextEncoder().encode('finanzas-local-storage-v1');
-  const keyMaterial = await crypto.subtle.importKey('raw', raw, { name: 'PBKDF2' }, false, [
-    'deriveKey',
-  ]);
+  const raw = new TextEncoder().encode('finanzas-local-storage-v2');
+  const keyMaterial = await crypto.subtle.importKey('raw', raw, { name: 'PBKDF2' }, false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: new TextEncoder().encode('finanzas-rt-salt'), iterations: 100000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: new TextEncoder().encode('finanzas-rt-salt-v2'), iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -64,13 +50,12 @@ export class SessionService {
     const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
-      if (raw.startsWith('{')) {
-        const parsed = JSON.parse(raw) as { v: number; d: string };
-        if (parsed.v === 2 && typeof parsed.d === 'string') {
-          return await localDecrypt(parsed.d);
-        }
+      const parsed = JSON.parse(raw) as { v: number; d: string };
+      if (parsed.v === 3 && typeof parsed.d === 'string') {
+        return await localDecrypt(parsed.d);
       }
-      return deobfuscate(raw);
+      this.clear();
+      return null;
     } catch {
       this.clear();
       return null;
@@ -79,7 +64,7 @@ export class SessionService {
 
   async saveRefreshToken(token: string, remember: boolean): Promise<void> {
     const encrypted = await localEncrypt(token);
-    const payload = JSON.stringify({ v: 2, d: encrypted });
+    const payload = JSON.stringify({ v: 3, d: encrypted });
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem(STORAGE_KEY, payload);
     this._hasStoredToken = true;

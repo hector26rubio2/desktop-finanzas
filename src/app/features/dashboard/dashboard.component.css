@@ -13,55 +13,73 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-:host .card:hover,
-:host .kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-2);
-}
+  :host .card:hover,
+  :host .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
 
-:host .kpi-card--pos {
-  border-left: 3px solid var(--positive);
-}
+  :host .kpi-card--pos {
+    border-left: 3px solid var(--positive);
+  }
 
-:host .kpi-card--neg {
-  border-left: 3px solid var(--negative);
-}
+  :host .kpi-card--neg {
+    border-left: 3px solid var(--negative);
+  }
 
-:host .kpi-card--accent {
-  border-left: 3px solid var(--accent);
-}
+  :host .kpi-card--accent {
+    border-left: 3px solid var(--accent);
+  }
 
-:host .kpi-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
+  :host .kpi-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
 
-:host .kpi-bar {
-  height: 3px;
-  border-radius: 2px;
-  margin-top: 12px;
-  opacity: 0.7;
-}
+  :host .kpi-bar {
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 12px;
+    opacity: 0.7;
+  }
 
   :host .stagger > * {
     animation: dash-stagger-in 420ms var(--ease-out) both;
     will-change: transform, opacity;
   }
 
-  :host .stagger > *:nth-child(1) { animation-delay: 40ms; }
-  :host .stagger > *:nth-child(2) { animation-delay: 80ms; }
-  :host .stagger > *:nth-child(3) { animation-delay: 120ms; }
-  :host .stagger > *:nth-child(4) { animation-delay: 160ms; }
-  :host .stagger > *:nth-child(5) { animation-delay: 200ms; }
-  :host .stagger > *:nth-child(6) { animation-delay: 240ms; }
+  :host .stagger > *:nth-child(1) {
+    animation-delay: 40ms;
+  }
+  :host .stagger > *:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  :host .stagger > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  :host .stagger > *:nth-child(4) {
+    animation-delay: 160ms;
+  }
+  :host .stagger > *:nth-child(5) {
+    animation-delay: 200ms;
+  }
+  :host .stagger > *:nth-child(6) {
+    animation-delay: 240ms;
+  }
 }
 
 @keyframes dash-stagger-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 :host .card__body--center {
@@ -134,13 +152,27 @@
   border: 0;
   border-right: 1px solid var(--line-1);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
 }
 
-:host .seg-ctrl__btn:last-child { border-right: 0; }
-:host .seg-ctrl__btn:hover { background: var(--hover); color: var(--fg-0); }
-:host .seg-ctrl__btn--active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-:host .seg-ctrl__btn--active:hover { background: var(--accent-soft); color: var(--accent); }
+:host .seg-ctrl__btn:last-child {
+  border-right: 0;
+}
+:host .seg-ctrl__btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+:host .seg-ctrl__btn--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+:host .seg-ctrl__btn--active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 
 :host .period-nav {
   display: inline-flex;
@@ -160,7 +192,10 @@
   color: var(--fg-2);
   font-size: 10px;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    border-color var(--duration-fast) var(--ease-btn);
 }
 
 :host .period-nav__btn:hover {
@@ -187,7 +222,10 @@
   background: transparent;
   border: 1px solid var(--line-1);
   border-radius: var(--radius-button);
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    border-color var(--duration-fast) var(--ease-btn);
 }
 
 :host .period-nav__label--btn:hover {
@@ -234,10 +272,15 @@
   text-align: center;
   padding: 4px 8px;
   border-radius: var(--radius-button);
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
   align-self: center;
 }
-:host .dp-title:hover { background: var(--hover); color: var(--fg-0); }
+:host .dp-title:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
 
 :host .dp-head {
   display: flex;
@@ -258,10 +301,15 @@
   color: var(--fg-2);
   font-size: 10px;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
   font-family: inherit;
 }
-:host .dp-arrow:hover { background: var(--hover); color: var(--fg-0); }
+:host .dp-arrow:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
 
 :host .dp-month-grid {
   display: grid;
@@ -279,10 +327,22 @@
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), border-color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    border-color var(--duration-fast) var(--ease-btn);
 }
-:host .dp-month-btn:hover { background: var(--bg-3); color: var(--fg-0); border-color: var(--line-2); }
-:host .dp-month-btn--active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+:host .dp-month-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg-0);
+  border-color: var(--line-2);
+}
+:host .dp-month-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
 
 :host .dp-day-head {
   display: grid;
@@ -318,11 +378,24 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
 }
-:host .dp-day-btn:hover { background: var(--hover); color: var(--fg-0); }
-:host .dp-day-btn--today { border: 1px solid var(--accent); color: var(--accent); font-weight: 600; }
-:host .dp-day-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+:host .dp-day-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+:host .dp-day-btn--today {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+:host .dp-day-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
 
 :host .dp-day-empty {
   width: 28px;
@@ -347,10 +420,19 @@
   cursor: pointer;
   text-align: center;
   font-weight: 500;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
 }
-:host .dp-year-btn:hover { background: var(--hover); color: var(--fg-0); }
-:host .dp-year-btn--active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+:host .dp-year-btn:hover {
+  background: var(--hover);
+  color: var(--fg-0);
+}
+:host .dp-year-btn--active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
 
 :host .filter-tags {
   display: flex;
@@ -364,13 +446,18 @@
   padding: 3px 8px;
   border-radius: 3px;
   font-size: 10px;
-  font-family: Geist Mono, monospace;
+  font-family:
+    Geist Mono,
+    monospace;
   font-weight: 500;
   background: var(--bg-2);
   border: 1px solid var(--line-1);
   color: var(--fg-3);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
   white-space: nowrap;
   line-height: 1.5;
 }
@@ -418,7 +505,9 @@
 }
 
 :host .filter-tag-select {
-  font-family: Geist Mono, monospace;
+  font-family:
+    Geist Mono,
+    monospace;
   font-size: 10px;
   color: var(--fg-3);
   background: var(--bg-2);
@@ -426,7 +515,9 @@
   border-radius: 3px;
   padding: 3px 20px 3px 8px;
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M2 3l2 2 2-2'/%3E%3C/svg%3E");
@@ -440,7 +531,7 @@
   border-color: var(--line-2);
   color: var(--fg-0);
 }
-  :host .source-tag {
+:host .source-tag {
   font-family: 'Geist Mono', monospace;
   font-size: 10px;
   color: var(--fg-3);

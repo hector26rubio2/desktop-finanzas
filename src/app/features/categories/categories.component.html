@@ -59,7 +59,7 @@
   @if (showModal()) {
     <app-modal
       [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('categories.nueva')"
-      (close)="closeModal()"
+      (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
@@ -122,6 +122,18 @@
     </app-modal>
   }
 
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [visible]="true"
+      [title]="i18n.t('transactions.delete_confirm')"
+      [message]="i18n.t('transactions.delete_confirm')"
+      [confirmLabel]="i18n.t('common.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+
   @if (loading()) {
     <div class="empty-state">
       <p>{{ i18n.t('categories.cargando') }}</p>
@@ -170,7 +182,7 @@
                 <button
                   class="btn btn--ghost btn--icon"
                   style="color: var(--negative)"
-                  (click)="deleteCat(c.id); $event.stopPropagation()"
+                  (click)="askDelete(c.id); $event.stopPropagation()"
                   [title]="i18n.t('common.delete')"
                 >
                   <svg
@@ -197,52 +209,16 @@
           }
         </tbody>
       </table>
-      <div class="cat-footer">
-        <div class="cat-footer-left">
-          <span class="cat-count-inline">{{ rowCount() }} {{ i18n.t('categories.title').toLowerCase() }}</span>
-          @if (totalPages() > 1) {
-            <span class="cat-footer-sep"></span>
-            <button class="btn btn--ghost btn--icon" [disabled]="page() === 1" (click)="prevPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M10 3L5 8l5 5" />
-              </svg>
-            </button>
-            <span class="cat-page-info">{{ page() }} / {{ totalPages() }}</span>
-            <button class="btn btn--ghost btn--icon" [disabled]="page() >= totalPages()" (click)="nextPage()">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              >
-                <path d="M6 3l5 5-5 5" />
-              </svg>
-            </button>
-          }
-        </div>
-        <div class="cat-footer-right">
-          @for (size of pageSizes; track size) {
-            <button
-              class="cat-page-size"
-              [class.cat-page-size--active]="pageSize() === size"
-              (click)="setPageSize(size)"
-            >
-              {{ size }}
-            </button>
-          }
-        </div>
-      </div>
+      <app-pagination
+        [page]="page()"
+        [totalPages]="totalPages()"
+        [totalItems]="rowCount()"
+        [itemLabel]="i18n.t('categories.title').toLowerCase()"
+        [pageSizes]="pageSizes"
+        [pageSize]="pageSize()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
     </div>
   }
 </div>

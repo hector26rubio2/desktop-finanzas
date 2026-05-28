@@ -14,3 +14,7 @@ export { PieChartComponent, CategoryExpense } from './pie-chart/pie-chart.compon
 export { RecentMovementsComponent, RecentMovement } from './recent-movements/recent-movements.component';
 export { KpiStripComponent, KpiCardData } from './kpi-strip/kpi-strip.component';
 export { DataPoint } from './line-chart/line-chart.component';
+export { PaginationComponent } from './pagination/pagination.component';
+export { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+export { DataTableComponent, ColumnDef } from './data-table/data-table.component';
+export { MovementDetailModalComponent } from './movement-detail-modal/movement-detail-modal.component';

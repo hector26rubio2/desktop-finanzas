@@ -72,8 +72,8 @@ export class SidebarComponent {
   activeView = input.required<string>();
   showUserMenu = signal(false);
 
-  @Output() toggle = new EventEmitter<void>();
-  @Output() navigate = new EventEmitter<string>();
+  @Output() toggleSidebar = new EventEmitter<void>();
+  @Output() navigateTo = new EventEmitter<string>();
   @Output() navigateWithParams = new EventEmitter<{ path: string; queryParams?: Record<string, string> }>();
   @Output() openCmdk = new EventEmitter<void>();
 
@@ -123,7 +123,7 @@ export class SidebarComponent {
     if (event.queryParams) {
       this.navigateWithParams.emit(event);
     } else {
-      this.navigate.emit(event.path);
+      this.navigateTo.emit(event.path);
     }
     this.closeUserMenu();
   }

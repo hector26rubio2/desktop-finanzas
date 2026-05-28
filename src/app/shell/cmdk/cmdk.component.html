@@ -1,7 +1,7 @@
 @if (visible) {
   <div
     class="overlay"
-    (click)="close.emit()"
+    (click)="closeModal.emit()"
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="i18n.t('common.search_dialog')"
@@ -29,7 +29,7 @@
           role="searchbox"
           [attr.aria-label]="i18n.t('common.search_input')"
         />
-        <span class="kbd" style="cursor: pointer" (click)="close.emit()">ESC</span>
+        <span class="kbd" style="cursor: pointer" (click)="closeModal.emit()">ESC</span>
       </div>
       <div class="cmdk__list">
         <div class="cmdk__section">{{ i18n.t('cmdk.go_to') }}</div>

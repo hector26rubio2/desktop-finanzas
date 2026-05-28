@@ -1,6 +1,7 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
-import { Subject, forkJoin, of, switchMap } from 'rxjs';
-import { catchError, takeUntil } from 'rxjs/operators';
+import { forkJoin, of, switchMap } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { MovementsApiService } from './api/movements-api.service';
 import { CategoriesApiService } from './api/categories-api.service';
 import type { MovementResponse } from '../models/movement.model';
@@ -23,16 +24,14 @@ function toDateStr(y: number, m: number, d: number): string {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private destroy$ = new Subject<void>();
-
   private movementsApi = inject(MovementsApiService);
   private categoriesApi = inject(CategoriesApiService);
   private i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      this.destroy$.next();
-      this.destroy$.complete();
+    this.destroyRef.onDestroy(() => {
+      // cleanup handled by takeUntilDestroyed
     });
   }
 
@@ -159,10 +158,13 @@ export class DashboardService {
   load() {
     this.loading.set(true);
     this.cache = [];
-    this.categoriesApi.getCategories().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (list) => this.categories.set(list),
-      error: () => {},
-    });
+    this.categoriesApi
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.categories.set(list),
+        error: () => {},
+      });
     const g = this.granularity();
     const off = this.offset();
     const now = new Date();
@@ -192,31 +194,33 @@ export class DashboardService {
   }
 
   private fetchAll(yms: string[]) {
-    of(yms).pipe(
-      switchMap(ymList =>
-        forkJoin(
-          ymList.map((ym) =>
-            this.movementsApi.getMovements(ym, 1, 100).pipe(
-              catchError((err) => {
-                console.error(`[dashboard] error fetching ${ym}:`, err);
-                return of({ items: [], total: 0, page: 1, pageSize: 0 });
-              }),
+    of(yms)
+      .pipe(
+        switchMap((ymList) =>
+          forkJoin(
+            ymList.map((ym) =>
+              this.movementsApi.getMovements(ym, 1, 100).pipe(
+                catchError((err) => {
+                  console.error(`[dashboard] error fetching ${ym}:`, err);
+                  return of({ items: [], total: 0, page: 1, pageSize: 0 });
+                }),
+              ),
             ),
           ),
-        )
-      ),
-      takeUntil(this.destroy$),
-    ).subscribe({
-      next: (pages) => {
-        this.cache = pages.flatMap((p) => p.items ?? []);
-        this.recompute();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('[dashboard] fetchAll failed:', err);
-        this.loading.set(false);
-      },
-    });
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (pages) => {
+          this.cache = pages.flatMap((p) => p.items ?? []);
+          this.recompute();
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('[dashboard] fetchAll failed:', err);
+          this.loading.set(false);
+        },
+      });
   }
 
   private recompute() {

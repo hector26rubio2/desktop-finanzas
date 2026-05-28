@@ -1,19 +1,11 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  signal,
-  inject,
-  computed,
-  ChangeDetectionStrategy,
-  DestroyRef,
-} from '@angular/core';
+import { Component, OnInit, signal, inject, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { TranslationKey } from '../../shared/i18n/locale.types';
 import { ApiService, MovementResponse, PagedResult } from '../../shared/services/api.service';
-import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
+import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
@@ -27,11 +19,11 @@ interface CalEvent {
   selector: 'app-calendar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ModalComponent, CatIconComponent, FmtDatePipe],
+  imports: [CommonModule, PaginationComponent, MovementDetailModalComponent, CatIconComponent, FmtDatePipe],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',
 })
-export class CalendarComponent implements OnInit, OnDestroy {
+export class CalendarComponent implements OnInit {
   public i18n = inject(I18nService);
   sourceLabel = sourceLabel;
   subTypeLabel = subTypeLabel;
@@ -100,7 +92,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
     const eventsByDay = new Map<number, CalEvent[]>();
     for (const e of this.eventsThisMonth()) {
       const list = eventsByDay.get(e.day);
-      if (list) list.push(e); else eventsByDay.set(e.day, [e]);
+      if (list) list.push(e);
+      else eventsByDay.set(e.day, [e]);
     }
     const cells: { day: number; events: CalEvent[] }[] = [];
     for (let i = 0; i < offset; i++) cells.push({ day: 0, events: [] });
@@ -160,38 +153,38 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
-  ngOnDestroy() {}
-
   loadData() {
     this.loading.set(true);
-    this.api.getMovements(this.yearMonth(), 1, 200).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => {
-        this.movements.set(r.items);
-        this.loading.set(false);
-        this.loadTablePage(1);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .getMovements(this.yearMonth(), 1, 200)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => {
+          this.movements.set(r.items);
+          this.loading.set(false);
+          this.loadTablePage(1);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   loadTablePage(p: number) {
     this.currentPage.set(p);
-    this.api.getMovements(this.yearMonth(), p, this.pageSize()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => this.page.set(r),
-    });
+    this.api
+      .getMovements(this.yearMonth(), p, this.pageSize())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => this.page.set(r),
+      });
   }
 
-  setPageSize(size: number) {
+  onPageChange(p: number) {
+    this.loadTablePage(p);
+  }
+
+  onPageSizeChange(size: number) {
     this.pageSize.set(size);
     this.loadTablePage(1);
-  }
-
-  prevPage() {
-    if (this.currentPage() > 1) this.loadTablePage(this.currentPage() - 1);
-  }
-
-  nextPage() {
-    if (this.currentPage() < this.totalPages()) this.loadTablePage(this.currentPage() + 1);
   }
 
   openDetail(m: MovementResponse) {
@@ -214,7 +207,5 @@ export class CalendarComponent implements OnInit, OnDestroy {
     return this.i18n.t('calendar.tag_cuota');
   }
 
-  rowCount(): number {
-    return this.page()?.total ?? 0;
-  }
+  rowCount = computed(() => this.page()?.total ?? 0);
 }

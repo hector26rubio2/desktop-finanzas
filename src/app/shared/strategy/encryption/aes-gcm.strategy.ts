@@ -1,21 +1,50 @@
 import { EncryptionStrategy } from './strategy';
-import { environment } from '../../../../environments/environment';
+import { getEncryptionKey } from '../../utils/encryption-key';
+import type { CryptoWorkerMessage, CryptoWorkerResponse } from './crypto.worker';
 
 let cachedKey: CryptoKey | null = null;
+let keyPromise: Promise<CryptoKey> | null = null;
+let worker: Worker | null = null;
 
-async function deriveKey(): Promise<CryptoKey> {
-  if (cachedKey) return cachedKey;
-  const passphrase = new TextEncoder().encode(environment.encryptionKey);
-  const salt = new TextEncoder().encode('finanzas-salt-v1');
-  const keyMaterial = await crypto.subtle.importKey('raw', passphrase, 'PBKDF2', false, ['deriveKey']);
-  cachedKey = await crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 600_000, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt'],
-  );
-  return cachedKey;
+function getWorker(): Worker {
+  if (!worker) {
+    worker = new Worker(new URL('./crypto.worker.ts', import.meta.url), { type: 'module' });
+  }
+  return worker;
+}
+
+function deriveKeyFromWorker(): Promise<CryptoKey> {
+  if (cachedKey) return Promise.resolve(cachedKey);
+  if (keyPromise) return keyPromise;
+
+  keyPromise = new Promise<CryptoKey>((resolve, reject) => {
+    const w = getWorker();
+    const passphrase = new TextEncoder().encode(getEncryptionKey());
+    const salt = new TextEncoder().encode('finanzas-salt-v2');
+
+    const handler = (e: MessageEvent<CryptoWorkerResponse>) => {
+      if (e.data.type === 'keyDerived') {
+        w.removeEventListener('message', handler);
+        crypto.subtle
+          .importKey('jwk', e.data.key, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
+          .then((key) => {
+            cachedKey = key;
+            resolve(key);
+          })
+          .catch(reject);
+      }
+    };
+
+    w.addEventListener('message', handler);
+    const pBuf: ArrayBuffer = passphrase.buffer.slice(
+      passphrase.byteOffset,
+      passphrase.byteOffset + passphrase.byteLength,
+    );
+    const sBuf: ArrayBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength);
+    w.postMessage({ type: 'deriveKey', passphrase: pBuf, salt: sBuf } satisfies CryptoWorkerMessage, [pBuf, sBuf]);
+  });
+
+  return keyPromise;
 }
 
 function sanitizeParsed(value: unknown): unknown {
@@ -24,6 +53,7 @@ function sanitizeParsed(value: unknown): unknown {
   const safe: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(value)) {
     if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+    if (!Object.prototype.hasOwnProperty.call(value, k)) continue;
     safe[k] = sanitizeParsed(v);
   }
   return safe;
@@ -42,7 +72,7 @@ function fromBase64(b64: string): Uint8Array {
 
 export const aesGcmStrategy: EncryptionStrategy = {
   async encrypt(data: unknown): Promise<string> {
-    const key = await deriveKey();
+    const key = await deriveKeyFromWorker();
     const iv = crypto.getRandomValues(new Uint8Array(IV_LEN));
     const encoded = new TextEncoder().encode(JSON.stringify(data));
     const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
@@ -57,7 +87,7 @@ export const aesGcmStrategy: EncryptionStrategy = {
   },
 
   async decrypt<T>(payload: string): Promise<T> {
-    const key = await deriveKey();
+    const key = await deriveKeyFromWorker();
     const raw = fromBase64(payload);
     const iv = raw.slice(0, IV_LEN);
     const tag = raw.slice(IV_LEN, IV_LEN + TAG_LEN);

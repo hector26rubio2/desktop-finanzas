@@ -14,36 +14,26 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
-      const doRefresh = () => {
-        const refresh$ = auth.refreshAccessToken();
-        return refresh$.pipe(
-          switchMap(() => next(req)),
-          catchError(() => {
+      if (!refreshing$) {
+        refreshing$ = new BehaviorSubject<boolean>(true);
+        return auth.refreshAccessToken().pipe(
+          switchMap(() => {
+            refreshing$!.next(false);
+            refreshing$ = null;
+            return next(req);
+          }),
+          catchError((_refreshErr) => {
+            refreshing$ = null;
             auth.logout();
             return throwError(() => err);
           }),
         );
-      };
-
-      if (!refreshing$) {
-        refreshing$ = new BehaviorSubject<boolean>(true);
-        const result$ = doRefresh();
-        result$.subscribe({
-          complete: () => {
-            refreshing$?.next(false);
-            refreshing$ = null;
-          },
-          error: () => {
-            refreshing$ = null;
-          },
-        });
-        return result$;
       }
 
       return refreshing$.pipe(
         filter((v) => !v),
         take(1),
-        switchMap(() => doRefresh()),
+        switchMap(() => next(req)),
       );
     }),
   );

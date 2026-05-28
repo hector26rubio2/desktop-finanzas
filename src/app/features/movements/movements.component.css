@@ -47,7 +47,9 @@
   outline: none;
   height: 28px;
   width: 160px;
-  transition: border-color 120ms ease, width 200ms ease;
+  transition:
+    border-color 120ms ease,
+    width 200ms ease;
 }
 
 .mov-search::placeholder {
@@ -155,7 +157,10 @@
   background: var(--bg-2);
   color: var(--fg-3);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
 }
 
 .mov-page-size:hover {

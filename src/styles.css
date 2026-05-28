@@ -9,8 +9,8 @@
   --color-primary-200: oklch(83% 0.05 280);
   --color-primary-300: oklch(72% 0.07 280);
   --color-primary-400: oklch(60% 0.09 280);
-  --color-primary-500: oklch(48% 0.10 280);
-  --color-primary-600: oklch(40% 0.10 280);
+  --color-primary-500: oklch(48% 0.1 280);
+  --color-primary-600: oklch(40% 0.1 280);
   --color-primary-700: oklch(31% 0.09 280);
   --color-primary-800: oklch(23% 0.075 280);
   --color-primary-900: oklch(15% 0.055 280);
@@ -95,7 +95,8 @@
   --color-hover: color-mix(in srgb, var(--color-neutral-900) 4%, transparent);
   --color-selected: color-mix(in srgb, var(--color-primary-500) 12%, transparent);
 
-  --color-shadow-1: 0 1px 0 color-mix(in srgb, var(--color-neutral-50) 70%, transparent) inset,
+  --color-shadow-1:
+    0 1px 0 color-mix(in srgb, var(--color-neutral-50) 70%, transparent) inset,
     0 1px 3px color-mix(in srgb, var(--color-neutral-900) 12%, transparent);
   --color-shadow-2: 0 10px 30px color-mix(in srgb, var(--color-neutral-900) 14%, transparent);
 
@@ -148,7 +149,6 @@
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --duration-slow: 350ms;
-
 }
 
 /* ============================================================
@@ -642,7 +642,9 @@ table th.num {
 }
 
 .sidebar__brand-mark {
-  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-btn);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-btn);
 }
 
 .sidebar-collapsed .nav-item {
@@ -665,7 +667,6 @@ table th.num {
   gap: 0;
   justify-content: center;
 }
-
 
 /* ============================================================
    MAIN CONTENT
@@ -1012,12 +1013,12 @@ input::placeholder {
   color: var(--fg-4);
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
@@ -1890,12 +1891,24 @@ label {
   }
 }
 
-.h-78  { height: 78px; }
-.h-200 { height: 200px; }
-.h-280 { height: 280px; }
-.mt-8  { margin-top: 8px; }
-.p-40  { padding: 40px; }
-.ta-center { text-align: center; }
+.h-78 {
+  height: 78px;
+}
+.h-200 {
+  height: 200px;
+}
+.h-280 {
+  height: 280px;
+}
+.mt-8 {
+  margin-top: 8px;
+}
+.p-40 {
+  padding: 40px;
+}
+.ta-center {
+  text-align: center;
+}
 
 /* ============================================================
    DASHBOARD NAVIGATION
@@ -2165,7 +2178,9 @@ label {
 .user-menu__chev {
   color: var(--fg-4);
   flex-shrink: 0;
-  transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-btn);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-btn);
 }
 
 .user-menu__item--expand:hover .user-menu__chev {
@@ -2189,7 +2204,9 @@ label {
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn);
 }
 
 .user-menu__back:hover {
@@ -2224,7 +2241,10 @@ label {
   cursor: pointer;
   text-align: left;
   position: relative;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), transform var(--duration-fast) var(--ease-out);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .user-menu__theme:hover {
@@ -2271,7 +2291,7 @@ label {
 }
 .user-menu__theme-preview[data-theme='purple'] .user-menu__theme-dot--3,
 .user-menu__theme-preview[data-theme='purple-light'] .user-menu__theme-dot--3 {
-  background: oklch(60% 0.10 160);
+  background: oklch(60% 0.1 160);
 }
 
 .user-menu__theme-preview[data-theme='ocean'] .user-menu__theme-dot--1,
@@ -2280,11 +2300,11 @@ label {
 }
 .user-menu__theme-preview[data-theme='ocean'] .user-menu__theme-dot--2,
 .user-menu__theme-preview[data-theme='ocean-light'] .user-menu__theme-dot--2 {
-  background: oklch(60% 0.10 0);
+  background: oklch(60% 0.1 0);
 }
 .user-menu__theme-preview[data-theme='ocean'] .user-menu__theme-dot--3,
 .user-menu__theme-preview[data-theme='ocean-light'] .user-menu__theme-dot--3 {
-  background: oklch(60% 0.10 120);
+  background: oklch(60% 0.1 120);
 }
 
 .user-menu__theme-preview[data-theme='forest'] .user-menu__theme-dot--1,
@@ -2293,11 +2313,11 @@ label {
 }
 .user-menu__theme-preview[data-theme='forest'] .user-menu__theme-dot--2,
 .user-menu__theme-preview[data-theme='forest-light'] .user-menu__theme-dot--2 {
-  background: oklch(58% 0.10 280);
+  background: oklch(58% 0.1 280);
 }
 .user-menu__theme-preview[data-theme='forest'] .user-menu__theme-dot--3,
 .user-menu__theme-preview[data-theme='forest-light'] .user-menu__theme-dot--3 {
-  background: oklch(58% 0.10 40);
+  background: oklch(58% 0.1 40);
 }
 
 .user-menu__theme-preview[data-theme='crimson'] .user-menu__theme-dot--1,
@@ -2306,11 +2326,11 @@ label {
 }
 .user-menu__theme-preview[data-theme='crimson'] .user-menu__theme-dot--2,
 .user-menu__theme-preview[data-theme='crimson-light'] .user-menu__theme-dot--2 {
-  background: oklch(58% 0.10 140);
+  background: oklch(58% 0.1 140);
 }
 .user-menu__theme-preview[data-theme='crimson'] .user-menu__theme-dot--3,
 .user-menu__theme-preview[data-theme='crimson-light'] .user-menu__theme-dot--3 {
-  background: oklch(58% 0.10 260);
+  background: oklch(58% 0.1 260);
 }
 
 .user-menu__theme-preview[data-theme='amber'] .user-menu__theme-dot--1,
@@ -2319,11 +2339,11 @@ label {
 }
 .user-menu__theme-preview[data-theme='amber'] .user-menu__theme-dot--2,
 .user-menu__theme-preview[data-theme='amber-light'] .user-menu__theme-dot--2 {
-  background: oklch(60% 0.10 195);
+  background: oklch(60% 0.1 195);
 }
 .user-menu__theme-preview[data-theme='amber'] .user-menu__theme-dot--3,
 .user-menu__theme-preview[data-theme='amber-light'] .user-menu__theme-dot--3 {
-  background: oklch(60% 0.10 315);
+  background: oklch(60% 0.1 315);
 }
 
 .user-menu__theme-name {
@@ -2355,7 +2375,10 @@ label {
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--duration-fast) var(--ease-btn), color var(--duration-fast) var(--ease-btn), transform var(--duration-fast) var(--ease-out);
+  transition:
+    background var(--duration-fast) var(--ease-btn),
+    color var(--duration-fast) var(--ease-btn),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .user-menu__lang:hover {

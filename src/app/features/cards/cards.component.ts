@@ -1,13 +1,5 @@
-import {
-  Component,
-  inject,
-  OnInit,
-  OnDestroy,
-  signal,
-  computed,
-  ChangeDetectionStrategy,
-  DestroyRef,
-} from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +13,8 @@ import {
 } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
-import { ModalComponent } from '../../shared/ui/modal/modal.component';
+import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
+import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 
@@ -33,11 +26,19 @@ interface CardWithBalance extends AccountResponse {
   selector: 'app-cards',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, CatIconComponent, FmtDatePipe, ModalComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    CatIconComponent,
+    FmtDatePipe,
+    PaginationComponent,
+    MovementDetailModalComponent,
+  ],
   templateUrl: './cards.component.html',
   styleUrl: './cards.component.css',
 })
-export class CardsComponent implements OnInit, OnDestroy {
+export class CardsComponent implements OnInit {
   cards = signal<CardWithBalance[]>([]);
   loading = signal(true);
   filterCcy = signal('');
@@ -62,7 +63,11 @@ export class CardsComponent implements OnInit, OnDestroy {
   });
 
   uniqueBanks = computed(() => {
-    const bankSet = new Set(this.cards().map((c) => c.bank).filter((b): b is string => !!b));
+    const bankSet = new Set(
+      this.cards()
+        .map((c) => c.bank)
+        .filter((b): b is string => !!b),
+    );
     return Array.from(bankSet).sort();
   });
 
@@ -133,34 +138,37 @@ export class CardsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.api.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (accounts) => {
-        const creditCards = accounts.filter((a) => a.type === 'Credit' && a.isActive);
-        if (creditCards.length === 0) {
-          this.loading.set(false);
-          return;
-        }
-        forkJoin(creditCards.map((c) => this.api.getAccountBalance(c.id))).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: (balances) => {
-            const combined = creditCards.map((c, i) => ({ ...c, balance: balances[i] }));
-            this.cards.set(combined);
-            if (combined.length) {
-              this.selectedId.set(combined[0].id);
-              this.loadMovements(combined[0].id);
-            }
+    this.api
+      .getAccounts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (accounts) => {
+          const creditCards = accounts.filter((a) => a.type === 'Credit' && a.isActive);
+          if (creditCards.length === 0) {
             this.loading.set(false);
-          },
-          error: () => {
-            this.cards.set(creditCards.map((c) => ({ ...c, balance: { balance: 0, usedInCycle: 0 } })));
-            this.loading.set(false);
-          },
-        });
-      },
-      error: () => this.loading.set(false),
-    });
+            return;
+          }
+          forkJoin(creditCards.map((c) => this.api.getAccountBalance(c.id)))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (balances) => {
+                const combined = creditCards.map((c, i) => ({ ...c, balance: balances[i] }));
+                this.cards.set(combined);
+                if (combined.length) {
+                  this.selectedId.set(combined[0].id);
+                  this.loadMovements(combined[0].id);
+                }
+                this.loading.set(false);
+              },
+              error: () => {
+                this.cards.set(creditCards.map((c) => ({ ...c, balance: { balance: 0, usedInCycle: 0 } })));
+                this.loading.set(false);
+              },
+            });
+        },
+        error: () => this.loading.set(false),
+      });
   }
-
-  ngOnDestroy() {}
 
   selectCard(id: string) {
     this.selectedId.set(id);
@@ -169,37 +177,28 @@ export class CardsComponent implements OnInit, OnDestroy {
   }
 
   loadMovements(accountId: string) {
-    this.api.getMovements(this.currentMonth(), this.currentPage(), this.pageSize(), { accountId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => this.cardMovements.set(r),
-    });
+    this.api
+      .getMovements(this.currentMonth(), this.currentPage(), this.pageSize(), { accountId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => this.cardMovements.set(r),
+      });
   }
 
-  prevPage() {
-    if (this.currentPage() > 1) {
-      this.currentPage.update((p) => p - 1);
-      const id = this.selectedId();
-      if (id) this.loadMovements(id);
-    }
+  onPageChange(p: number) {
+    this.currentPage.set(p);
+    const id = this.selectedId();
+    if (id) this.loadMovements(id);
   }
 
-  nextPage() {
-    if (this.currentPage() < this.totalPages()) {
-      this.currentPage.update((p) => p + 1);
-      const id = this.selectedId();
-      if (id) this.loadMovements(id);
-    }
-  }
-
-  setPageSize(size: number) {
+  onPageSizeChange(size: number) {
     this.pageSize.set(size);
     this.currentPage.set(1);
     const id = this.selectedId();
     if (id) this.loadMovements(id);
   }
 
-  rowCount(): number {
-    return this.cardMovements()?.total ?? 0;
-  }
+  rowCount = computed(() => this.cardMovements()?.total ?? 0);
 
   available(card: CardWithBalance): number {
     return Math.max(0, (card.creditLimit ?? 0) - card.balance.usedInCycle);

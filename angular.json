@@ -20,7 +20,7 @@
             "styles": ["src/tailwind.css", "src/styles.css"],
             "scripts": [],
             "budgets": [
-              { "type": "initial", "maximumWarning": "600kb", "maximumError": "1mb" },
+              { "type": "initial", "maximumWarning": "700kb", "maximumError": "1mb" },
               { "type": "anyComponentStyle", "maximumWarning": "10kb", "maximumError": "15kb" }
             ]
           }

@@ -8,12 +8,14 @@ import type { TranslationKey } from './shared/i18n/locale.types';
 import { SidebarComponent } from './shell/sidebar/sidebar.component';
 import { ShellHeaderComponent } from './shell/header/header.component';
 import { CmdkComponent } from './shell/cmdk/cmdk.component';
+import { UpdateBannerComponent } from './shared/services/update/update-banner.component';
+import { UpdateService } from './shared/services/update/update.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, CommonModule, SidebarComponent, ShellHeaderComponent, CmdkComponent],
+  imports: [RouterOutlet, CommonModule, SidebarComponent, ShellHeaderComponent, CmdkComponent, UpdateBannerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -24,6 +26,7 @@ export class AppComponent {
   public auth = inject(AuthService);
   public router = inject(Router);
   public i18n = inject(I18nService);
+  public update = inject(UpdateService);
 
   private currentUrl = signal(this.router.url || '/login');
   private AUTH_ROUTES = new Set(['login', 'register', 'forgot-password', 'reset-password', 'verify-email']);
@@ -70,6 +73,7 @@ export class AppComponent {
   });
 
   constructor() {
+    this.update.init();
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
       this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
     });
