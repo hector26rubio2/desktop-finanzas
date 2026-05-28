@@ -366,6 +366,15 @@ function createWindow() {
   });
 }
 
+ipcMain.on('log:write', (_event, payload) => {
+  try {
+    const { level = 'log', message = '', data } = payload || {};
+    const prefix = level === 'error' ? '[render:ERR]' : level === 'warn' ? '[render:WARN]' : '[render]';
+    const extra = data !== undefined ? ' ' + (typeof data === 'string' ? data : JSON.stringify(data)) : '';
+    writeLine(prefix, String(message), [extra].filter(Boolean));
+  } catch (_) {}
+});
+
 app.on('second-instance', () => {
   const [win] = BrowserWindow.getAllWindows();
   if (win) {

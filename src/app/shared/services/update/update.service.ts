@@ -16,6 +16,7 @@ declare global {
       platform: string;
       cspNonce: string;
       encryptionKey: string;
+      log?: (level: 'log' | 'warn' | 'error', message: string, data?: unknown) => void;
       onUpdateStatus: (cb: (data: UpdateInfo) => void) => void;
       checkForUpdates: () => Promise<{ available: boolean; error?: string }>;
       downloadUpdate: () => Promise<{ success: boolean; error?: string }>;
