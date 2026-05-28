@@ -451,6 +451,11 @@ table th.num {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 6px 0 8px;
+  scrollbar-width: none;
+}
+
+.sidebar__scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar__group {

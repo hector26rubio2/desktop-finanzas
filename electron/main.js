@@ -2,6 +2,53 @@ const { app, BrowserWindow, session, ipcMain, Menu } = require('electron');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const http = require('http');
+
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript',
+  '.mjs': 'application/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.eot': 'application/vnd.ms-fontobject',
+};
+
+function startLocalServer(distPath) {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      let urlPath = (req.url || '/').split('?')[0];
+      if (urlPath === '/') urlPath = '/index.html';
+
+      let filePath = path.join(distPath, urlPath);
+      if (!fs.existsSync(filePath)) filePath = path.join(distPath, 'index.html');
+
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+      try {
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(fs.readFileSync(filePath));
+      } catch (_) {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      resolve(port);
+    });
+  });
+}
 
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
@@ -262,9 +309,11 @@ function createWindow() {
     log('loading http://localhost:4200');
     win.loadURL('http://localhost:4200');
   } else {
-    const filePath = path.join(__dirname, '..', 'dist', 'browser', 'index.html');
-    log('loading file:', filePath);
-    win.loadFile(filePath);
+    const distPath = path.join(__dirname, '..', 'dist', 'browser');
+    startLocalServer(distPath).then((port) => {
+      log('local server started on port', port);
+      win.loadURL(`http://127.0.0.1:${port}`);
+    });
   }
 
   win.webContents.on('did-fail-load', (_event, code, desc) => {
