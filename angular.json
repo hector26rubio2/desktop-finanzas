@@ -23,14 +23,40 @@
               { "type": "initial", "maximumWarning": "700kb", "maximumError": "1mb" },
               { "type": "anyComponentStyle", "maximumWarning": "10kb", "maximumError": "15kb" }
             ]
-          }
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true
+            },
+            "development": {
+              "optimization": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "buildTarget": "finanzas-desktop:build",
             "hmr": true
-          }
+          },
+          "configurations": {
+            "production": { "buildTarget": "finanzas-desktop:build:production" },
+            "development": { "buildTarget": "finanzas-desktop:build:development" }
+          },
+          "defaultConfiguration": "development"
         }
       }
     }
