@@ -126,7 +126,7 @@
   padding: 2rem;
   background: var(--bg-0);
   position: relative;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 @media (width >= 1024px) {
