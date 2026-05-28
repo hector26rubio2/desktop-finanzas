@@ -11,6 +11,10 @@ files:
   - dist/browser/**/*
   - "!dist/browser/stats.html"
 
+extraResources:
+  - from: .env.production
+    to: .env.production
+
 win:
   target:
     - target: nsis

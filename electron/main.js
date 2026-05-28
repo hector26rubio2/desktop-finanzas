@@ -5,23 +5,43 @@ const fs = require('fs');
 
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
-// Load .env file if present (works in both dev and local-prod modes)
-const envPath = path.join(__dirname, '..', '.env');
-console.log('[main:env] envPath=', envPath, 'exists=', fs.existsSync(envPath));
-console.log('[main:env] BEFORE: FINANZAS_ENCRYPTION_KEY len=', (process.env.FINANZAS_ENCRYPTION_KEY || '').length);
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  for (const line of envContent.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eqIndex = trimmed.indexOf('=');
-    if (eqIndex === -1) continue;
-    const key = trimmed.slice(0, eqIndex).trim();
-    const value = trimmed.slice(eqIndex + 1).trim();
-    if (!process.env[key]) process.env[key] = value;
+// Load .env file based on environment
+if (isDev) {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    for (const line of envContent.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIndex = trimmed.indexOf('=');
+      if (eqIndex === -1) continue;
+      const key = trimmed.slice(0, eqIndex).trim();
+      const value = trimmed.slice(eqIndex + 1).trim();
+      if (!process.env[key]) process.env[key] = value;
+    }
+  }
+} else {
+  // In production, .env.production is in resources
+  const prodEnvPaths = [
+    path.join(process.resourcesPath, '.env.production'),
+    path.join(__dirname, '..', '.env.production'),
+  ];
+  for (const envPath of prodEnvPaths) {
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      for (const line of envContent.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIndex = trimmed.indexOf('=');
+        if (eqIndex === -1) continue;
+        const key = trimmed.slice(0, eqIndex).trim();
+        const value = trimmed.slice(eqIndex + 1).trim();
+        if (!process.env[key]) process.env[key] = value;
+      }
+      break;
+    }
   }
 }
-console.log('[main:env] AFTER: FINANZAS_ENCRYPTION_KEY len=', (process.env.FINANZAS_ENCRYPTION_KEY || '').length, 'prefix=', (process.env.FINANZAS_ENCRYPTION_KEY || '').slice(0, 8));
 
 const log = (msg, ...args) => console.log(`[main:finanzas] ${msg}`, ...args);
 const err = (msg, ...args) => console.error(`[main:finanzas] ${msg}`, ...args);

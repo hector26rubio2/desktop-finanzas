@@ -60,6 +60,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Create .env.production from secrets
+        shell: bash
+        run: |
+          cat > .env.production << 'EOF'
+          FINANZAS_ENCRYPTION_KEY=${{ secrets.FINANZAS_ENCRYPTION_KEY }}
+          FINANZAS_GOOGLE_CLIENT_ID=${{ secrets.FINANZAS_GOOGLE_CLIENT_ID }}
+          FINANZAS_API_URL=https://api-finanzas-gjop.onrender.com
+          EOF
+
       - name: Build Angular app
         run: pnpm run build
 
@@ -101,6 +110,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Create .env.production from secrets
+        run: |
+          cat > .env.production << 'EOF'
+          FINANZAS_ENCRYPTION_KEY=${{ secrets.FINANZAS_ENCRYPTION_KEY }}
+          FINANZAS_GOOGLE_CLIENT_ID=${{ secrets.FINANZAS_GOOGLE_CLIENT_ID }}
+          FINANZAS_API_URL=https://api-finanzas-gjop.onrender.com
+          EOF
 
       - name: Build Angular app
         run: pnpm run build
