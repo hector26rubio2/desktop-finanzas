@@ -238,6 +238,7 @@ app-root {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  display: block;
   background: var(--bg-0);
   color: var(--fg-0);
   font-family: 'Geist', system-ui, sans-serif;
