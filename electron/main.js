@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, Menu } = require('electron');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -290,6 +290,7 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   log('app ready');
+  Menu.setApplicationMenu(null);
   setupAutoUpdater();
   createWindow();
 });
