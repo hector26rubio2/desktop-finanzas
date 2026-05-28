@@ -245,6 +245,12 @@
   margin-bottom: 2rem;
 }
 
+@media (width >= 1024px) {
+  .auth-mobile-brand {
+    display: none;
+  }
+}
+
 .auth-mobile-brand-icon {
   width: 28px;
   height: 28px;
