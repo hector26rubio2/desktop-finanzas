@@ -296,6 +296,23 @@
   align-items: center;
 }
 
+.cards-top-row {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: var(--gutter);
+  align-items: start;
+  flex-shrink: 0;
+}
+
+.cards-top-summary {
+  padding: 14px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  top: var(--gutter);
+}
+
 .cards-content {
   flex: 1;
   min-height: 0;

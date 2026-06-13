@@ -93,6 +93,7 @@
       <app-kpi-strip [items]="summaryItems()" align="end" />
     </div>
 
+    <div class="cards-top-row">
     <div class="cards-scroll-wrap">
       <div class="cards-scroll">
         <div class="cards-track">
@@ -176,6 +177,51 @@
         </div>
       </div>
     </div>
+
+    <!-- Resumen de pago: columna derecha del top-row -->
+    @if (selectedCard(); as card) {
+      <div class="card payment-summary cards-top-summary">
+        <div class="payment-summary-title">
+          <span class="serif" style="font-size: 15px">{{ i18n.t('cards.resumen_pago') }}</span>
+          <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.currency }}</span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">{{ i18n.t('cards.gastos_ciclo') }}</span>
+          <span class="payment-value mono">{{ selectedTotalExpenses() | number: '1.2-2' }}</span>
+        </div>
+        @if (card.interestRate) {
+          <div class="payment-row">
+            <span class="payment-label">{{ i18n.t('cards.interes_estimado') }}
+              <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.interestRate }}%</span>
+            </span>
+            <span class="payment-value mono" style="color: var(--warning)">{{ selectedTotalInterest() | number: '1.2-2' }}</span>
+          </div>
+        }
+        <div class="payment-row payment-row--total">
+          <span class="payment-label" style="font-weight: 600">{{ i18n.t('cards.total_a_pagar') }}</span>
+          <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{ selectedTotalToPay() | number: '1.2-2' }}</span>
+        </div>
+        <div class="payment-divider"></div>
+        <div class="payment-row">
+          <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.disponible') }}</span>
+          <span class="payment-value mono" style="color: var(--positive)">{{ available(card) | number: '1.0-0' }}</span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
+          <span class="payment-value mono">{{ card.balance.usedInCycle | number: '1.0-0' }}</span>
+        </div>
+        <div style="margin-top: 12px">
+          <div class="progress" style="margin-bottom: 8px">
+            <div class="progress__fill" [style.width]="usePct(card) + '%'" [style.background]="useColor(usePct(card))"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span>
+            <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.creditLimit! | number: '1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+    }
+    </div><!-- /cards-top-row -->
 
     @if (selectedCard(); as card) {
       <div class="cards-content">
@@ -278,48 +324,6 @@
           </div>
 
           <div class="cards-layout-side">
-            <!-- Resumen de pago -->
-            <div class="card payment-summary">
-              <div class="payment-summary-title">
-                <span class="serif" style="font-size: 15px">{{ i18n.t('cards.resumen_pago') }}</span>
-                <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.currency }}</span>
-              </div>
-              <div class="payment-row">
-                <span class="payment-label">{{ i18n.t('cards.gastos_ciclo') }}</span>
-                <span class="payment-value mono">{{ selectedTotalExpenses() | number: '1.2-2' }}</span>
-              </div>
-              @if (card.interestRate) {
-                <div class="payment-row">
-                  <span class="payment-label">{{ i18n.t('cards.interes_estimado') }}
-                    <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.interestRate }}%</span>
-                  </span>
-                  <span class="payment-value mono" style="color: var(--warning)">{{ selectedTotalInterest() | number: '1.2-2' }}</span>
-                </div>
-              }
-              <div class="payment-row payment-row--total">
-                <span class="payment-label" style="font-weight: 600">{{ i18n.t('cards.total_a_pagar') }}</span>
-                <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{ selectedTotalToPay() | number: '1.2-2' }}</span>
-              </div>
-              <div class="payment-divider"></div>
-              <div class="payment-row">
-                <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.disponible') }}</span>
-                <span class="payment-value mono" style="color: var(--positive)">{{ available(card) | number: '1.0-0' }}</span>
-              </div>
-              <div class="payment-row">
-                <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
-                <span class="payment-value mono">{{ card.balance.usedInCycle | number: '1.0-0' }}</span>
-              </div>
-              <div style="margin-top: 12px">
-                <div class="progress" style="margin-bottom: 8px">
-                  <div class="progress__fill" [style.width]="usePct(card) + '%'" [style.background]="useColor(usePct(card))"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center">
-                  <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span>
-                  <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.creditLimit! | number: '1.0-0' }}</span>
-                </div>
-              </div>
-            </div>
-
             <!-- Compras en cuotas -->
             <div class="card payment-summary cc-inst-panel">
               <div class="payment-summary-title">
