@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
@@ -77,6 +77,7 @@ export class MovementsComponent implements OnInit {
   formCurrency = signal('ARS');
   formSourceType = signal('Cash');
   formType = signal<'Income' | 'Expense'>('Expense');
+  lockedToCreditCard = signal(false);
 
   filterCcy = '';
   filterCat = '';
@@ -90,6 +91,8 @@ export class MovementsComponent implements OnInit {
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   baseCurrency = computed(() => this.auth.currentUser()?.baseCurrency ?? 'ARS');
 
@@ -196,7 +199,7 @@ export class MovementsComponent implements OnInit {
     type: ['Expense' as 'Income' | 'Expense', Validators.required],
     sourceType: ['Cash' as string],
     loanParty: [''],
-    loanInstallments: [null as number | null],
+    loanInstallments: [null as number | null, [Validators.min(1), Validators.max(36)]],
     loanInterestRate: [null as number | null],
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ['ARS', Validators.required],
@@ -272,8 +275,41 @@ export class MovementsComponent implements OnInit {
                 error: () => {},
               });
           }
+          const params = this.route.snapshot.queryParamMap;
+          if (params.get('preset') === 'cc') {
+            const accountId = params.get('accountId');
+            this.openCreditCardPreset(accountId);
+            this.router.navigate([], { replaceUrl: true, queryParams: {} });
+          }
         },
       });
+  }
+
+  openCreditCardPreset(accountId: string | null) {
+    const acc = accountId
+      ? this.accounts().find((a) => a.id === accountId)
+      : this.creditAccounts()[0];
+    this.editingMovement.set(null);
+    this.movForm.reset({
+      type: 'Expense',
+      sourceType: 'CreditCard',
+      loanParty: '',
+      loanInstallments: null,
+      loanInterestRate: acc?.interestRate ?? null,
+      amount: null,
+      currency: acc?.currency ?? 'ARS',
+      trmApplied: 1,
+      date: new Date().toISOString().slice(0, 16),
+      description: '',
+      categoryId: '',
+      accountId: acc?.id ?? '',
+    });
+    this.formType.set('Expense');
+    this.formSourceType.set('CreditCard');
+    this.formAccountId.set(acc?.id ?? '');
+    this.formCurrency.set(acc?.currency ?? 'ARS');
+    this.lockedToCreditCard.set(true);
+    this.showModal.set(true);
   }
 
   setType(type: 'Income' | 'Expense') {
@@ -430,6 +466,7 @@ export class MovementsComponent implements OnInit {
   closeModal() {
     this.showModal.set(false);
     this.editingMovement.set(null);
+    this.lockedToCreditCard.set(false);
   }
 
   save() {

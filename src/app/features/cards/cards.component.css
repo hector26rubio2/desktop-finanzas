@@ -296,6 +296,15 @@
   align-items: center;
 }
 
+.cc-card-interest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+  margin-top: 2px;
+}
+
 .cards-top-row {
   display: grid;
   grid-template-columns: 1fr 260px;
@@ -322,7 +331,8 @@
 
 .cards-transactions-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
   flex-shrink: 0;
@@ -334,15 +344,14 @@
 }
 
 .cards-layout {
-  display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: var(--gutter);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
 }
 
 .cards-layout-main {
+  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -369,9 +378,12 @@
   background: var(--bg-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-card, 8px);
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
+.cards-table-wrap::-webkit-scrollbar {
+  display: none;
+}
 
 .payment-summary {
   padding: 14px !important;

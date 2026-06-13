@@ -59,7 +59,7 @@
         <div class="mdm-plan">
           <div class="mdm-plan-head">
             <span class="mdm-label">{{ i18n.t('transactions.plan_cuotas') }}</span>
-            <span class="tag tag--accent">{{ currentInstallment(m) }}/{{ m.loanInstallments }}</span>
+            <span class="tag tag--accent">{{ currentInstallment(m) }}/{{ totalInstallments(m) }}</span>
           </div>
           <div class="progress" style="margin: 8px 0 6px">
             <div class="progress__fill" [style.width]="installmentPct(m) + '%'"></div>
@@ -68,10 +68,33 @@
             <span class="mono">{{ monthlyAmount(m) | number: '1.2-2' }} {{ m.currency }}/mes</span>
             <span class="mono" style="color: var(--fg-3)">
               {{ i18n.t('installments.restante') }}
-              {{ (m.loanInstallments - currentInstallment(m)) * monthlyAmount(m) | number: '1.0-0' }}
+              {{ remainingAmount(m) | number: '1.0-0' }}
               {{ m.currency }}
             </span>
           </div>
+          @if (m.loanInterestRate) {
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: var(--fs-2xs); color: var(--fg-3)">Cuota base</span>
+                <span class="mono" style="font-size: var(--fs-2xs)">{{ (monthlyAmount(m) / (1 + m.loanInterestRate / 100)) | number: '1.2-2' }} {{ m.currency }}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: var(--fs-2xs); color: var(--warning)">Interés {{ m.loanInterestRate }}%</span>
+                <span class="mono" style="font-size: var(--fs-2xs); color: var(--warning)">+{{ (monthlyAmount(m) - monthlyAmount(m) / (1 + m.loanInterestRate / 100)) | number: '1.2-2' }} {{ m.currency }}</span>
+              </div>
+              @if (installment(); as inst) {
+                <div style="display: flex; justify-content: space-between; padding-top: 3px; border-top: 1px solid var(--line);">
+                  <span style="font-size: var(--fs-2xs); color: var(--fg-3)">Total compra</span>
+                  <span class="mono" style="font-size: var(--fs-2xs)">{{ inst.totalAmount | number: '1.2-2' }} {{ inst.currency }}</span>
+                </div>
+              }
+            </div>
+          } @else if (installment(); as inst) {
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); display: flex; justify-content: space-between;">
+              <span style="font-size: var(--fs-2xs); color: var(--fg-3)">Total compra</span>
+              <span class="mono" style="font-size: var(--fs-2xs)">{{ inst.totalAmount | number: '1.2-2' }} {{ inst.currency }}</span>
+            </div>
+          }
         </div>
       }
       <div class="mdm-row">

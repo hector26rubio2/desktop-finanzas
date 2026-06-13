@@ -54,7 +54,7 @@
 }
 
 <div class="view" [attr.aria-busy]="loading()">
-  <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
+  <app-movement-detail-modal [movement]="selectedMovement()" [installment]="selectedInstallment()" (closeModal)="closeDetail()" />
 
   @if (loading()) {
     <div class="empty-state" role="status" aria-live="polite">
@@ -171,6 +171,12 @@
                     [style.background]="useColor(usePct(card))"
                   ></div>
                 </div>
+                @if (card.interestRate) {
+                  <div class="cc-card-interest-row">
+                    <span class="cc-card-eyebrow">{{ i18n.t('transactions.interest_rate') }}</span>
+                    <span class="mono" style="font-size: var(--fs-xs); color: var(--warning)">{{ card.interestRate }}%</span>
+                  </div>
+                }
               </div>
             </div>
           }
@@ -234,6 +240,10 @@
                   {{ i18n.t('cards.compras_ciclo') }} · {{ rowCount() }} {{ i18n.t('cards.movimientos') }}
                 </span>
               </div>
+              <button class="btn btn--ghost cc-inst-add-btn" (click)="openInstModal()">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/></svg>
+                {{ i18n.t('installments.nueva_compra') }}
+              </button>
             </div>
             <div class="cards-table-wrap">
               <ng-template #dateCell let-m>
@@ -323,68 +333,6 @@
             </div>
           </div>
 
-          <div class="cards-layout-side">
-            <!-- Compras en cuotas -->
-            <div class="card payment-summary cc-inst-panel">
-              <div class="payment-summary-title">
-                <span class="serif" style="font-size: 15px">{{ i18n.t('installments.title') }}</span>
-                <button class="btn btn--ghost cc-inst-add-btn" (click)="openInstModal()">
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/></svg>
-                  {{ i18n.t('installments.nueva_compra') }}
-                </button>
-              </div>
-              @if (selectedInstallments().length === 0) {
-                <div class="cc-inst-empty">
-                  <span style="font-size: var(--fs-xs); color: var(--fg-3)">{{ i18n.t('installments.sin_compras') }}</span>
-                </div>
-              }
-              @for (inst of selectedInstallments(); track inst.id) {
-                <div class="cc-inst">
-                  <div class="cc-inst-head">
-                    <span class="cc-inst-name">{{ inst.description }}</span>
-                    <button
-                      class="cc-inst-delete"
-                      [attr.aria-label]="i18n.t('common.delete')"
-                      (click)="deleteInst(inst.id)"
-                      [disabled]="inst.paidCount > 0"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 4L4 12M4 4l8 8"/></svg>
-                    </button>
-                  </div>
-                  <div class="cc-inst-progress-row">
-                    <div class="progress cc-inst-progress">
-                      <div class="progress__fill" [style.width]="instPct(inst) + '%'"></div>
-                    </div>
-                    <span class="tag tag--accent cc-inst-tag">{{ inst.paidCount }}/{{ inst.installmentsCount }}</span>
-                  </div>
-                  <div class="cc-inst-foot">
-                    <div class="cc-inst-amounts">
-                      @if (selectedCard()?.interestRate) {
-                        <span class="mono cc-inst-monthly">
-                          {{ inst.currency }} {{ instMonthlyTotal(inst) | number: '1.0-0' }}/mes
-                        </span>
-                        <span class="mono cc-inst-remaining" style="color: var(--warning)">
-                          +{{ inst.currency }} {{ instMonthlyInterest(inst) | number: '1.0-0' }} int.
-                        </span>
-                      } @else {
-                        <span class="mono cc-inst-monthly">{{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes</span>
-                      }
-                      <span class="mono cc-inst-remaining" style="color: var(--fg-3)">
-                        rest. {{ inst.currency }} {{ inst.remainingAmount | number: '1.0-0' }}
-                      </span>
-                    </div>
-                    <button
-                      class="btn btn--ghost cc-inst-mark"
-                      [disabled]="inst.paidCount >= inst.installmentsCount"
-                      (click)="markInstallmentPaid(inst)"
-                    >
-                      ✓ {{ i18n.t('installments.marcar_cuota') }}
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
         </div>
       </div>
     }

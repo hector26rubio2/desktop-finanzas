@@ -1,6 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MovementResponse } from '../../../models/movement.model';
+import type { InstallmentResponse } from '../../../models/installment.model';
 import { I18nService } from '../../../i18n/i18n.service';
 import { CatIconComponent } from '../../atoms/cat-icon/cat-icon.component';
 import { ModalComponent } from '../modal/modal.component';
@@ -18,7 +19,7 @@ import { parseDate } from '../../../utils/date';
 })
 export class MovementDetailModalComponent {
   movement = input<MovementResponse | null>(null);
-  /** Mostrar botón Editar (solo vistas que saben editar lo manejan) */
+  installment = input<InstallmentResponse | null>(null);
   editable = input(false);
 
   closeModal = output<void>();
@@ -29,6 +30,8 @@ export class MovementDetailModalComponent {
   subTypeLabel = subTypeLabel;
 
   currentInstallment(m: MovementResponse): number {
+    const inst = this.installment();
+    if (inst) return inst.paidCount;
     const start = parseDate(m.date);
     const now = new Date();
     const elapsed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
@@ -36,12 +39,25 @@ export class MovementDetailModalComponent {
   }
 
   installmentPct(m: MovementResponse): number {
-    if (!m.loanInstallments) return 0;
-    return Math.round((this.currentInstallment(m) / m.loanInstallments) * 100);
+    const inst = this.installment();
+    const total = inst ? inst.installmentsCount : (m.loanInstallments ?? 1);
+    return Math.round((this.currentInstallment(m) / total) * 100);
   }
 
   monthlyAmount(m: MovementResponse): number {
-    if (!m.loanInstallments) return m.amount;
-    return m.amount / m.loanInstallments;
+    const inst = this.installment();
+    if (inst) return inst.monthlyAmount;
+    return m.amount;
+  }
+
+  remainingAmount(m: MovementResponse): number {
+    const inst = this.installment();
+    if (inst) return inst.remainingAmount;
+    const pending = (m.loanInstallments ?? 1) - this.currentInstallment(m);
+    return pending * m.amount;
+  }
+
+  totalInstallments(m: MovementResponse): number {
+    return this.installment()?.installmentsCount ?? (m.loanInstallments ?? 1);
   }
 }

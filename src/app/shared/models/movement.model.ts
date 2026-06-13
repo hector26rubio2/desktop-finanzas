@@ -18,6 +18,7 @@ export interface MovementResponse {
   categoryIcon: string | null;
   accountId: string | null;
   accountName: string | null;
+  installmentPurchaseId: string | null;
   createdAt: string;
 }
 

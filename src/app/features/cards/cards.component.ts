@@ -10,7 +10,7 @@ import {
   TemplateRef,
 } from '@angular/core';
 import { formatNumber } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -66,6 +66,7 @@ export class CardsComponent implements OnInit {
   searchQuery = signal('');
   selectedId = signal<string | null>(null);
   selectedMovement = signal<MovementResponse | null>(null);
+  selectedInstallment = signal<InstallmentResponse | null>(null);
   cardMovements = signal<PagedResult<MovementResponse> | null>(null);
   currentPage = signal(1);
   pageSize = signal(10);
@@ -76,6 +77,7 @@ export class CardsComponent implements OnInit {
   instSaving = signal(false);
 
   private api = inject(ApiService);
+  private router = inject(Router);
   public i18n = inject(I18nService);
   private fb = inject(FormBuilder);
   sourceLabel = sourceLabel;
@@ -222,14 +224,10 @@ export class CardsComponent implements OnInit {
   }
 
   openInstModal() {
-    const card = this.selectedCard();
-    this.instForm.reset({
-      description: '',
-      totalAmount: null,
-      installmentsCount: null,
-      startDate: new Date().toISOString().slice(0, 10),
+    const accountId = this.selectedId();
+    this.router.navigate(['/movements'], {
+      queryParams: { preset: 'cc', ...(accountId ? { accountId } : {}) },
     });
-    this.showInstModal.set(true);
   }
 
   closeInstModal() {
@@ -420,10 +418,15 @@ export class CardsComponent implements OnInit {
 
   openDetail(m: MovementResponse) {
     this.selectedMovement.set(m);
+    const inst = m.installmentPurchaseId
+      ? this.installments().find((i) => i.id === m.installmentPurchaseId) ?? null
+      : null;
+    this.selectedInstallment.set(inst);
   }
 
   closeDetail() {
     this.selectedMovement.set(null);
+    this.selectedInstallment.set(null);
   }
 
   cuotaLabel(m: MovementResponse): string {
