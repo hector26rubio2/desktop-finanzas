@@ -20,10 +20,20 @@
       </label>
     </div>
     @if (instForm.value.totalAmount && instForm.value.installmentsCount) {
-      <div class="mov-card-info">
-        <span class="mov-card-info-item" style="color:var(--positive);font-weight:600">
-          {{ selectedCard()?.currency }}
+      <div class="mov-card-info" style="flex-direction:column;align-items:flex-start;gap:3px">
+        <span class="mov-card-info-item">
+          Base: {{ selectedCard()?.currency }}
           {{ (instForm.value.totalAmount / instForm.value.installmentsCount) | number:'1.2-2' }}/mes
+        </span>
+        @if (selectedCard()?.interestRate) {
+          <span class="mov-card-info-item" style="color:var(--warning)">
+            Interés {{ selectedCard()!.interestRate }}%: {{ selectedCard()?.currency }}
+            {{ ((instForm.value.totalAmount / instForm.value.installmentsCount) * (selectedCard()!.interestRate! / 100)) | number:'1.2-2' }}/mes
+          </span>
+        }
+        <span class="mov-card-info-item" style="color:var(--positive);font-weight:700">
+          Total cuota: {{ selectedCard()?.currency }}
+          {{ instMonthlyWithInterest() | number:'1.2-2' }}/mes
         </span>
       </div>
     }

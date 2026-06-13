@@ -192,6 +192,15 @@ export class CardsComponent implements OnInit {
 
   selectedTotalToPay = computed(() => this.selectedTotalExpenses() + this.selectedTotalInterest());
 
+  instMonthlyWithInterest = computed(() => {
+    const total = this.instForm.value.totalAmount;
+    const n = this.instForm.value.installmentsCount;
+    if (!total || !n) return 0;
+    const base = total / n;
+    const rate = this.selectedCard()?.interestRate ?? 0;
+    return base * (1 + rate / 100);
+  });
+
   /** Compras en cuotas activas de la tarjeta seleccionada */
   selectedInstallments = computed(() => {
     const id = this.selectedId();
@@ -230,17 +239,22 @@ export class CardsComponent implements OnInit {
     const dateStr = v.startDate!;
     const description = v.description!;
 
+    const interestRate = card.interestRate ?? 0;
+    const monthlyBase = totalAmount / cuotas;
+    const monthlyWithInterest = monthlyBase * (1 + interestRate / 100);
+
     // Crear movimiento Expense con CreditCard
     const movReq = {
       type: 'Expense' as const,
       sourceType: 'CreditCard',
-      amount: totalAmount / cuotas,
+      amount: monthlyWithInterest,
       currency: card.currency,
       trmApplied: 1,
       date: dateStr + 'T00:00',
       description,
       accountId: card.id,
       loanInstallments: cuotas,
+      loanInterestRate: interestRate || undefined,
     };
     // Crear InstallmentPurchase
     const instReq = {
