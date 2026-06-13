@@ -212,6 +212,15 @@ export class CardsComponent implements OnInit {
     return Math.round((inst.paidCount / inst.installmentsCount) * 100);
   }
 
+  instMonthlyInterest(inst: InstallmentResponse): number {
+    const rate = this.selectedCard()?.interestRate ?? 0;
+    return inst.monthlyAmount * (rate / 100);
+  }
+
+  instMonthlyTotal(inst: InstallmentResponse): number {
+    return inst.monthlyAmount + this.instMonthlyInterest(inst);
+  }
+
   openInstModal() {
     const card = this.selectedCard();
     this.instForm.reset({

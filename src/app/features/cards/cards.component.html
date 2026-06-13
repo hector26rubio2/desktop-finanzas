@@ -355,7 +355,16 @@
                   </div>
                   <div class="cc-inst-foot">
                     <div class="cc-inst-amounts">
-                      <span class="mono cc-inst-monthly">{{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes</span>
+                      @if (selectedCard()?.interestRate) {
+                        <span class="mono cc-inst-monthly">
+                          {{ inst.currency }} {{ instMonthlyTotal(inst) | number: '1.0-0' }}/mes
+                        </span>
+                        <span class="mono cc-inst-remaining" style="color: var(--warning)">
+                          +{{ inst.currency }} {{ instMonthlyInterest(inst) | number: '1.0-0' }} int.
+                        </span>
+                      } @else {
+                        <span class="mono cc-inst-monthly">{{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes</span>
+                      }
                       <span class="mono cc-inst-remaining" style="color: var(--fg-3)">
                         rest. {{ inst.currency }} {{ inst.remainingAmount | number: '1.0-0' }}
                       </span>
