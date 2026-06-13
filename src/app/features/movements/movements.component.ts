@@ -461,6 +461,25 @@ export class MovementsComponent implements OnInit {
     const op = editing ? this.api.updateMovement(editing.id, req) : this.api.createMovement(req);
     op.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
+        // Si es compra nueva con tarjeta y cuotas > 1, crear InstallmentPurchase
+        const cuotas = v.loanInstallments;
+        const accountId = v.accountId;
+        if (!editing && v.sourceType === 'CreditCard' && cuotas && cuotas > 1 && accountId) {
+          const dateStr = v.date ? v.date.slice(0, 10) : new Date().toISOString().slice(0, 10);
+          this.api
+            .createInstallment({
+              description: v.description || 'Compra en cuotas',
+              accountId,
+              totalAmount: (v.amount ?? 0) * cuotas,
+              currency: v.currency!,
+              trmApplied: v.trmApplied ?? 1,
+              installmentsCount: cuotas,
+              paidCount: 0,
+              startDate: dateStr,
+            })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ next: () => {}, error: () => {} });
+        }
         this.saving.set(false);
         this.showModal.set(false);
         this.editingMovement.set(null);

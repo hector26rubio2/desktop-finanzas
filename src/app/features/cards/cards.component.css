@@ -492,3 +492,124 @@
   align-items: center;
   gap: 6px;
 }
+
+/* ── Installments panel ── */
+.cc-inst-panel {
+  margin-top: 0;
+  gap: 10px !important;
+}
+
+.cc-inst-add-btn {
+  font-size: var(--fs-2xs) !important;
+  padding: 3px 8px !important;
+  height: 24px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+}
+
+.cc-inst-empty {
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.cc-inst {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.cc-inst:first-of-type {
+  border-top: none;
+}
+
+.cc-inst-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.cc-inst-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-0);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-inst-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--fg-3);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.cc-inst-delete:hover:not(:disabled) {
+  color: var(--negative);
+  background: color-mix(in oklab, var(--negative) 10%, transparent);
+}
+
+.cc-inst-delete:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cc-inst-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-inst-progress {
+  flex: 1;
+}
+
+.cc-inst-tag {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs) !important;
+}
+
+.cc-inst-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-inst-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cc-inst-monthly {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--fg-0);
+}
+
+.cc-inst-remaining {
+  font-size: var(--fs-2xs);
+}
+
+.cc-inst-mark {
+  font-size: var(--fs-2xs) !important;
+  padding: 3px 8px !important;
+  height: 24px !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

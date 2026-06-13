@@ -33,7 +33,7 @@ export const routes: Routes = [
     path: 'movements',
     canActivate: [authGuard],
     loadComponent: () => import('./features/movements/movements.component').then((m) => m.MovementsComponent),
-  },
+  },  
   {
     path: 'accounts',
     canActivate: [authGuard],
@@ -43,11 +43,6 @@ export const routes: Routes = [
     path: 'cards',
     canActivate: [authGuard],
     loadComponent: () => import('./features/cards/cards.component').then((m) => m.CardsComponent),
-  },
-  {
-    path: 'installments',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/installments/installments.component').then((m) => m.InstallmentsComponent),
   },
   {
     path: 'loans',

@@ -44,7 +44,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'accounts', key: 'nav.accounts', icon: 'account', kbd: 'g a' },
       { id: 'cards', key: 'nav.cards', icon: 'card', kbd: 'g t' },
-      { id: 'installments', key: 'nav.installments', icon: 'installments', dot: true, kbd: 'g c' },
       { id: 'loans', key: 'nav.loans', icon: 'loan' },
     ],
   },

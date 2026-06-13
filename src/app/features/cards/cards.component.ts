@@ -13,7 +13,7 @@ import { formatNumber } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
   ApiService,
@@ -25,6 +25,7 @@ import {
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
+import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
@@ -45,10 +46,12 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterLink,
     CatIconComponent,
     FmtDatePipe,
     MovementDetailModalComponent,
+    ModalComponent,
     DataTableComponent,
     KpiStripComponent,
   ],
@@ -69,11 +72,22 @@ export class CardsComponent implements OnInit {
   today = new Date();
   installments = signal<InstallmentResponse[]>([]);
 
+  showInstModal = signal(false);
+  instSaving = signal(false);
+
   private api = inject(ApiService);
   public i18n = inject(I18nService);
+  private fb = inject(FormBuilder);
   sourceLabel = sourceLabel;
   subTypeLabel = subTypeLabel;
   private destroyRef = inject(DestroyRef);
+
+  instForm = this.fb.group({
+    description: ['', Validators.required],
+    totalAmount: [null as number | null, [Validators.required, Validators.min(1)]],
+    installmentsCount: [null as number | null, [Validators.required, Validators.min(2), Validators.max(120)]],
+    startDate: [new Date().toISOString().slice(0, 10), Validators.required],
+  });
 
   dateCell = viewChild<MovTpl>('dateCell');
   conceptCell = viewChild<MovTpl>('conceptCell');
@@ -187,6 +201,82 @@ export class CardsComponent implements OnInit {
 
   instPct(inst: InstallmentResponse): number {
     return Math.round((inst.paidCount / inst.installmentsCount) * 100);
+  }
+
+  openInstModal() {
+    const card = this.selectedCard();
+    this.instForm.reset({
+      description: '',
+      totalAmount: null,
+      installmentsCount: null,
+      startDate: new Date().toISOString().slice(0, 10),
+    });
+    this.showInstModal.set(true);
+  }
+
+  closeInstModal() {
+    this.showInstModal.set(false);
+  }
+
+  saveNewInst() {
+    this.instForm.markAllAsTouched();
+    if (this.instForm.invalid) return;
+    const card = this.selectedCard();
+    if (!card) return;
+    this.instSaving.set(true);
+    const v = this.instForm.value;
+    const cuotas = v.installmentsCount!;
+    const totalAmount = v.totalAmount!;
+    const dateStr = v.startDate!;
+    const description = v.description!;
+
+    // Crear movimiento Expense con CreditCard
+    const movReq = {
+      type: 'Expense' as const,
+      sourceType: 'CreditCard',
+      amount: totalAmount / cuotas,
+      currency: card.currency,
+      trmApplied: 1,
+      date: dateStr + 'T00:00',
+      description,
+      accountId: card.id,
+      loanInstallments: cuotas,
+    };
+    // Crear InstallmentPurchase
+    const instReq = {
+      description,
+      accountId: card.id,
+      totalAmount,
+      currency: card.currency,
+      trmApplied: 1,
+      installmentsCount: cuotas,
+      paidCount: 0,
+      startDate: dateStr,
+    };
+
+    forkJoin([
+      this.api.createMovement(movReq),
+      this.api.createInstallment(instReq),
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ([, inst]) => {
+          this.installments.update((l) => [...l, inst]);
+          this.instSaving.set(false);
+          this.showInstModal.set(false);
+          this.loadMovements(card.id);
+        },
+        error: () => this.instSaving.set(false),
+      });
+  }
+
+  deleteInst(id: string) {
+    this.api
+      .deleteInstallment(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.installments.update((l) => l.filter((i) => i.id !== id));
+      });
   }
 
   markInstallmentPaid(inst: InstallmentResponse) {
