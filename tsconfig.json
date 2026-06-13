@@ -24,7 +24,9 @@
       "@shared/*": ["./src/app/shared/*"],
       "@features/*": ["./src/app/features/*"],
       "@env/*": ["./src/environments/*"],
-      "@admin/*": ["./src/app/admin/*"]
+      "@admin/*": ["./src/app/admin/*"],
+      "@ui/*": ["./src/app/shared/ui/*"],
+      "@core/*": ["./src/app/core/*"]
     }
   },
   "angularCompilerOptions": {

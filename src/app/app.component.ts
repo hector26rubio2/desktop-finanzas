@@ -1,4 +1,5 @@
-import { Component, computed, HostListener, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, HostListener, signal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
@@ -8,8 +9,9 @@ import type { TranslationKey } from './shared/i18n/locale.types';
 import { SidebarComponent } from './shell/sidebar/sidebar.component';
 import { ShellHeaderComponent } from './shell/header/header.component';
 import { CmdkComponent } from './shell/cmdk/cmdk.component';
-import { UpdateBannerComponent } from './shared/services/update/update-banner.component';
+import { UpdateBannerComponent } from './shared/ui/organisms/update-banner/update-banner.component';
 import { UpdateService } from './shared/services/update/update.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -27,6 +29,8 @@ export class AppComponent {
   public router = inject(Router);
   public i18n = inject(I18nService);
   public update = inject(UpdateService);
+  public notif = inject(NotificationService);
+  private destroyRef = inject(DestroyRef);
 
   private currentUrl = signal(this.router.url || '/login');
   private AUTH_ROUTES = new Set(['login', 'register', 'forgot-password', 'reset-password', 'verify-email']);
@@ -74,9 +78,14 @@ export class AppComponent {
 
   constructor() {
     this.update.init();
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
-      this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
-    });
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((e) => {
+        this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
+      });
   }
 
   toggleSidebar() {

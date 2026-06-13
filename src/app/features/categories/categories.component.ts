@@ -1,14 +1,27 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  viewChild,
+  TemplateRef,
+  DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, CategoryResponse } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
-import { IconPickerComponent } from '../../shared/ui/icon-picker/icon-picker.component';
-import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
-import { ModalComponent } from '../../shared/ui/modal/modal.component';
-import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
-import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { IconPickerComponent } from '@ui/atoms/icon-picker/icon-picker.component';
+import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
+import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import type { CategoryTranslations } from '../../shared/models/category.model';
+
+type CatTpl = TemplateRef<{ $implicit: CategoryResponse; row: CategoryResponse }>;
 
 @Component({
   selector: 'app-categories',
@@ -20,8 +33,8 @@ import type { CategoryTranslations } from '../../shared/models/category.model';
     IconPickerComponent,
     CatIconComponent,
     ModalComponent,
-    PaginationComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.css',
@@ -30,6 +43,7 @@ export class CategoriesComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
 
   categories = signal<CategoryResponse[]>([]);
   loading = signal(true);
@@ -53,7 +67,7 @@ export class CategoriesComponent implements OnInit {
 
   pageSize = signal(10);
   page = signal(1);
-  pageSizes = [5, 10, 15];
+  pageSizes = [10, 20, 50];
   totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize()) || 1);
   paged = computed(() => {
     const start = (this.page() - 1) * this.pageSize();
@@ -61,6 +75,20 @@ export class CategoriesComponent implements OnInit {
   });
 
   rowCount = computed(() => this.filtered().length);
+
+  iconCell = viewChild<CatTpl>('iconCell');
+  nameCell = viewChild<CatTpl>('nameCell');
+  typeCell = viewChild<CatTpl>('typeCell');
+  actionsCell = viewChild<CatTpl>('actionsCell');
+
+  trackById = (c: CategoryResponse) => c.id;
+
+  cols = computed<ColumnDef<CategoryResponse>[]>(() => [
+    { key: 'icon', header: '', width: '36px', cellTpl: this.iconCell() },
+    { key: 'name', header: this.i18n.t('categories.nombre'), cellTpl: this.nameCell() },
+    { key: 'type', header: this.i18n.t('categories.tipo'), width: '80px', cellTpl: this.typeCell() },
+    { key: 'id', header: '', width: '60px', cellTpl: this.actionsCell() },
+  ]);
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -101,13 +129,16 @@ export class CategoriesComponent implements OnInit {
 
   private load() {
     this.loading.set(true);
-    this.api.getCategories().subscribe({
-      next: (list) => {
-        this.categories.set(list);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.categories.set(list);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   openCreate() {
@@ -156,7 +187,7 @@ export class CategoriesComponent implements OnInit {
     };
     const editingCat = this.editing();
     const op = editingCat ? this.api.updateCategory(editingCat.id, req) : this.api.createCategory(req);
-    op.subscribe({
+    op.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
         this.showModal.set(false);
@@ -176,7 +207,10 @@ export class CategoriesComponent implements OnInit {
     const id = this.deletingId();
     if (!id) return;
     this.showConfirm.set(false);
-    this.api.deleteCategory(id).subscribe({ next: () => this.load() });
+    this.api
+      .deleteCategory(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: () => this.load() });
   }
 
   cancelDelete() {

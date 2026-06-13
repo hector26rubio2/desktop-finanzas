@@ -1,0 +1,55 @@
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton {
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-0) 50%, var(--bg-2) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton--card {
+  border: 1px solid var(--line-1);
+}
+
+.skeleton-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--gutter);
+}
+
+.chart-skel-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+
+.h-78 {
+  height: 78px;
+}
+.h-200 {
+  height: 200px;
+}
+.h-280 {
+  height: 280px;
+}
+.mt-8 {
+  margin-top: 8px;
+}
+.p-40 {
+  padding: 40px;
+}
+.ta-center {
+  text-align: center;
+}

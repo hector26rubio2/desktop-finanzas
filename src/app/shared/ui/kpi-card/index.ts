@@ -1,1 +1,0 @@
-export { KpiCardComponent } from './kpi-card.component';

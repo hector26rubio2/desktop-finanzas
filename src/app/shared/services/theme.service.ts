@@ -11,10 +11,55 @@ export type Theme =
   | 'crimson-light'
   | 'amber'
   | 'amber-light'
+  | 'rose'
+  | 'rose-light'
+  | 'sky'
+  | 'sky-light'
+  | 'violet'
+  | 'violet-light'
+  | 'lime'
+  | 'lime-light'
+  | 'gold'
+  | 'gold-light'
+  | 'mint'
+  | 'mint-light'
   | 'custom';
 
 export type Density = 'dense' | 'comfy' | 'airy';
 export type Shape = 'rounded' | 'sharp';
+
+export type FontOption =
+  | 'geist'
+  | 'inter'
+  | 'onest'
+  | 'poppins'
+  | 'nunito'
+  | 'rubik'
+  | 'manrope'
+  | 'sora'
+  | 'dm-sans'
+  | 'work-sans'
+  | 'system';
+
+export interface FontPack {
+  id: FontOption;
+  name: string;
+  family: string;
+}
+
+export const FONT_OPTIONS: FontPack[] = [
+  { id: 'geist', name: 'Geist', family: "'Geist', system-ui, sans-serif" },
+  { id: 'inter', name: 'Inter', family: "'Inter', system-ui, sans-serif" },
+  { id: 'onest', name: 'Onest', family: "'Onest', system-ui, sans-serif" },
+  { id: 'poppins', name: 'Poppins', family: "'Poppins', system-ui, sans-serif" },
+  { id: 'nunito', name: 'Nunito', family: "'Nunito', system-ui, sans-serif" },
+  { id: 'rubik', name: 'Rubik', family: "'Rubik', system-ui, sans-serif" },
+  { id: 'manrope', name: 'Manrope', family: "'Manrope', system-ui, sans-serif" },
+  { id: 'sora', name: 'Sora', family: "'Sora', system-ui, sans-serif" },
+  { id: 'dm-sans', name: 'DM Sans', family: "'DM Sans', system-ui, sans-serif" },
+  { id: 'work-sans', name: 'Work Sans', family: "'Work Sans', system-ui, sans-serif" },
+  { id: 'system', name: 'System', family: 'system-ui, -apple-system, sans-serif' },
+];
 
 export interface CustomTheme {
   name: string;
@@ -43,6 +88,18 @@ export const THEME_PRESETS: ThemePreset[] = [
   { id: 'crimson-light', name: 'Carmesí Claro', baseHue: 20, isDark: false },
   { id: 'amber', name: 'Ámbar', baseHue: 75, isDark: true },
   { id: 'amber-light', name: 'Ámbar Claro', baseHue: 75, isDark: false },
+  { id: 'rose', name: 'Rosa', baseHue: 0, isDark: true },
+  { id: 'rose-light', name: 'Rosa Claro', baseHue: 0, isDark: false },
+  { id: 'sky', name: 'Cielo', baseHue: 210, isDark: true },
+  { id: 'sky-light', name: 'Cielo Claro', baseHue: 210, isDark: false },
+  { id: 'violet', name: 'Violeta', baseHue: 310, isDark: true },
+  { id: 'violet-light', name: 'Violeta Claro', baseHue: 310, isDark: false },
+  { id: 'lime', name: 'Lima', baseHue: 130, isDark: true },
+  { id: 'lime-light', name: 'Lima Claro', baseHue: 130, isDark: false },
+  { id: 'gold', name: 'Oro', baseHue: 95, isDark: true },
+  { id: 'gold-light', name: 'Oro Claro', baseHue: 95, isDark: false },
+  { id: 'mint', name: 'Menta', baseHue: 180, isDark: true },
+  { id: 'mint-light', name: 'Menta Claro', baseHue: 180, isDark: false },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +109,7 @@ export class ThemeService {
   readonly theme = signal<Theme>(this.resolveStoredTheme());
   readonly density = signal<Density>((localStorage.getItem('density') as Density) ?? 'comfy');
   readonly shape = signal<Shape>((localStorage.getItem('shape') as Shape) ?? 'rounded');
+  readonly font = signal<FontOption>(this.resolveStoredFont());
   readonly customThemes = signal<CustomTheme[]>(this.loadCustomThemes());
 
   readonly isDarkTheme = computed(() => {
@@ -69,6 +127,7 @@ export class ThemeService {
 
   constructor() {
     this.applyAll();
+    this.applyFont(this.font());
     const current = this.theme();
     if (current === 'custom') {
       this.applyCustomCssVars();
@@ -99,6 +158,12 @@ export class ThemeService {
     this.shape.set(s);
     localStorage.setItem('shape', s);
     document.documentElement.setAttribute('data-shape', s);
+  }
+
+  setFont(f: FontOption) {
+    this.font.set(f);
+    localStorage.setItem('font', f);
+    this.applyFont(f);
   }
 
   toggle() {
@@ -341,6 +406,21 @@ export class ThemeService {
     root.style.setProperty('--shadow-2', 'var(--color-shadow-2)');
   }
 
+  // ── Font ─────────────────────────────────────────────────────────
+
+  private applyFont(f: FontOption) {
+    const opt = FONT_OPTIONS.find((o) => o.id === f);
+    if (opt) {
+      document.documentElement.style.setProperty('--font-family', opt.family);
+    }
+  }
+
+  private resolveStoredFont(): FontOption {
+    const raw = localStorage.getItem('font');
+    if (raw && FONT_OPTIONS.some((o) => o.id === raw)) return raw as FontOption;
+    return 'geist';
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────
 
   private resolveStoredTheme(): Theme {
@@ -404,6 +484,7 @@ export class ThemeService {
     document.documentElement.setAttribute('data-theme', this.theme());
     document.documentElement.setAttribute('data-density', this.density());
     document.documentElement.setAttribute('data-shape', this.shape());
+    this.applyFont(this.font());
   }
 }
 

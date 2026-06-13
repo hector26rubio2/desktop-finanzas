@@ -6,9 +6,27 @@
   border: 1px solid var(--line);
   display: grid;
   place-items: center;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-2);
+}
+
+.account-icon--cash {
+  color: var(--positive);
+  background: color-mix(in oklab, var(--positive) 12%, var(--bg-1));
+  border-color: color-mix(in oklab, var(--positive) 30%, var(--line));
+}
+
+.account-icon--debit {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--line));
+}
+
+.account-icon--credit {
+  color: var(--warning);
+  background: color-mix(in oklab, var(--warning) 12%, var(--bg-1));
+  border-color: color-mix(in oklab, var(--warning) 30%, var(--line));
 }
 
 .account-name {
@@ -16,7 +34,7 @@
 }
 
 .account-last-four {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
 }
@@ -33,7 +51,7 @@
 }
 
 .acc-section-title {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
@@ -62,7 +80,7 @@
 }
 
 .cat-filter-btn {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   padding: 3px 10px;
@@ -91,7 +109,7 @@
 }
 
 .cat-search {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 3px;
@@ -140,20 +158,20 @@
 }
 
 .cat-count-inline {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   text-transform: lowercase;
 }
 
 .cat-page-info {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-2);
 }
 
 .cat-page-size {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   padding: 3px 9px;

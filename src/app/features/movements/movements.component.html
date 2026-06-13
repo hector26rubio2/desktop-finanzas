@@ -1,6 +1,10 @@
 <div class="view" [attr.aria-busy]="page() === null">
   @if (showModal()) {
-    <app-modal [title]="i18n.t('transactions.nuevo_title')" (closeModal)="closeModal()" (overlayClick)="closeModal()">
+    <app-modal
+      [title]="editingMovement() ? i18n.t('common.edit') : i18n.t('transactions.nuevo_title')"
+      (closeModal)="closeModal()"
+      (overlayClick)="closeModal()"
+    >
       <form [formGroup]="movForm" (ngSubmit)="save()">
         <div class="mov-form-section">
           <span class="acc-section-title">{{ i18n.t('transactions.type') }}</span>
@@ -20,6 +24,8 @@
                 stroke="currentColor"
                 stroke-width="1.8"
                 stroke-linecap="round"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path d="M12 4L4 12M4 4l8 8" />
               </svg>
@@ -40,6 +46,8 @@
                 stroke="currentColor"
                 stroke-width="1.8"
                 stroke-linecap="round"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path d="M8 1v14M1 8h14" />
               </svg>
@@ -245,7 +253,12 @@
     />
   }
 
-  <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
+  <app-movement-detail-modal
+    [movement]="selectedMovement()"
+    [editable]="true"
+    (edit)="openEdit($event)"
+    (closeModal)="closeDetail()"
+  />
 
   @if (page() === null) {
     <div class="empty-state" role="status" aria-live="polite">
@@ -254,7 +267,13 @@
   } @else {
     <div class="mov-toolbar">
       <div class="mov-toolbar-left">
-        <input type="month" [value]="currentMonth()" (change)="onMonthChange($event)" class="mov-month" />
+        <input
+          type="month"
+          [value]="currentMonth()"
+          (change)="onMonthChange($event)"
+          class="mov-month"
+          [attr.aria-label]="i18n.t('transactions.table_fecha')"
+        />
         <input
           class="mov-search"
           type="text"
@@ -263,19 +282,35 @@
           [ngModel]="searchQuery()"
           (ngModelChange)="searchQuery.set($event)"
         />
-        <select class="mov-filter-sm" [(ngModel)]="filterCcy" (ngModelChange)="loadPage(1)">
+        <select
+          class="mov-filter-sm"
+          [(ngModel)]="filterCcy"
+          (ngModelChange)="loadPage(1)"
+          [attr.aria-label]="i18n.t('transactions.filtro_moneda')"
+        >
           <option value="">{{ i18n.t('transactions.filtro_moneda') }}</option>
           <option value="ARS">ARS</option>
           <option value="USD">USD</option>
           <option value="EUR">EUR</option>
+          <option value="COP">COP</option>
         </select>
-        <select class="mov-filter-md" [(ngModel)]="filterCat" (ngModelChange)="loadPage(1)">
+        <select
+          class="mov-filter-md"
+          [(ngModel)]="filterCat"
+          (ngModelChange)="loadPage(1)"
+          [attr.aria-label]="i18n.t('transactions.filtro_categoria')"
+        >
           <option value="">{{ i18n.t('transactions.filtro_categoria') }}</option>
           @for (c of categories(); track c.id) {
             <option [value]="c.id">{{ c.icon }} · {{ catName(c) }}</option>
           }
         </select>
-        <select class="mov-filter-md" [(ngModel)]="filterAcc" (ngModelChange)="loadPage(1)">
+        <select
+          class="mov-filter-md"
+          [(ngModel)]="filterAcc"
+          (ngModelChange)="loadPage(1)"
+          [attr.aria-label]="i18n.t('transactions.table_cuenta')"
+        >
           <option value="">{{ i18n.t('transactions.table_cuenta') }}</option>
           @for (a of accounts(); track a.id) {
             <option [value]="a.id">{{ a.name }}</option>
@@ -283,7 +318,14 @@
         </select>
       </div>
       <div class="mov-toolbar-right">
-        <button class="btn btn--primary" style="font-size: 11px" (click)="openCreate()">
+        @if (activeInstallmentsCount() > 0) {
+          <a class="mov-cuotas-chip" routerLink="/installments" [title]="i18n.t('installments.title')">
+            <span class="mov-cuotas-chip-label">{{ i18n.t('installments.cuotas_este_mes') }}</span>
+            <span class="mono mov-cuotas-chip-val">{{ cuotasMes() | number: '1.0-0' }}</span>
+            <span class="tag tag--accent">{{ activeInstallmentsCount() }}</span>
+          </a>
+        }
+        <button class="btn btn--primary" style="font-size: var(--fs-xs)" (click)="openCreate()">
           <svg
             width="12"
             height="12"
@@ -292,6 +334,8 @@
             stroke="currentColor"
             stroke-width="2.2"
             stroke-linecap="round"
+            aria-hidden="true"
+            focusable="false"
           >
             <path d="M8 1v14M1 8h14" />
           </svg>
@@ -299,101 +343,89 @@
         </button>
       </div>
     </div>
-    <div class="card" style="padding: 0; overflow: hidden">
-      <table class="table">
-        <thead>
-          <tr>
-            <th style="width: 30px"></th>
-            <th style="width: 110px">{{ i18n.t('transactions.table_fecha') }}</th>
-            <th>{{ i18n.t('transactions.table_concepto') }}</th>
-            <th>{{ i18n.t('transactions.table_categoria') }}</th>
-            <th style="width: 100px">{{ i18n.t('transactions.source') }}</th>
-            <th style="width: 70px">{{ i18n.t('transactions.table_tipo') }}</th>
-            <th class="num">{{ i18n.t('transactions.table_monto') }}</th>
-            <th style="width: 36px"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (m of filteredItems(); track m.id) {
-            <tr class="mov-row-clickable" (click)="openDetail(m)">
-              <td (click)="$event.stopPropagation()">
-                <input type="checkbox" class="checkbox-cell" style="accent-color: var(--accent)" />
-              </td>
-              <td class="mov-row-date">{{ m.date | fmtDate }}</td>
-              <td>
-                <div class="mov-row-desc">{{ m.description ?? '—' }}</div>
-                @if (m.subType) {
-                  <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
-                }
-              </td>
-              <td>
-                <span class="cat-cell">
-                  @if (m.categoryColor) {
-                    <span class="cat-icon-badge" [style.background]="m.categoryColor">
-                      <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
-                    </span>
-                  } @else {
-                    <span class="cat-icon-badge cat-icon-badge--empty">—</span>
-                  }
-                  <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
-                </span>
-              </td>
-              <td>
-                <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
-              </td>
-              <td>
-                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
-                  {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
-                </span>
-              </td>
-              <td
-                class="num mono"
-                style="white-space: nowrap"
-                [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-              >
-                {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
-              </td>
-              <td (click)="$event.stopPropagation()">
-                <button
-                  class="btn btn--ghost btn--icon"
-                  style="color: var(--negative)"
-                  (click)="askDelete(m.id)"
-                  [title]="i18n.t('transactions.delete_title')"
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                  >
-                    <path d="M1 1l14 14M15 1L1 15" />
-                  </svg>
-                </button>
-              </td>
-            </tr>
-          }
-          @if (filteredItems().length === 0) {
-            <tr>
-              <td colspan="8" class="empty-table-msg">
-                <div class="serif">{{ i18n.t('common.no_results') }}</div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      <app-pagination
-        [page]="currentPage()"
-        [totalPages]="totalPages()"
-        [totalItems]="rowCount()"
-        [itemLabel]="i18n.t('header.movements').toLowerCase()"
-        [pageSizes]="[10, 20, 50]"
-        [pageSize]="pageSize()"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)"
-      />
-    </div>
+    <ng-template #dateCell let-m>
+      <span class="mov-row-date">{{ m.date | fmtDate }}</span>
+    </ng-template>
+    <ng-template #conceptCell let-m>
+      <div class="mov-row-desc">
+        {{ m.description ?? '—' }}
+        @if (m.loanInstallments && m.loanInstallments > 1) {
+          <span class="mov-cuota-badge mono">{{ currentInstallment(m) }}/{{ m.loanInstallments }}</span>
+        }
+      </div>
+      @if (m.subType) {
+        <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
+      }
+    </ng-template>
+    <ng-template #categoryCell let-m>
+      <span class="cat-cell">
+        @if (m.categoryColor) {
+          <span class="cat-icon-badge" [style.background]="m.categoryColor">
+            <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
+          </span>
+        } @else {
+          <span class="cat-icon-badge cat-icon-badge--empty">—</span>
+        }
+        <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
+      </span>
+    </ng-template>
+    <ng-template #sourceCell let-m>
+      <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
+    </ng-template>
+    <ng-template #typeCell let-m>
+      <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+        {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
+      </span>
+    </ng-template>
+    <ng-template #amountCell let-m>
+      <span
+        class="mono"
+        style="white-space: nowrap"
+        [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
+      >
+        {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+      </span>
+    </ng-template>
+    <ng-template #actionsCell let-m>
+      <span (click)="$event.stopPropagation()">
+        <button
+          class="btn btn--ghost btn--icon"
+          style="color: var(--negative)"
+          (click)="askDelete(m.id)"
+          [title]="i18n.t('transactions.delete_title')"
+          [attr.aria-label]="i18n.t('transactions.delete_title')"
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M1 1l14 14M15 1L1 15" />
+          </svg>
+        </button>
+      </span>
+    </ng-template>
+    <app-data-table
+      [columns]="cols()"
+      [data]="filteredItems()"
+      [trackBy]="trackById"
+      [rowClickable]="true"
+      (rowClick)="openDetail($event)"
+      [emptyMessage]="i18n.t('common.no_results')"
+      [page]="currentPage()"
+      [totalPages]="totalPages()"
+      [totalItems]="rowCount()"
+      [itemLabel]="i18n.t('header.movements').toLowerCase()"
+      [pageSizes]="[10, 20, 50]"
+      [pageSizeValue]="pageSize()"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    />
   }
 </div>

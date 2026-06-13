@@ -1,12 +1,13 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import { forkJoin, of, switchMap } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 import { MovementsApiService } from './api/movements-api.service';
 import { CategoriesApiService } from './api/categories-api.service';
 import type { MovementResponse } from '../models/movement.model';
 import type { CategoryResponse } from '../models/category.model';
 import { I18nService } from '../i18n/i18n.service';
+import { LoggerService } from './logger/logger.service';
 import { getMonthKey, getWeekRange, parseDate, toDateKey, toMonthKey } from '../utils/date';
 
 export type Granularity = 'day' | 'week' | 'month' | 'year';
@@ -27,6 +28,7 @@ export class DashboardService {
   private movementsApi = inject(MovementsApiService);
   private categoriesApi = inject(CategoriesApiService);
   private i18n = inject(I18nService);
+  private logger = inject(LoggerService);
   private destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -45,6 +47,7 @@ export class DashboardService {
   readonly typeFilter = signal<TypeFilter>('all');
   readonly categoryFilterId = signal('');
   readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
 
   readonly categories = signal<CategoryResponse[]>([]);
 
@@ -157,6 +160,7 @@ export class DashboardService {
 
   load() {
     this.loading.set(true);
+    this.error.set(null);
     this.cache = [];
     this.categoriesApi
       .getCategories()
@@ -200,8 +204,9 @@ export class DashboardService {
           forkJoin(
             ymList.map((ym) =>
               this.movementsApi.getMovements(ym, 1, 100).pipe(
+                timeout(15_000),
                 catchError((err) => {
-                  console.error(`[dashboard] error fetching ${ym}:`, err);
+                  this.logger.error(`[dashboard] error fetching ${ym}`, err);
                   return of({ items: [], total: 0, page: 1, pageSize: 0 });
                 }),
               ),
@@ -213,11 +218,16 @@ export class DashboardService {
       .subscribe({
         next: (pages) => {
           this.cache = pages.flatMap((p) => p.items ?? []);
+          const allEmpty = pages.every((p) => p.total === 0);
+          if (allEmpty && pages.length > 0) {
+            this.error.set('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
+          }
           this.recompute();
           this.loading.set(false);
         },
         error: (err) => {
-          console.error('[dashboard] fetchAll failed:', err);
+          this.logger.error('[dashboard] fetchAll failed', err);
+          this.error.set('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
           this.loading.set(false);
         },
       });

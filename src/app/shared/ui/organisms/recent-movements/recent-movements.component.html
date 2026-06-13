@@ -1,0 +1,26 @@
+<div class="card">
+  <div class="card__h">
+    <span class="card__title">{{ title() }}</span>
+    <button class="btn btn--ghost btn--sm" (click)="viewAll.emit()">{{ viewAllLabel() }}</button>
+  </div>
+  <ng-template #dateCell let-m>
+    <span class="mono subtle td-date">{{ m.date }}</span>
+  </ng-template>
+  <ng-template #typeCell let-m>
+    <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+      {{ m.type === 'Income' ? incomeLabel() : expenseLabel() }}
+    </span>
+  </ng-template>
+  <ng-template #amountCell let-m>
+    <span class="mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
+      {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+    </span>
+  </ng-template>
+  <app-data-table
+    [columns]="cols()"
+    [data]="movements()"
+    [trackBy]="trackById"
+    [totalPages]="0"
+    [emptyMessage]="emptyLabel()"
+  />
+</div>

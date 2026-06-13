@@ -1,3 +1,4 @@
+<div role="status" aria-live="polite" aria-atomic="true" class="sr-only" [textContent]="notif.message()"></div>
 <div [class]="isAuthPage() ? '' : 'app-shell' + (sidebarCollapsed() ? ' sidebar-collapsed' : '')">
   @if (!isAuthPage()) {
     <app-sidebar

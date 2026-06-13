@@ -4,48 +4,7 @@
   display: block;
 }
 
-:host .card,
-:host .kpi-card {
-  transition:
-    transform 180ms var(--ease-out),
-    box-shadow 180ms var(--ease-btn),
-    border-color 180ms var(--ease-btn);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  :host .card:hover,
-  :host .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-2);
-  }
-
-  :host .kpi-card--pos {
-    border-left: 3px solid var(--positive);
-  }
-
-  :host .kpi-card--neg {
-    border-left: 3px solid var(--negative);
-  }
-
-  :host .kpi-card--accent {
-    border-left: 3px solid var(--accent);
-  }
-
-  :host .kpi-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-  }
-
-  :host .kpi-bar {
-    height: 3px;
-    border-radius: 2px;
-    margin-top: 12px;
-    opacity: 0.7;
-  }
-
   :host .stagger > * {
     animation: dash-stagger-in 420ms var(--ease-out) both;
     will-change: transform, opacity;
@@ -446,9 +405,7 @@
   padding: 3px 8px;
   border-radius: 3px;
   font-size: 10px;
-  font-family:
-    Geist Mono,
-    monospace;
+  font-family: var(--font-mono);
   font-weight: 500;
   background: var(--bg-2);
   border: 1px solid var(--line-1);
@@ -505,9 +462,7 @@
 }
 
 :host .filter-tag-select {
-  font-family:
-    Geist Mono,
-    monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   background: var(--bg-2);
@@ -532,7 +487,7 @@
   color: var(--fg-0);
 }
 :host .source-tag {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   padding: 2px 6px;
@@ -549,4 +504,15 @@
   justify-content: center;
   z-index: 1;
   pointer-events: none;
+}
+
+:host .error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--fg-2);
+  font-size: 14px;
 }

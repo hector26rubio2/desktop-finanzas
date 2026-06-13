@@ -61,7 +61,7 @@
   content: 'Idioma';
   display: block;
   padding: 8px 10px 6px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -126,7 +126,7 @@
 
 .lang-option__code {
   font-size: 9px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   color: var(--fg-3);
   letter-spacing: 0.06em;
   text-transform: uppercase;

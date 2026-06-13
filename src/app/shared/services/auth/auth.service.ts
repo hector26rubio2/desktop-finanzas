@@ -33,6 +33,10 @@ export class AuthService {
     return this.session.hasStoredToken;
   }
 
+  setBaseCurrency(code: string) {
+    this.token.updateBaseCurrency(code);
+  }
+
   login(email: string, password: string, remember = false) {
     return this.api.login(email, password).pipe(
       switchMap(async (r) => {

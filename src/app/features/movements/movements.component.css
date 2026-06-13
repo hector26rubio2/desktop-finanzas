@@ -20,8 +20,52 @@
   gap: 8px;
 }
 
+.mov-cuota-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--accent-soft);
+  color: var(--accent);
+  vertical-align: middle;
+}
+
+.mov-cuotas-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card, 8px);
+  background: var(--bg-1);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.mov-cuotas-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.mov-cuotas-chip-label {
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mov-cuotas-chip-val {
+  font-size: 12px;
+  color: var(--fg-0);
+  font-weight: 600;
+}
+
 .mov-month {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   padding: 4px 8px;
   border-radius: 3px;
@@ -62,7 +106,7 @@
 }
 
 .mov-filter-sm {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   padding: 3px 6px;
   border-radius: 3px;
@@ -75,7 +119,7 @@
 }
 
 .mov-filter-md {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   padding: 3px 6px;
   border-radius: 3px;
@@ -98,7 +142,7 @@
 }
 
 .acc-section-title {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
@@ -135,20 +179,20 @@
 }
 
 .mov-count-inline {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   text-transform: lowercase;
 }
 
 .mov-page-info {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-2);
 }
 
 .mov-page-size {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   padding: 3px 9px;
@@ -177,7 +221,7 @@
 }
 
 .mov-row-date {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--fg-3);
@@ -190,7 +234,7 @@
 }
 
 .mov-row-sub {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   margin-top: 2px;
@@ -224,12 +268,12 @@
   background: var(--bg-2);
   color: var(--fg-3);
   font-size: 10px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   border: 1px solid var(--line);
 }
 
 .source-tag {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   padding: 2px 6px;
@@ -237,19 +281,6 @@
   border-radius: var(--radius-button);
   background: var(--bg-2);
   white-space: nowrap;
-}
-
-.empty-table-msg {
-  padding: 60px;
-  text-align: center;
-}
-
-.empty-table-msg .serif {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  font-size: 22px;
-  color: var(--fg-2);
-  margin-bottom: 6px;
 }
 
 .checkbox-cell {
@@ -346,7 +377,7 @@
   margin-top: 4px;
   margin-bottom: 4px;
   font-size: 11px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .mov-card-info-item strong {
@@ -359,7 +390,7 @@
 }
 
 .mov-loan-hint {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--accent);
   background: color-mix(in oklab, var(--accent) 10%, var(--bg-1));
@@ -369,7 +400,7 @@
 }
 
 .mov-field-hint {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-3);
   margin-top: 2px;
@@ -389,7 +420,7 @@
 .mov-suffix {
   position: absolute;
   right: 8px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   color: var(--fg-3);
@@ -397,7 +428,7 @@
 }
 
 .mov-currency-fixed {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
   color: var(--fg-0);
@@ -410,7 +441,7 @@
 
 .mov-balance-warn {
   display: block;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--negative);
   margin-top: 3px;
@@ -448,7 +479,7 @@
   color: var(--fg-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .mov-detail-value {

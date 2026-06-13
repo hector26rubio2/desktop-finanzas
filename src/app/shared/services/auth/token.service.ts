@@ -16,7 +16,15 @@ export class TokenService {
 
   set(token: string, user: UserInfo): void {
     this._accessToken = token;
-    this.currentUser.set(user);
+    // El backend no expone aún actualización de moneda base: se respeta la preferencia local
+    const pref = localStorage.getItem('pref-base-currency');
+    this.currentUser.set(pref ? { ...user, baseCurrency: pref } : user);
+  }
+
+  updateBaseCurrency(code: string): void {
+    localStorage.setItem('pref-base-currency', code);
+    const u = this.currentUser();
+    if (u) this.currentUser.set({ ...u, baseCurrency: code });
   }
 
   clear(): void {

@@ -32,28 +32,13 @@
       </svg>
     </button>
     <div style="margin-left: auto">
-      <button class="btn btn--ghost" style="font-size: 11px" (click)="goToToday()">
+      <button class="btn btn--ghost" style="font-size: var(--fs-xs)" (click)="goToToday()">
         {{ i18n.t('calendar.hoy') }}
       </button>
     </div>
   </div>
 
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('calendar.pagos_mes') }}</div>
-      <div class="num-md" style="margin-top: 8px">{{ eventsThisMonth().length }}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('calendar.total_comprometido') }}</div>
-      <div class="num-md" style="margin-top: 8px; color: var(--negative)">
-        $ {{ totalCommitted() | number: '1.0-0' }}
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="eyebrow">{{ i18n.t('calendar.proximo_pago') }}</div>
-      <div class="num-md" style="margin-top: 8px">{{ nextEvent() }}</div>
-    </div>
-  </div>
+  <app-kpi-strip [items]="kpiItems()" />
 
   <div class="card" style="padding: 0; overflow: hidden">
     <div style="display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line)">
@@ -62,8 +47,8 @@
           style="
             padding: 8px;
             text-align: center;
-            font-family: 'Geist Mono', monospace;
-            font-size: 10px;
+            font-family: var(--font-mono);
+            font-size: var(--fs-2xs);
             letter-spacing: 0.08em;
             color: var(--fg-3);
           "
@@ -87,12 +72,12 @@
           @if (cell.day > 0) {
             <div
               class="mono"
-              style="font-size: 12px; margin-bottom: 4px"
+              style="font-size: var(--fs-sm); margin-bottom: 4px"
               [style.color]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent)' : 'var(--fg-2)'"
             >
               {{ cell.day }}
             </div>
-            @for (ev of cell.events; track ev.movement.id) {
+            @for (ev of cell.events.slice(0, 4); track ev.movement.id) {
               <div
                 class="cal-event"
                 style="
@@ -115,7 +100,7 @@
               >
                 <div
                   style="
-                    font-size: 10px;
+                    font-size: var(--fs-2xs);
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -124,10 +109,13 @@
                 >
                   {{ ev.movement.description ?? ev.movement.categoryName ?? '—' }}
                 </div>
-                <div class="mono" style="font-size: 9px; color: var(--fg-3)">
+                <div class="mono" style="font-size: var(--fs-3xs); color: var(--fg-3)">
                   − $ {{ ev.movement.amount | number: '1.0-0' }} {{ ev.movement.currency }}
                 </div>
               </div>
+            }
+            @if (cell.events.length > 4) {
+              <div class="mono cal-more">+{{ cell.events.length - 4 }} {{ i18n.t('calendar.mas') }}</div>
             }
           }
         </div>
@@ -144,77 +132,64 @@
         {{ i18n.t('common.loading') }}
       </div>
     } @else {
-      <table class="table">
-        <thead>
-          <tr>
-            <th style="width: 110px">{{ i18n.t('transactions.table_fecha') }}</th>
-            <th>{{ i18n.t('transactions.table_concepto') }}</th>
-            <th>{{ i18n.t('transactions.table_categoria') }}</th>
-            <th>{{ i18n.t('transactions.source') }}</th>
-            <th style="width: 70px">{{ i18n.t('transactions.table_tipo') }}</th>
-            <th class="num">{{ i18n.t('transactions.table_monto') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (m of pendingItems(); track m.id) {
-            <tr class="cal-table-row" (click)="openDetail(m)" style="cursor: pointer">
-              <td class="mono" style="font-size: 13px; color: var(--fg-0); letter-spacing: -0.02em">
-                {{ m.date | fmtDate }}
-              </td>
-              <td style="color: var(--fg-0)">
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px">
-                  {{ m.description ?? '—' }}
-                </div>
-                @if (m.subType) {
-                  <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
-                }
-              </td>
-              <td>
-                <span class="cat-cell">
-                  @if (m.categoryColor) {
-                    <span class="cat-icon-badge" [style.background]="m.categoryColor">
-                      <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
-                    </span>
-                  } @else {
-                    <span class="cat-icon-badge cat-icon-badge--empty">—</span>
-                  }
-                  <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
-                </span>
-              </td>
-              <td>
-                <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
-              </td>
-              <td>
-                <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
-                  {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
-                </span>
-              </td>
-              <td
-                class="num mono"
-                style="white-space: nowrap"
-                [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-              >
-                {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
-                {{ m.currency }}
-              </td>
-            </tr>
+      <ng-template #dateCell let-m>
+        <span class="mono" style="font-size: var(--fs-md); color: var(--fg-0); letter-spacing: -0.02em">
+          {{ m.date | fmtDate }}
+        </span>
+      </ng-template>
+      <ng-template #conceptCell let-m>
+        <div style="color: var(--fg-0)">
+          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px">
+            {{ m.description ?? '—' }}
+          </div>
+          @if (m.subType) {
+            <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
           }
-          @if (pendingItems().length === 0) {
-            <tr>
-              <td colspan="6" class="empty-table-msg">
-                <div class="serif">{{ i18n.t('common.no_results') }}</div>
-              </td>
-            </tr>
+        </div>
+      </ng-template>
+      <ng-template #categoryCell let-m>
+        <span class="cat-cell">
+          @if (m.categoryColor) {
+            <span class="cat-icon-badge" [style.background]="m.categoryColor">
+              <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
+            </span>
+          } @else {
+            <span class="cat-icon-badge cat-icon-badge--empty">—</span>
           }
-        </tbody>
-      </table>
-      <app-pagination
+          <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
+        </span>
+      </ng-template>
+      <ng-template #sourceCell let-m>
+        <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
+      </ng-template>
+      <ng-template #typeCell let-m>
+        <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+          {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
+        </span>
+      </ng-template>
+      <ng-template #amountCell let-m>
+        <span
+          class="mono"
+          style="white-space: nowrap"
+          [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
+        >
+          {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
+          {{ m.currency }}
+        </span>
+      </ng-template>
+      <app-data-table
+        [columns]="cols()"
+        [data]="pendingItems()"
+        [trackBy]="trackById"
+        [rowClickable]="true"
+        (rowClick)="openDetail($event)"
+        [emptyMessage]="i18n.t('common.no_results')"
         [page]="currentPage()"
         [totalPages]="totalPages()"
         [totalItems]="rowCount()"
         [itemLabel]="i18n.t('header.movements').toLowerCase()"
         [pageSizes]="[10, 20, 50]"
-        [pageSize]="pageSize()"
+        [pageSizeValue]="pageSize()"
         (pageChange)="onPageChange($event)"
         (pageSizeChange)="onPageSizeChange($event)"
       />

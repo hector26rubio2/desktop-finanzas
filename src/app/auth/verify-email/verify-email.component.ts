@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '@shared/services/auth/auth.service';
 import { ThemeService } from '@shared/services/theme.service';
@@ -20,12 +21,12 @@ export class VerifyEmailComponent implements OnInit {
   private router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
   formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
 
-  status: 'verifying' | 'success' | 'error' | 'check' = 'check';
-  resent = false;
-  resending = false;
-  error: string | null = null;
+  status = signal<'verifying' | 'success' | 'error' | 'check'>('check');
+  resent = signal(false);
+  resending = signal(false);
   email: string | null = null;
 
   ngOnInit() {
@@ -36,30 +37,36 @@ export class VerifyEmailComponent implements OnInit {
     const token = this.route.snapshot.queryParamMap.get('token');
     if (token) {
       this.router.navigate([], { queryParams: { token: null }, queryParamsHandling: 'merge', replaceUrl: true });
-      this.status = 'verifying';
-      this.auth.verifyEmail(token).subscribe({
-        next: () => {
-          this.status = 'success';
-          setTimeout(() => this.router.navigate(['/login']), 3000);
-        },
-        error: () => {
-          this.status = 'error';
-        },
-      });
+      this.status.set('verifying');
+      this.auth
+        .verifyEmail(token)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.status.set('success');
+            setTimeout(() => this.router.navigate(['/login']), 3000);
+          },
+          error: () => {
+            this.status.set('error');
+          },
+        });
     }
   }
 
   resend() {
     if (!this.email) return;
-    this.resending = true;
-    this.auth.resendVerification(this.email).subscribe({
-      next: () => {
-        this.resent = true;
-        this.resending = false;
-      },
-      error: () => {
-        this.resending = false;
-      },
-    });
+    this.resending.set(true);
+    this.auth
+      .resendVerification(this.email)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.resent.set(true);
+          this.resending.set(false);
+        },
+        error: () => {
+          this.resending.set(false);
+        },
+      });
   }
 }

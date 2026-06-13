@@ -1,11 +1,88 @@
-.muted {
-  color: var(--fg-3);
-  font-size: 0.85rem;
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+  flex-shrink: 0;
 }
+
+.admin-header h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--fg-0);
+  margin: 0;
+}
+
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.badge.admin {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge.user {
+  background: var(--bg-2);
+  color: var(--fg-2);
+  border: 1px solid var(--line);
+}
+
+.badge.active {
+  background: color-mix(in oklab, var(--positive) 15%, transparent);
+  color: var(--positive);
+}
+
+.badge.inactive {
+  background: color-mix(in oklab, var(--negative) 12%, transparent);
+  color: var(--negative);
+}
+
 .actions {
   display: flex;
-  gap: 0.25rem;
+  gap: 4px;
 }
-td.actions {
-  padding: 0.25rem 0.5rem;
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  cursor: pointer;
+  font-size: 13px;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.icon-btn:hover {
+  background: var(--hover);
+  border-color: var(--line-2);
+}
+
+.loading {
+  padding: 32px;
+  text-align: center;
+  color: var(--fg-3);
+  font-size: 13px;
 }

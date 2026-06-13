@@ -35,96 +35,90 @@
           }
         </select>
       </div>
-      <div class="cards-summary">
-        <div class="cards-summary-item">
-          <span class="cards-summary-label">{{ i18n.t('cards.total_utilizado') }}</span>
-          <span class="cards-summary-val" style="color: var(--negative)">{{ totalUsed() | number: '1.0-0' }}</span>
-        </div>
-        <div class="cards-summary-sep"></div>
-        <div class="cards-summary-item">
-          <span class="cards-summary-label">{{ i18n.t('cards.disponible') }}</span>
-          <span class="cards-summary-val" style="color: var(--positive)">{{ totalAvailable() | number: '1.0-0' }}</span>
-        </div>
-        <div class="cards-summary-sep"></div>
-        <div class="cards-summary-item">
-          <span class="cards-summary-label">{{ i18n.t('cards.utilizacion_global') }}</span>
-          <span class="cards-summary-val" [style.color]="useColor(globalUsePct())">{{ globalUsePct() }}%</span>
-        </div>
-      </div>
+      <app-kpi-strip [items]="summaryItems()" align="end" />
     </div>
 
-    <div class="cards-scroll">
-      <div class="cards-track">
-        @for (card of filteredCards(); track card.id) {
-          <div
-            class="cc-card"
-            [class.cc-card--selected]="selectedId() === card.id"
-            [attr.aria-label]="card.name"
-            (click)="selectCard(card.id)"
-          >
-            <div class="cc-card-visual">
-              <div class="cc-card-top-row">
-                <div>
-                  <div class="cc-card-bank">{{ card.bank?.toUpperCase() ?? i18n.t('cards.fallback_banco') }}</div>
-                  @if (cardBrand(card)) {
-                    <div class="cc-card-brand">{{ cardBrand(card) }}</div>
-                  }
+    <div class="cards-scroll-wrap">
+      <div class="cards-scroll">
+        <div class="cards-track">
+          @for (card of filteredCards(); track card.id) {
+            <div
+              class="cc-card"
+              [class.cc-card--selected]="selectedId() === card.id"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="card.name"
+              (click)="selectCard(card.id)"
+              (keydown.enter)="selectCard(card.id)"
+            >
+              <div class="cc-card-visual">
+                <div class="cc-card-top-row">
+                  <div>
+                    <div class="cc-card-bank">{{ card.bank?.toUpperCase() ?? i18n.t('cards.fallback_banco') }}</div>
+                    @if (cardBrand(card)) {
+                      <div class="cc-card-brand">{{ cardBrand(card) }}</div>
+                    }
+                  </div>
+                  <div class="cc-card-name">{{ card.name }}</div>
                 </div>
-                <div class="cc-card-name">{{ card.name }}</div>
-              </div>
-              <div class="cc-card-number">•••• {{ card.lastFour ?? '????' }}</div>
-              <div class="cc-card-bottom-row">
-                <div>
-                  <div class="cc-card-eyebrow">{{ i18n.t('cards.disponible') }}</div>
-                  <div class="cc-card-amount mono">{{ card.currency }} {{ available(card) | number: '1.0-0' }}</div>
-                </div>
-                <div class="cc-card-right">
-                  <div class="cc-card-eyebrow">{{ i18n.t('cards.vence') }}</div>
-                  <div class="cc-card-date mono">
-                    {{ card.paymentDay ? i18n.t('cards.dia') + ' ' + card.paymentDay : '—' }}
+                <div class="cc-card-number">•••• {{ card.lastFour ?? '????' }}</div>
+                <div class="cc-card-bottom-row">
+                  <div>
+                    <div class="cc-card-eyebrow">{{ i18n.t('cards.disponible') }}</div>
+                    <div class="cc-card-amount mono">{{ card.currency }} {{ available(card) | number: '1.0-0' }}</div>
+                  </div>
+                  <div class="cc-card-right">
+                    <div class="cc-card-eyebrow">{{ i18n.t('cards.vence') }}</div>
+                    <div class="cc-card-date mono">
+                      {{ card.paymentDay ? i18n.t('cards.dia') + ' ' + card.paymentDay : '—' }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="cc-card-body">
-              <div class="cc-card-row three-cols">
-                <div class="cc-card-metric">
-                  <span class="cc-card-metric-label">{{ i18n.t('cards.label_limite') }}</span>
-                  <span class="cc-card-metric-value mono"
-                    >{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span
+              <div class="cc-card-body">
+                <div class="cc-card-row three-cols">
+                  <div class="cc-card-metric">
+                    <span class="cc-card-metric-label">{{ i18n.t('cards.label_limite') }}</span>
+                    <span class="cc-card-metric-value mono"
+                      >{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span
+                    >
+                  </div>
+                  <div class="cc-card-metric">
+                    <span class="cc-card-metric-label">{{ i18n.t('cards.total_utilizado') }}</span>
+                    <span class="cc-card-metric-value mono" style="color: var(--negative)">
+                      {{ card.currency }} {{ card.balance.usedInCycle | number: '1.0-0' }}
+                    </span>
+                  </div>
+                  <div class="cc-card-metric">
+                    <span class="cc-card-metric-label">{{ i18n.t('cards.disponible') }}</span>
+                    <span class="cc-card-metric-value mono" style="color: var(--positive)">
+                      {{ card.currency }} {{ available(card) | number: '1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="cc-card-progress-row">
+                  <span style="font-size: var(--fs-xs); color: var(--fg-2)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
+                  <span
+                    class="mono"
+                    style="font-size: var(--fs-sm); font-weight: 600"
+                    [style.color]="useColor(usePct(card))"
                   >
-                </div>
-                <div class="cc-card-metric">
-                  <span class="cc-card-metric-label">{{ i18n.t('cards.total_utilizado') }}</span>
-                  <span class="cc-card-metric-value mono" style="color: var(--negative)">
-                    {{ card.currency }} {{ card.balance.usedInCycle | number: '1.0-0' }}
+                    {{ usePct(card) }}%
                   </span>
                 </div>
-                <div class="cc-card-metric">
-                  <span class="cc-card-metric-label">{{ i18n.t('cards.disponible') }}</span>
-                  <span class="cc-card-metric-value mono" style="color: var(--positive)">
-                    {{ card.currency }} {{ available(card) | number: '1.0-0' }}
-                  </span>
+                <div class="progress">
+                  <div
+                    class="progress__fill"
+                    [style.width]="usePct(card) + '%'"
+                    [style.background]="useColor(usePct(card))"
+                  ></div>
                 </div>
-              </div>
-
-              <div class="cc-card-progress-row">
-                <span style="font-size: 11px; color: var(--fg-2)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
-                <span class="mono" style="font-size: 12px; font-weight: 600" [style.color]="useColor(usePct(card))">
-                  {{ usePct(card) }}%
-                </span>
-              </div>
-              <div class="progress">
-                <div
-                  class="progress__fill"
-                  [style.width]="usePct(card) + '%'"
-                  [style.background]="useColor(usePct(card))"
-                ></div>
               </div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
 
@@ -135,108 +129,104 @@
             <div class="cards-transactions-header">
               <div class="cards-transactions-title">
                 <span class="serif" style="font-size: 18px">{{ card.name }}</span>
-                <span class="mono" style="font-size: 11px; color: var(--fg-3); margin-left: 8px">
+                <span class="mono" style="font-size: var(--fs-xs); color: var(--fg-3); margin-left: 8px">
                   {{ i18n.t('cards.compras_ciclo') }} · {{ rowCount() }} {{ i18n.t('cards.movimientos') }}
                 </span>
               </div>
             </div>
             <div class="cards-table-wrap">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th style="width: 100px">{{ i18n.t('transactions.table_fecha') }}</th>
-                    <th>{{ i18n.t('transactions.table_concepto') }}</th>
-                    <th style="width: 60px">{{ i18n.t('cards.cuota') }}</th>
-                    <th style="width: 60px">{{ i18n.t('cards.interes') }}</th>
-                    <th class="num">{{ i18n.t('transactions.table_monto') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (m of movementItems(); track m.id) {
-                    <tr class="cards-table-row" (click)="openDetail(m)">
-                      <td class="mono" style="font-size: 11px; letter-spacing: 0.04em; color: var(--fg-3)">
-                        {{ m.date | fmtDate }}
-                      </td>
-                      <td>
-                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg-0)">
-                          {{ m.description ?? '—' }}
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px">
-                          @if (m.categoryColor) {
-                            <span
-                              style="
-                                width: 14px;
-                                height: 14px;
-                                border-radius: 3px;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                color: white;
-                                flex-shrink: 0;
-                              "
-                              [style.background]="m.categoryColor"
-                            >
-                              <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="8"></app-cat-icon>
-                            </span>
-                          }
-                          <span style="font-size: 11px; color: var(--fg-3)">{{ m.categoryName ?? '—' }}</span>
-                        </div>
-                      </td>
-                      <td class="mono" style="font-size: 11px; text-align: center; color: var(--fg-3)">
-                        @if (hasInstallment(m)) {
-                          <span style="background: var(--bg-2); padding: 2px 6px; border-radius: 3px; font-size: 10px">
-                            1/{{ m.loanInstallments }}
-                          </span>
-                        } @else {
-                          —
-                        }
-                      </td>
-                      <td class="mono" style="font-size: 11px; text-align: center; color: var(--fg-3)">
-                        @if (m.loanInterestRate) {
-                          {{ m.loanInterestRate }}%
-                        } @else {
-                          —
-                        }
-                      </td>
-                      <td
-                        class="num mono"
-                        style="white-space: nowrap; font-size: 12px"
-                        [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-                      >
-                        {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
-                        {{ m.currency }}
-                      </td>
-                    </tr>
+              <ng-template #dateCell let-m>
+                <span class="mono" style="font-size: var(--fs-xs); letter-spacing: 0.04em; color: var(--fg-3)">
+                  {{ m.date | fmtDate }}
+                </span>
+              </ng-template>
+              <ng-template #conceptCell let-m>
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg-0)">
+                  {{ m.description ?? '—' }}
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px">
+                  @if (m.categoryColor) {
+                    <span
+                      style="
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 3px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        flex-shrink: 0;
+                      "
+                      [style.background]="m.categoryColor"
+                    >
+                      <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="8"></app-cat-icon>
+                    </span>
                   }
-                  @if (movementItems().length === 0) {
-                    <tr>
-                      <td colspan="5" style="text-align: center; padding: 40px; color: var(--fg-3)">
-                        <div class="serif">{{ i18n.t('common.no_results') }}</div>
-                      </td>
-                    </tr>
+                  <span style="font-size: var(--fs-xs); color: var(--fg-3)">{{ m.categoryName ?? '—' }}</span>
+                </div>
+              </ng-template>
+              <ng-template #cuotaCell let-m>
+                <span
+                  class="mono"
+                  style="font-size: var(--fs-xs); display: block; text-align: center; color: var(--fg-3)"
+                >
+                  @if (hasInstallment(m)) {
+                    <span
+                      style="background: var(--bg-2); padding: 2px 6px; border-radius: 3px; font-size: var(--fs-2xs)"
+                    >
+                      {{ cuotaLabel(m) }}
+                    </span>
+                  } @else {
+                    —
                   }
-                </tbody>
-              </table>
-            </div>
-            @if (cardMovements()) {
-              <app-pagination
+                </span>
+              </ng-template>
+              <ng-template #interesCell let-m>
+                <span
+                  class="mono"
+                  style="font-size: var(--fs-xs); display: block; text-align: center; color: var(--fg-3)"
+                >
+                  @if (m.loanInterestRate) {
+                    {{ m.loanInterestRate }}%
+                  } @else {
+                    —
+                  }
+                </span>
+              </ng-template>
+              <ng-template #amountCell let-m>
+                <span
+                  class="mono"
+                  style="white-space: nowrap; font-size: var(--fs-sm)"
+                  [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
+                >
+                  {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
+                  {{ m.currency }}
+                </span>
+              </ng-template>
+              <app-data-table
+                [columns]="movementCols()"
+                [data]="movementItems()"
+                [trackBy]="trackById"
+                [rowClickable]="true"
+                (rowClick)="openDetail($event)"
+                [emptyMessage]="i18n.t('common.no_results')"
                 [page]="currentPage()"
                 [totalPages]="totalPages()"
                 [totalItems]="rowCount()"
                 [itemLabel]="i18n.t('cards.movimientos')"
                 [pageSizes]="[10, 20, 50]"
-                [pageSize]="pageSize()"
+                [pageSizeValue]="pageSize()"
                 (pageChange)="onPageChange($event)"
                 (pageSizeChange)="onPageSizeChange($event)"
               />
-            }
+            </div>
           </div>
 
           <div class="cards-layout-side">
             <div class="card payment-summary">
               <div class="payment-summary-title">
                 <span class="serif" style="font-size: 15px">{{ i18n.t('cards.resumen_pago') }}</span>
-                <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ card.currency }}</span>
+                <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.currency }}</span>
               </div>
               <div class="payment-row">
                 <span class="payment-label">{{ i18n.t('cards.gastos_ciclo') }}</span>
@@ -246,7 +236,9 @@
                 <div class="payment-row">
                   <span class="payment-label"
                     >{{ i18n.t('cards.interes_estimado') }}
-                    <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{ card.interestRate }}%</span></span
+                    <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)"
+                      >{{ card.interestRate }}%</span
+                    ></span
                   >
                   <span class="payment-value mono" style="color: var(--warning)">{{
                     selectedTotalInterest() | number: '1.2-2'
@@ -279,15 +271,49 @@
                   ></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center">
-                  <span class="mono" style="font-size: 10px; color: var(--fg-3)"
+                  <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)"
                     >{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span
                   >
-                  <span class="mono" style="font-size: 10px; color: var(--fg-3)">{{
+                  <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{
                     card.creditLimit! | number: '1.0-0'
                   }}</span>
                 </div>
               </div>
             </div>
+
+            @if (selectedInstallments().length > 0) {
+              <div class="card payment-summary cc-inst-panel">
+                <div class="payment-summary-title">
+                  <span class="serif" style="font-size: 15px">{{ i18n.t('installments.title') }}</span>
+                  <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{
+                    selectedInstallments().length
+                  }}</span>
+                </div>
+                @for (inst of selectedInstallments(); track inst.id) {
+                  <div class="cc-inst">
+                    <div class="cc-inst-head">
+                      <span class="cc-inst-name">{{ inst.description }}</span>
+                      <span class="tag tag--accent">{{ inst.paidCount }}/{{ inst.installmentsCount }}</span>
+                    </div>
+                    <div class="progress cc-inst-progress">
+                      <div class="progress__fill" [style.width]="instPct(inst) + '%'"></div>
+                    </div>
+                    <div class="cc-inst-foot">
+                      <span class="mono cc-inst-monthly">
+                        {{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes
+                      </span>
+                      <button
+                        class="btn btn--ghost cc-inst-mark"
+                        [disabled]="inst.paidCount >= inst.installmentsCount"
+                        (click)="markInstallmentPaid(inst)"
+                      >
+                        {{ i18n.t('installments.marcar_cuota') }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
         </div>
       </div>

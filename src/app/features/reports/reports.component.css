@@ -1,0 +1,17 @@
+.cat-report-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 1.4fr;
+  gap: var(--gutter, 16px);
+  align-items: start;
+}
+
+.cat-report-chart {
+  height: 280px;
+  position: relative;
+}
+
+@media (max-width: 1100px) {
+  .cat-report-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -49,25 +49,21 @@ function generateKey(): string {
 
 export function getEncryptionKey(): string {
   const electronKey = getElectronKey();
-  if (electronKey) {
-    console.debug('[ek] source=electron len=' + electronKey.length + ' prefix=' + electronKey.slice(0, 8));
-    return electronKey;
-  }
+  if (electronKey) return electronKey;
 
   const envKey = environment.encryptionKey;
-  if (envKey) {
-    console.debug('[ek] source=env len=' + envKey.length + ' prefix=' + envKey.slice(0, 8));
-    return envKey;
+  if (envKey) return envKey;
+
+  // A locally-generated key can never match the backend's key, so encrypted
+  // traffic would fail silently. In production that is a hard error.
+  if (environment.production) {
+    throw new Error('Encryption key unavailable: expected key from Electron preload.');
   }
 
   const stored = readStoredKey();
-  if (stored) {
-    console.debug('[ek] source=localStorage len=' + stored.length + ' prefix=' + stored.slice(0, 8));
-    return stored;
-  }
+  if (stored) return stored;
 
   const generated = generateKey();
-  console.debug('[ek] source=generated len=' + generated.length + ' prefix=' + generated.slice(0, 8));
   storeKey(generated);
   return generated;
 }

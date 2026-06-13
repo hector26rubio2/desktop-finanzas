@@ -1,11 +1,14 @@
 <div class="view">
-  <div class="row-flex">
-    <h3 class="serif" style="font-size: 22px; font-weight: 400; flex: 1">{{ i18n.t('installments.title') }}</h3>
-    <button class="btn btn--primary" (click)="showForm = !showForm">{{ i18n.t('installments.nueva_compra') }}</button>
+  <div class="row-flex" style="justify-content: flex-end">
+    <button class="btn btn--primary" (click)="showForm.set(true)">{{ i18n.t('installments.nueva_compra') }}</button>
   </div>
 
-  @if (showForm) {
-    <div class="card" style="padding: var(--pad-x)">
+  @if (showForm()) {
+    <app-modal
+      [title]="i18n.t('installments.nueva_compra')"
+      (closeModal)="showForm.set(false)"
+      (overlayClick)="showForm.set(false)"
+    >
       <form [formGroup]="form" (ngSubmit)="save()">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
           <label style="grid-column: 1/-1">
@@ -52,7 +55,7 @@
           </label>
         </div>
         <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end">
-          <button type="button" class="btn btn--ghost" (click)="showForm = false">
+          <button type="button" class="btn btn--ghost" (click)="showForm.set(false)">
             {{ i18n.t('common.cancel') }}
           </button>
           <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
@@ -60,7 +63,7 @@
           </button>
         </div>
       </form>
-    </div>
+    </app-modal>
   }
 
   @if (loading()) {
@@ -73,37 +76,21 @@
       <p>{{ i18n.t('installments.sin_compras_desc') }}</p>
     </div>
   } @else {
-    <!-- KPI strip -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('installments.compras_activas') }}</div>
-        <div class="num-md" style="margin-top: 8px">{{ activeCount() }}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('installments.total_comprometido') }}</div>
-        <div class="num-md" style="margin-top: 8px; color: var(--negative)">
-          {{ totalRemaining() | number: '1.0-0' }}
-        </div>
-      </div>
-      <div class="kpi-card">
-        <div class="eyebrow">{{ i18n.t('installments.cuotas_este_mes') }}</div>
-        <div class="num-md" style="margin-top: 8px">{{ monthlyTotal() | number: '1.0-0' }}</div>
-      </div>
-    </div>
+    <app-kpi-strip [items]="kpiItems()" />
 
     <!-- Installment cards -->
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--gutter)">
       @for (inst of installments(); track inst.id) {
-        <div class="card" style="padding: 16px">
+        <div class="card inst-card" style="padding: 16px">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px">
             <div>
               <div style="font-weight: 500; color: var(--fg-0)">{{ inst.description }}</div>
-              <div class="mono subtle" style="font-size: 11px; margin-top: 2px">
+              <div class="mono subtle" style="font-size: var(--fs-xs); margin-top: 2px">
                 {{ inst.currency }} {{ inst.monthlyAmount | number: '1.0-0' }}/mes
               </div>
             </div>
             <div style="display: flex; gap: 6px; align-items: center">
-              <span class="tag tag--accent" style="font-size: 10px"
+              <span class="tag tag--accent" style="font-size: var(--fs-2xs)"
                 >{{ inst.paidCount }}/{{ inst.installmentsCount }}</span
               >
               <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="deleteInst(inst.id)">
@@ -139,7 +126,7 @@
             }
           </div>
 
-          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-2)">
+          <div style="display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--fg-2)">
             <span
               >{{ i18n.t('installments.restante') }}
               <span class="mono" style="color: var(--negative)"
@@ -147,8 +134,7 @@
               ></span
             >
             <button
-              class="btn btn--ghost"
-              style="font-size: 10px; padding: 2px 8px"
+              class="btn btn--ghost inst-mark-btn"
               [disabled]="inst.paidCount >= inst.installmentsCount"
               (click)="markPaid(inst)"
             >

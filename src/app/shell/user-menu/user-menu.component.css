@@ -48,7 +48,7 @@
   place-items: center;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Geist', sans-serif;
+  font-family: var(--font-family);
   flex-shrink: 0;
 }
 
@@ -112,5 +112,5 @@
   margin-left: auto;
   font-size: 10px;
   color: var(--fg-3);
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }

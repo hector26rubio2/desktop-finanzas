@@ -1,0 +1,306 @@
+/* ============================================================
+   THEMES ΓÇö Triadic (purple 270┬░ ┬╖ gold 30┬░ ┬╖ teal 150┬░)
+   ============================================================ */
+
+:root {
+  /* ΓöÇΓöÇ Primary: Purple ΓöÇΓöÇ */
+  --color-primary-50: oklch(97% 0.012 280);
+  --color-primary-100: oklch(92% 0.025 280);
+  --color-primary-200: oklch(83% 0.05 280);
+  --color-primary-300: oklch(72% 0.07 280);
+  --color-primary-400: oklch(60% 0.09 280);
+  --color-primary-500: oklch(48% 0.1 280);
+  --color-primary-600: oklch(40% 0.1 280);
+  --color-primary-700: oklch(31% 0.09 280);
+  --color-primary-800: oklch(23% 0.075 280);
+  --color-primary-900: oklch(15% 0.055 280);
+  --color-primary-950: oklch(10% 0.04 280);
+
+  /* ΓöÇΓöÇ Secondary: Amber / Gold (+120┬░) ΓöÇΓöÇ */
+  --color-secondary-50: oklch(97% 0.01 75);
+  --color-secondary-100: oklch(91% 0.025 75);
+  --color-secondary-200: oklch(82% 0.045 75);
+  --color-secondary-300: oklch(70% 0.065 75);
+  --color-secondary-400: oklch(58% 0.08 75);
+  --color-secondary-500: oklch(47% 0.09 75);
+  --color-secondary-600: oklch(39% 0.085 75);
+  --color-secondary-700: oklch(30% 0.07 75);
+  --color-secondary-800: oklch(22% 0.055 75);
+  --color-secondary-900: oklch(14% 0.035 75);
+  --color-secondary-950: oklch(9% 0.022 75);
+
+  /* ΓöÇΓöÇ Tertiary: Teal (+240┬░) ΓöÇΓöÇ */
+  --color-tertiary-50: oklch(97% 0.01 165);
+  --color-tertiary-100: oklch(91% 0.02 165);
+  --color-tertiary-200: oklch(82% 0.04 165);
+  --color-tertiary-300: oklch(70% 0.055 165);
+  --color-tertiary-400: oklch(58% 0.07 165);
+  --color-tertiary-500: oklch(46% 0.08 165);
+  --color-tertiary-600: oklch(38% 0.075 165);
+  --color-tertiary-700: oklch(30% 0.065 165);
+  --color-tertiary-800: oklch(22% 0.05 165);
+  --color-tertiary-900: oklch(15% 0.035 165);
+  --color-tertiary-950: oklch(9% 0.02 165);
+
+  /* ΓöÇΓöÇ Neutral: Warm gray ΓöÇΓöÇ */
+  --color-neutral-50: oklch(98% 0.003 30);
+  --color-neutral-100: oklch(93% 0.004 30);
+  --color-neutral-200: oklch(85% 0.005 30);
+  --color-neutral-300: oklch(75% 0.005 30);
+  --color-neutral-400: oklch(63% 0.005 30);
+  --color-neutral-500: oklch(51% 0.006 30);
+  --color-neutral-600: oklch(39% 0.006 30);
+  --color-neutral-700: oklch(29% 0.006 30);
+  --color-neutral-800: oklch(19% 0.006 30);
+  --color-neutral-900: oklch(11% 0.005 30);
+  --color-neutral-950: oklch(7% 0.004 30);
+
+  /* ΓöÇΓöÇ Semantic ΓöÇΓöÇ */
+  --color-success: oklch(48% 0.12 155);
+  --color-success-soft: oklch(92% 0.05 155);
+  --color-warning: oklch(56% 0.14 80);
+  --color-warning-soft: oklch(92% 0.07 80);
+  --color-danger: oklch(44% 0.16 20);
+  --color-danger-soft: oklch(92% 0.06 20);
+  --color-info: oklch(46% 0.14 245);
+  --color-info-soft: oklch(92% 0.04 245);
+
+  /* ΓöÇΓöÇ Text on surfaces (luminance-driven) ΓöÇΓöÇ */
+  --color-text-on-primary: var(--color-neutral-50);
+  --color-text-on-secondary: var(--color-neutral-50);
+  --color-text-on-tertiary: var(--color-neutral-50);
+  --color-text-on-success: var(--color-neutral-50);
+  --color-text-on-warning: var(--color-neutral-950);
+  --color-text-on-danger: var(--color-neutral-50);
+  --color-text-on-info: var(--color-neutral-50);
+
+  /* ΓöÇΓöÇ Role tokens (mode-aware ΓÇö consume these in components) ΓöÇΓöÇ */
+  --color-primary: var(--color-primary-500);
+  --color-secondary: var(--color-secondary-500);
+  --color-tertiary: var(--color-tertiary-500);
+
+  --color-page-bg: var(--color-neutral-50);
+  --color-surface: var(--color-neutral-100);
+  --color-surface-elevated: var(--color-neutral-200);
+  --color-surface-highest: var(--color-neutral-300);
+
+  --color-text-body: var(--color-neutral-900);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-subtle: var(--color-neutral-400);
+
+  --color-border-subtle: var(--color-neutral-200);
+  --color-border-default: var(--color-neutral-300);
+  --color-border-strong: var(--color-neutral-400);
+
+  --color-hover: color-mix(in srgb, var(--color-neutral-900) 4%, transparent);
+  --color-selected: color-mix(in srgb, var(--color-primary-500) 12%, transparent);
+
+  --color-shadow-1:
+    0 1px 0 color-mix(in srgb, var(--color-neutral-50) 70%, transparent) inset,
+    0 1px 3px color-mix(in srgb, var(--color-neutral-900) 12%, transparent);
+  --color-shadow-2: 0 10px 30px color-mix(in srgb, var(--color-neutral-900) 14%, transparent);
+
+  /* ΓöÇΓöÇ Backward-compat aliases (resolve through role tokens per mode) ΓöÇΓöÇ */
+  --bg-0: var(--color-page-bg);
+  --bg-1: var(--color-surface);
+  --bg-2: var(--color-surface-elevated);
+  --bg-3: var(--color-surface-highest);
+  --fg-0: var(--color-text-body);
+  --fg-1: var(--color-text-muted);
+  --fg-2: var(--color-text-subtle);
+  --fg-3: var(--color-neutral-400);
+  --fg-4: var(--color-neutral-300);
+  --accent: var(--color-primary);
+  --accent-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  --accent-deep: var(--color-primary-600);
+  --accent-fg: var(--color-text-on-primary);
+  --accent-2: var(--color-secondary);
+  --accent-2-soft: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+  --accent-3: var(--color-tertiary);
+  --accent-3-soft: color-mix(in srgb, var(--color-tertiary) 14%, transparent);
+  --line: var(--color-border-subtle);
+  --line-1: var(--color-border-default);
+  --line-2: var(--color-border-strong);
+  --hover: var(--color-hover);
+  --selected: var(--color-selected);
+  --positive: var(--color-success);
+  --positive-soft: var(--color-success-soft);
+  --negative: var(--color-danger);
+  --negative-soft: var(--color-danger-soft);
+  --warning: var(--color-warning);
+  --warning-soft: var(--color-warning-soft);
+  --info: var(--color-info);
+  --info-soft: var(--color-info-soft);
+  --shadow-1: var(--color-shadow-1);
+  --shadow-2: var(--color-shadow-2);
+
+  /* Font family (set by ThemeService via --font-family) */
+  --font-family: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  color-scheme: light;
+}
+
+/* ============================================================
+   EASING TOKENS & DERIVED ACCENT VARS
+   ============================================================ */
+
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-btn: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 350ms;
+}
+
+/* ============================================================
+   TYPE SCALE (tamaños fijos, no escalan con density)
+   ============================================================ */
+
+:root {
+  --fs-3xs: 9px;
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+}
+
+/* ============================================================
+   DENSITY
+   ============================================================ */
+
+:root,
+[data-density='comfy'] {
+  --row-h: 44px;
+  --pad-x: 18px;
+  --pad-y: 14px;
+  --fs-base: 13px;
+  --sidebar-w: 220px;
+  --header-h: 52px;
+  --titlebar-h: 40px;
+  --gutter: 16px;
+}
+
+[data-density='dense'] {
+  --row-h: 34px;
+  --pad-x: 14px;
+  --pad-y: 10px;
+  --fs-base: 12px;
+  --sidebar-w: 200px;
+  --header-h: 44px;
+  --titlebar-h: 36px;
+  --gutter: 12px;
+}
+
+[data-density='airy'] {
+  --row-h: 52px;
+  --pad-x: 22px;
+  --pad-y: 18px;
+  --fs-base: 14px;
+  --sidebar-w: 240px;
+  --header-h: 60px;
+  --titlebar-h: 44px;
+  --gutter: 20px;
+}
+
+/* ============================================================
+   SHAPE
+   ============================================================ */
+
+:root,
+[data-shape='rounded'] {
+  --radius-card: 10px;
+  --radius-button: 7px;
+  --radius-input: 6px;
+  --radius-sm: 5px;
+  --radius-tag: 999px;
+}
+
+[data-shape='sharp'] {
+  --radius-card: 4px;
+  --radius-button: 3px;
+  --radius-input: 3px;
+  --radius-sm: 2px;
+  --radius-tag: 3px;
+}
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+html,
+body,
+app-root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04';
+}
+
+.mono,
+.num,
+table td.num,
+table th.num {
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.serif {
+  font-family: var(--font-family);
+}
+
+.eyebrow {
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.content__header .eyebrow {
+  color: var(--accent-2);
+}
+
+.subtle,
+.muted {
+  color: var(--fg-2);
+}
+.pos-text,
+.clr-pos {
+  color: var(--positive);
+}
+.neg-text,
+.clr-neg {
+  color: var(--negative);
+}
+

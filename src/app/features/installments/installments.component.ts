@@ -1,14 +1,17 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule, formatNumber } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, InstallmentResponse, AccountResponse } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
+import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 
 @Component({
   selector: 'app-installments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, KpiStripComponent],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.css',
 })
@@ -16,12 +19,13 @@ export class InstallmentsComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
 
   installments = signal<InstallmentResponse[]>([]);
   accounts = signal<AccountResponse[]>([]);
   loading = signal(true);
   saving = signal(false);
-  showForm = false;
+  showForm = signal(false);
 
   form = this.fb.group({
     description: ['', Validators.required],
@@ -35,14 +39,20 @@ export class InstallmentsComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.api.getInstallments().subscribe({
-      next: (list) => {
-        this.installments.set(list);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-    this.api.getAccounts().subscribe((list) => this.accounts.set(list));
+    this.api
+      .getInstallments()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.installments.set(list);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+    this.api
+      .getAccounts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => this.accounts.set(list));
   }
 
   save() {
@@ -61,11 +71,12 @@ export class InstallmentsComponent implements OnInit {
         paidCount: v.paidCount ?? 0,
         startDate: v.startDate!,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (inst) => {
           this.installments.update((l) => [...l, inst]);
           this.saving.set(false);
-          this.showForm = false;
+          this.showForm.set(false);
           this.form.reset({ currency: 'ARS', trmApplied: 1, paidCount: 0 });
         },
         error: () => this.saving.set(false),
@@ -74,15 +85,21 @@ export class InstallmentsComponent implements OnInit {
 
   markPaid(inst: InstallmentResponse) {
     const newCount = Math.min(inst.paidCount + 1, inst.installmentsCount);
-    this.api.updateInstallmentPaid(inst.id, newCount).subscribe((updated) => {
-      this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));
-    });
+    this.api
+      .updateInstallmentPaid(inst.id, newCount)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));
+      });
   }
 
   deleteInst(id: string) {
-    this.api.deleteInstallment(id).subscribe(() => {
-      this.installments.update((list) => list.filter((i) => i.id !== id));
-    });
+    this.api
+      .deleteInstallment(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.installments.update((list) => list.filter((i) => i.id !== id));
+      });
   }
 
   pct(inst: InstallmentResponse) {
@@ -91,6 +108,19 @@ export class InstallmentsComponent implements OnInit {
   range(n: number) {
     return Array.from({ length: Math.min(n, 36) }, (_, i) => i);
   }
+  kpiItems(): KpiStripItem[] {
+    const fmt = (v: number) => formatNumber(v, 'en-US', '1.0-0');
+    return [
+      { label: this.i18n.t('installments.compras_activas'), value: '' + this.activeCount() },
+      {
+        label: this.i18n.t('installments.total_comprometido'),
+        value: fmt(this.totalRemaining()),
+        color: 'var(--negative)',
+      },
+      { label: this.i18n.t('installments.cuotas_este_mes'), value: fmt(this.monthlyTotal()) },
+    ];
+  }
+
   activeCount() {
     return this.installments().filter((i) => i.paidCount < i.installmentsCount).length;
   }

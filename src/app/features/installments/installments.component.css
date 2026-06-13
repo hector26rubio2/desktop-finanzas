@@ -1,0 +1,15 @@
+.inst-card {
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.inst-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.inst-mark-btn {
+  font-size: 11px;
+  padding: 4px 12px;
+}

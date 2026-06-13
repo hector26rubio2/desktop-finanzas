@@ -1,0 +1,14 @@
+<div class="strip" [class.strip--end]="align() === 'end'">
+  @for (item of items(); track item.label; let last = $last) {
+    <div class="item">
+      <span class="label">{{ item.label }}</span>
+      <span class="value mono" [style.color]="item.color ?? 'var(--fg-0)'">{{ item.value }}</span>
+      @if (item.sub) {
+        <span class="sub mono">{{ item.sub }}</span>
+      }
+    </div>
+    @if (!last) {
+      <div class="sep" aria-hidden="true"></div>
+    }
+  }
+</div>

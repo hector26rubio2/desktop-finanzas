@@ -18,14 +18,14 @@
             "tsConfig": "tsconfig.app.json",
             "assets": ["src/assets", "public"],
             "styles": ["src/tailwind.css", "src/styles.css"],
-            "scripts": [],
-            "budgets": [
-              { "type": "initial", "maximumWarning": "700kb", "maximumError": "1mb" },
-              { "type": "anyComponentStyle", "maximumWarning": "10kb", "maximumError": "15kb" }
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "700kb", "maximumError": "1mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "10kb", "maximumError": "15kb" }
+              ],
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

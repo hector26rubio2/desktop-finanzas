@@ -1,0 +1,72 @@
+<div class="dt-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        @for (col of columns(); track col.key) {
+          <th
+            [style.width]="col.width ?? null"
+            [class.num]="col.numeric"
+            [class.dt-sortable]="col.sortable"
+            [attr.role]="col.sortable ? 'button' : null"
+            [attr.tabindex]="col.sortable ? 0 : null"
+            [attr.aria-sort]="
+              sortKey() === col.key ? (sortDir() === 1 ? 'ascending' : 'descending') : col.sortable ? 'none' : null
+            "
+            (click)="toggleSort(col)"
+            (keydown.enter)="toggleSort(col)"
+          >
+            {{ col.header }}
+            @if (col.sortable) {
+              <span class="dt-sort-icon">{{ sortKey() === col.key ? (sortDir() === 1 ? '▲' : '▼') : '↕' }}</span>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of sortedData(); track trackByFn($index, item)) {
+        <tr
+          class="dt-row"
+          [ngClass]="rowClass()?.(item)"
+          [class.dt-row--clickable]="rowClickable()"
+          [attr.role]="rowClickable() ? 'button' : null"
+          [attr.tabindex]="rowClickable() ? 0 : null"
+          (click)="onRowClick(item)"
+          (keydown.enter)="onRowClick(item)"
+        >
+          @for (col of columns(); track col.key) {
+            <td [class.num]="col.numeric">
+              @if (col.cellTpl) {
+                <ng-container
+                  [ngTemplateOutlet]="col.cellTpl"
+                  [ngTemplateOutletContext]="{ $implicit: item, row: item }"
+                />
+              } @else {
+                {{ cellValue(item, col) }}
+              }
+            </td>
+          }
+        </tr>
+      }
+      @if (data().length === 0) {
+        <tr>
+          <td [attr.colspan]="columns().length" class="dt-empty">
+            <div class="serif">{{ emptyMessage() }}</div>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  @if (totalPages() > 0) {
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [totalItems]="totalItems()"
+      [itemLabel]="itemLabel()"
+      [pageSizes]="pageSizes()"
+      [pageSize]="pageSizeValue()"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    />
+  }
+</div>

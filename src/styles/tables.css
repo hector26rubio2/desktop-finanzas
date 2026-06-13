@@ -1,0 +1,64 @@
+/* ============================================================
+   TABLES
+   ============================================================ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-base);
+}
+
+.table thead th {
+  padding: 8px var(--pad-x);
+  text-align: left;
+  font-size: 10px;
+  font-family: var(--font-family);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table thead th.num {
+  text-align: right;
+}
+
+.table tbody td {
+  padding: 0 var(--pad-x);
+  height: var(--row-h);
+  border-bottom: 1px solid var(--line);
+  color: var(--fg-1);
+  vertical-align: middle;
+}
+
+.table tbody td.num {
+  text-align: right;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.table tbody tr:hover td {
+  background: var(--hover);
+}
+
+/* data-table anidado en contenedores que ya aportan borde/radio */
+.card .dt-wrap,
+.cards-table-wrap .dt-wrap {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Estados de fila para app-data-table (rowClass) */
+.dt-row--muted td {
+  opacity: 0.45;
+}
+.dt-row--active td {
+  background: var(--accent-soft);
+}

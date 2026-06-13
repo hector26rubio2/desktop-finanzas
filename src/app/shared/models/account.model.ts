@@ -9,6 +9,7 @@ export interface AccountResponse {
   billingDay: number | null;
   paymentDay: number | null;
   interestRate: number | null;
+  isDefault: boolean;
   isActive: boolean;
   createdAt: string;
 }
@@ -23,6 +24,7 @@ export interface AccountRequest {
   billingDay?: number;
   paymentDay?: number;
   interestRate?: number;
+  isDefault?: boolean;
 }
 
 export interface AccountBalance {

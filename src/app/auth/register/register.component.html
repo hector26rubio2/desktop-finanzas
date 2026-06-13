@@ -172,12 +172,12 @@
           </select>
         </div>
 
-        @if (error) {
-          <div class="auth-error-banner">{{ error }}</div>
+        @if (error()) {
+          <div class="auth-error-banner">{{ error() }}</div>
         }
 
-        <button type="submit" class="auth-submit-btn" [disabled]="loading">
-          @if (loading) {
+        <button type="submit" class="auth-submit-btn" [disabled]="loading()">
+          @if (loading()) {
             <svg
               class="auth-spinner"
               width="20"

@@ -30,216 +30,188 @@
   <!-- Section content -->
   <div class="settings-content">
     @if (activeSection() === 'ajustes') {
-      <div style="max-width: 560px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 12px">
-          {{ i18n.t('settings.ajustes') }}
-        </h3>
-        <p style="font-size: 13px; color: var(--fg-2); line-height: 1.6; margin-bottom: 20px">
-          {{ i18n.t('settings.ajustes_intro') }}
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px">
-          <button
-            class="card card--padded"
-            style="cursor: pointer; text-align: left"
-            (click)="activeSection.set('perfil')"
-          >
+      <div class="section-wrap">
+        <h3 class="serif section-title">{{ i18n.t('settings.ajustes') }}</h3>
+        <p class="section-intro">{{ i18n.t('settings.ajustes_intro') }}</p>
+        <div class="hub-grid">
+          <button class="card card--padded hub-card" (click)="activeSection.set('perfil')">
             <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.profile') }}</div>
-            <div style="font-size: 12px; color: var(--fg-2)">{{ userName() }}</div>
+            <div class="hub-card__sub">{{ userName() }}</div>
+            <div class="hub-card__meta mono">{{ i18n.currentLocale() }} · {{ baseCurrency() }}</div>
           </button>
-          <button
-            class="card card--padded"
-            style="cursor: pointer; text-align: left"
-            (click)="activeSection.set('apariencia')"
-          >
+          <button class="card card--padded hub-card" (click)="activeSection.set('apariencia')">
             <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.appearance') }}</div>
-            <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('theme.' + theme.theme()) }}</div>
+            <div class="hub-card__sub">{{ i18n.t('theme.' + theme.theme()) }}</div>
+            <div class="hub-card__swatches">
+              <span style="background: var(--accent)"></span>
+              <span style="background: var(--accent-2)"></span>
+              <span style="background: var(--accent-3)"></span>
+            </div>
           </button>
-          <button
-            class="card card--padded"
-            style="cursor: pointer; text-align: left"
-            (click)="activeSection.set('idioma')"
-          >
-            <div class="eyebrow" style="margin-bottom: 6px">{{ i18n.t('settings.language') }}</div>
-            <div style="font-size: 12px; color: var(--fg-2)">{{ i18n.currentLocale() }}</div>
-          </button>
-        </div>
-      </div>
-    }
-
-    @if (activeSection() === 'idioma') {
-      <div style="max-width: 480px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
-          {{ i18n.t('settings.language') }}
-        </h3>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          @for (l of langs; track l.id) {
-            <button
-              class="card card--padded"
-              style="
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                text-align: left;
-                border: 2px solid;
-                transition:
-                  border-color 0.15s,
-                  background 0.15s;
-              "
-              [style.border-color]="i18n.currentLocale() === l.id ? 'var(--accent)' : 'var(--line)'"
-              [style.background]="i18n.currentLocale() === l.id ? 'var(--accent-soft)' : 'var(--bg-1)'"
-              (click)="selectLang(l.id)"
-            >
-              <span style="font-size: 28px; line-height: 1; flex-shrink: 0">{{ l.flag }}</span>
-              <div style="flex: 1">
-                <div style="font-size: 14px; font-weight: 600; color: var(--fg-0)">{{ l.label }}</div>
-                <div class="mono subtle" style="font-size: 11px; margin-top: 2px">{{ l.id }}</div>
-              </div>
-              @if (i18n.currentLocale() === l.id) {
-                <span class="tag tag--accent">{{ i18n.t('settings.tag_principal') }}</span>
-              }
-            </button>
-          }
         </div>
       </div>
     }
 
     @if (activeSection() === 'perfil') {
-      <div style="max-width: 480px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
-          {{ i18n.t('settings.profile') }}
-        </h3>
-        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px">
-          <div
-            style="
-              width: 64px;
-              height: 64px;
-              border-radius: 50%;
-              background: var(--accent-soft);
-              border: 2px solid var(--accent);
-              display: grid;
-              place-items: center;
-              font-family: 'Geist Mono', monospace;
-              font-size: 22px;
-              color: var(--accent);
-            "
-          >
-            {{ userInitials() }}
-          </div>
+      <div class="section-wrap">
+        <h3 class="serif section-title">{{ i18n.t('settings.profile') }}</h3>
+
+        <div class="profile-grid">
+          <div class="profile-col">
+        <div class="profile-header">
+          <div class="profile-avatar">{{ userInitials() }}</div>
           <div>
-            <div style="font-size: 18px; font-weight: 500; color: var(--fg-0)">{{ userName() }}</div>
-            <div class="mono subtle" style="font-size: 12px">{{ userEmail() }}</div>
+            <div class="profile-name">{{ userName() }}</div>
+            <div class="mono subtle profile-email">{{ userEmail() }}</div>
             <span class="tag tag--accent" style="margin-top: 6px">{{ userRole() }}</span>
           </div>
         </div>
-        <div style="height: 1px; background: var(--line); margin-bottom: 20px"></div>
-        <div style="display: flex; flex-direction: column; gap: 14px">
-          <label>
-            {{ i18n.t('auth.name') }}
-            <input [value]="userName()" readonly style="opacity: 0.6" />
-          </label>
-          <label>
-            {{ i18n.t('auth.email') }}
-            <input [value]="userEmail()" readonly style="opacity: 0.6" />
-          </label>
-          <label>
-            {{ i18n.t('auth.base_currency') }}
-            <input [value]="baseCurrency()" readonly style="opacity: 0.6" />
-          </label>
+
+            <!-- Datos de cuenta -->
+            <div class="account-fields">
+              <label>
+                {{ i18n.t('auth.name') }}
+                <input [value]="userName()" readonly style="opacity: 0.6" />
+              </label>
+              <label>
+                {{ i18n.t('auth.email') }}
+                <input [value]="userEmail()" readonly style="opacity: 0.6" />
+              </label>
+            </div>
+            <div style="margin-top: 20px">
+              <button class="btn btn--danger" (click)="logout()">{{ i18n.t('common.sign_out') }}</button>
+            </div>
+          </div>
+
+          <!-- Preferencias: idioma + moneda unificados -->
+          <div class="pref-panel">
+          <div class="eyebrow" style="margin-bottom: 14px">{{ i18n.t('settings.preferencias') }}</div>
+
+          <div class="pref-row">
+            <div class="pref-row__label">{{ i18n.t('settings.idioma_sistema') }}</div>
+            <div class="lang-grid">
+              @for (l of langs; track l.id) {
+                <button
+                  class="lang-chip"
+                  [class.lang-chip--active]="i18n.currentLocale() === l.id"
+                  (click)="selectLang(l.id)"
+                >
+                  <span class="lang-chip__flag">{{ l.flag }}</span>
+                  <span class="lang-chip__name">{{ l.label }}</span>
+                  <span class="mono lang-chip__code">{{ l.id }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="pref-divider"></div>
+
+          <div class="pref-row">
+            <div class="pref-row__label">{{ i18n.t('settings.moneda_base') }}</div>
+            <div class="currency-grid">
+              @for (curr of currencies; track curr.code) {
+                <button
+                  class="currency-chip"
+                  [class.currency-chip--active]="curr.code === baseCurrency()"
+                  (click)="selectCurrency(curr.code)"
+                >
+                  <span class="mono currency-chip__symbol">{{ curr.symbol }}</span>
+                  <span class="currency-chip__body">
+                    <span class="mono currency-chip__code">{{ curr.code }}</span>
+                    <span class="currency-chip__name">{{ curr.name }}</span>
+                  </span>
+                  @if (curr.code === baseCurrency()) {
+                    <span class="tag tag--accent">{{ i18n.t('settings.tag_principal') }}</span>
+                  }
+                </button>
+              }
+            </div>
+            <p class="pref-hint">{{ i18n.t('settings.moneda_hint') }}</p>
+          </div>
         </div>
-        <div style="margin-top: 20px">
-          <button class="btn btn--danger" (click)="logout()">{{ i18n.t('common.sign_out') }}</button>
+
         </div>
       </div>
     }
 
     @if (activeSection() === 'apariencia') {
-      <div style="max-width: 560px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
-          {{ i18n.t('settings.appearance') }}
-        </h3>
+      <div class="section-wrap">
+        <h3 class="serif section-title">{{ i18n.t('settings.appearance') }}</h3>
 
-        <!-- Language -->
-        <div style="margin-bottom: 24px">
-          <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.language') }}</div>
-          <div class="seg-ctrl" style="width: fit-content">
-            @for (loc of locales; track loc.id) {
-              <button
-                class="seg-ctrl__btn"
-                [class.seg-ctrl__btn--active]="i18n.currentLocale() === loc.id"
-                (click)="i18n.setLocale(loc.id)"
-              >
-                {{ i18n.t(loc.key) }}
-              </button>
-            }
-          </div>
-        </div>
-
+        <div class="appearance-grid">
+          <div class="appearance-col">
         <!-- Preset themes -->
-        <div style="margin-bottom: 24px">
+        <div class="appearance-block">
           <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.tema') }}</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px">
-            @for (t of themeOptions; track t.id) {
+          <div class="preset-list" #presetListRef>
+            @for (t of pagedThemes(); track t.id) {
               <button
+                class="preset-row"
+                [class.preset-row--active]="theme.theme() === t.id"
                 (click)="theme.setTheme(t.id)"
-                style="
-                  padding: 12px;
-                  border-radius: var(--radius-card);
-                  border: 2px solid;
-                  text-align: left;
-                  cursor: pointer;
-                  background: var(--bg-1);
-                  transition: border-color 0.15s;
-                "
-                [style.border-color]="theme.theme() === t.id ? 'var(--accent)' : 'var(--line)'"
               >
-                <div style="display: flex; gap: 5px; margin-bottom: 8px">
-                  <div style="width: 22px; height: 22px; border-radius: 5px" [style.background]="t.bg"></div>
-                  <div style="width: 22px; height: 22px; border-radius: 5px" [style.background]="t.accent"></div>
-                </div>
-                <div style="font-size: 12px; font-weight: 500; color: var(--fg-0)">{{ i18n.t('theme.' + t.id) }}</div>
+                <span class="preset-row__swatches">
+                  <span [style.background]="t.bg"></span>
+                  <span [style.background]="t.accent"></span>
+                </span>
+                <span class="preset-row__name">{{ i18n.t('theme.' + t.id) }}</span>
+                @if (theme.theme() === t.id) {
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="var(--accent)"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 8.5l4 4L14 4" />
+                  </svg>
+                }
               </button>
             }
           </div>
+          @if (themePages() > 1) {
+            <div class="pager">
+              <button
+                class="pager__btn"
+                [disabled]="themePage() === 0"
+                (click)="themePage.set(themePage() - 1)"
+              >
+                ‹
+              </button>
+              <span class="mono pager__info">{{ themePage() + 1 }} / {{ themePages() }}</span>
+              <button
+                class="pager__btn"
+                [disabled]="themePage() >= themePages() - 1"
+                (click)="themePage.set(themePage() + 1)"
+              >
+                ›
+              </button>
+            </div>
+          }
         </div>
 
         <!-- Custom saved themes -->
         @if (theme.customThemes().length > 0) {
-          <div style="margin-bottom: 24px">
+          <div class="appearance-block">
             <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.temas_guardados') }}</div>
-            <div style="display: flex; flex-direction: column; gap: 8px">
+            <div class="saved-list">
               @for (ct of theme.customThemes(); track ct.name) {
                 <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    padding: 10px 12px;
-                    border-radius: var(--radius-card);
-                    border: 2px solid;
-                    background: var(--bg-1);
-                    cursor: pointer;
-                    transition: border-color 0.15s;
-                  "
-                  [style.border-color]="
-                    theme.theme() === 'custom' && activeCustomName() === ct.name ? 'var(--accent)' : 'var(--line)'
-                  "
+                  class="saved-theme"
+                  [class.saved-theme--active]="theme.theme() === 'custom' && activeCustomName() === ct.name"
                   (click)="theme.activateCustomTheme(ct.name)"
                 >
-                  <div style="display: flex; gap: 2px; flex-shrink: 0">
-                    <div style="width: 18px; height: 18px; border-radius: 4px" [style.background]="ct.bg"></div>
-                    <div style="width: 18px; height: 18px; border-radius: 4px" [style.background]="ct.accent"></div>
-                    <div
-                      style="width: 18px; height: 18px; border-radius: 4px"
-                      [style.background]="ct.accent2 || triadicFrom(ct.accent, 120)"
-                    ></div>
-                    <div
-                      style="width: 18px; height: 18px; border-radius: 4px"
-                      [style.background]="ct.accent3 || triadicFrom(ct.accent, 240)"
-                    ></div>
+                  <div class="saved-theme__swatches">
+                    <span [style.background]="ct.bg"></span>
+                    <span [style.background]="ct.accent"></span>
+                    <span [style.background]="ct.accent2 || triadicFrom(ct.accent, 120)"></span>
+                    <span [style.background]="ct.accent3 || triadicFrom(ct.accent, 240)"></span>
                   </div>
-                  <span style="flex: 1; font-size: 13px; color: var(--fg-0)">{{ ct.name }}</span>
-                  <span class="tag" style="font-size: 10px">{{
+                  <span class="saved-theme__name">{{ ct.name }}</span>
+                  <span class="tag" style="font-size: var(--fs-2xs)">{{
                     ct.isDark ? i18n.t('settings.tag_oscuro') : i18n.t('settings.tag_claro')
                   }}</span>
                   <button
@@ -265,74 +237,21 @@
           </div>
         }
 
+          </div>
+
         <!-- Custom theme creator -->
-        <div
-          style="
-            margin-bottom: 24px;
-            padding: 16px;
-            background: var(--bg-2);
-            border-radius: var(--radius-card);
-            border: 1px solid var(--line);
-          "
-        >
-          <div class="eyebrow" style="margin-bottom: 12px">{{ i18n.t('settings.crear_tema') }}</div>
-          <div style="display: flex; flex-direction: column; gap: 10px">
-            <label style="margin: 0">
-              <span style="font-size: 12px; color: var(--fg-2)">{{ i18n.t('settings.nombre_tema') }}</span>
-              <input
-                [(ngModel)]="newThemeName"
-                placeholder="{{ i18n.t('settings.nombre_tema_placeholder') }}"
-                style="margin-top: 4px"
-              />
-            </label>
-            <div style="display: flex; flex-direction: column; gap: 8px">
-              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
-                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
-                  >{{ i18n.t('settings.accento') }} 1</span
-                >
-                <input
-                  type="color"
-                  [(ngModel)]="newThemeAccent"
-                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
-                />
-                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent }}</span>
+        <div class="creator-panel">
+          <div class="eyebrow" style="margin-bottom: 4px">{{ i18n.t('settings.crear_tema') }}</div>
+          <p class="creator-hint">{{ i18n.t('settings.crear_tema_hint') }}</p>
+
+          <!-- Controles arriba -->
+          <div class="creator-controls">
+            <div class="creator-top">
+              <label class="creator-name">
+                <span class="creator-label">{{ i18n.t('settings.nombre_tema') }}</span>
+                <input [(ngModel)]="newThemeName" placeholder="{{ i18n.t('settings.nombre_tema_placeholder') }}" />
               </label>
-              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
-                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
-                  >{{ i18n.t('settings.accento') }} 2</span
-                >
-                <input
-                  type="color"
-                  [(ngModel)]="newThemeAccent2"
-                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
-                />
-                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent2 }}</span>
-              </label>
-              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
-                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0"
-                  >{{ i18n.t('settings.accento') }} 3</span
-                >
-                <input
-                  type="color"
-                  [(ngModel)]="newThemeAccent3"
-                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
-                />
-                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeAccent3 }}</span>
-              </label>
-              <label style="margin: 0; display: flex; align-items: center; gap: 8px">
-                <span style="font-size: 12px; color: var(--fg-2); width: 70px; flex-shrink: 0">{{
-                  i18n.t('settings.fondo_base')
-                }}</span>
-                <input
-                  type="color"
-                  [(ngModel)]="newThemeBg"
-                  style="width: 30px; height: 30px; padding: 2px; cursor: pointer; flex-shrink: 0"
-                />
-                <span class="mono" style="font-size: 11px; color: var(--fg-2)">{{ newThemeBg }}</span>
-              </label>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between">
-              <div class="seg-ctrl" style="width: auto">
+              <div class="seg-ctrl" style="width: fit-content; align-self: end">
                 <button
                   class="seg-ctrl__btn"
                   [class.seg-ctrl__btn--active]="!newThemeIsDark"
@@ -348,164 +267,269 @@
                   {{ i18n.t('settings.tema_oscuro_btn') }}
                 </button>
               </div>
-              <button
-                class="btn btn--primary"
-                style="font-size: 11px"
-                [disabled]="!newThemeName.trim()"
-                (click)="saveCustomTheme()"
+            </div>
+
+            <div class="swatch-grid">
+              <label class="swatch-field">
+                <span class="swatch-field__well" [style.background]="newThemeAccent">
+                  <input type="color" [(ngModel)]="newThemeAccent" />
+                </span>
+                <span class="creator-label">{{ i18n.t('settings.accento') }} 1</span>
+                <span class="mono swatch-field__hex">{{ newThemeAccent }}</span>
+              </label>
+              <label class="swatch-field">
+                <span class="swatch-field__well" [style.background]="newThemeAccent2">
+                  <input type="color" [(ngModel)]="newThemeAccent2" />
+                </span>
+                <span class="creator-label">{{ i18n.t('settings.accento') }} 2</span>
+                <span class="mono swatch-field__hex">{{ newThemeAccent2 }}</span>
+              </label>
+              <label class="swatch-field">
+                <span class="swatch-field__well" [style.background]="newThemeAccent3">
+                  <input type="color" [(ngModel)]="newThemeAccent3" />
+                </span>
+                <span class="creator-label">{{ i18n.t('settings.accento') }} 3</span>
+                <span class="mono swatch-field__hex">{{ newThemeAccent3 }}</span>
+              </label>
+              <label class="swatch-field">
+                <span class="swatch-field__well" [style.background]="newThemeBg">
+                  <input type="color" [(ngModel)]="newThemeBg" />
+                </span>
+                <span class="creator-label">{{ i18n.t('settings.fondo_base') }}</span>
+                <span class="mono swatch-field__hex">{{ newThemeBg }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Maqueta abajo, renderizada con los colores del borrador (no afecta al sistema hasta guardar) -->
+          <div class="creator-mockup-wrap">
+            <div class="eyebrow" style="margin-bottom: 8px">{{ i18n.t('settings.vista_previa_tema') }}</div>
+            <div class="mockup" [style.background]="newThemeBg" [style.border-color]="creatorLine()">
+              <div
+                class="mockup__titlebar"
+                [style.background]="creatorSurface()"
+                [style.border-color]="creatorLine()"
               >
-                {{ i18n.t('settings.guardar_aplicar') }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 24px">
-          <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.densidad') }}</div>
-          <div class="seg-ctrl">
-            <button
-              class="seg-ctrl__btn"
-              [class.seg-ctrl__btn--active]="theme.density() === 'dense'"
-              (click)="theme.setDensity('dense')"
-            >
-              {{ i18n.t('settings.densidad_compacto') }}
-            </button>
-            <button
-              class="seg-ctrl__btn"
-              [class.seg-ctrl__btn--active]="theme.density() === 'comfy'"
-              (click)="theme.setDensity('comfy')"
-            >
-              {{ i18n.t('settings.densidad_normal') }}
-            </button>
-            <button
-              class="seg-ctrl__btn"
-              [class.seg-ctrl__btn--active]="theme.density() === 'airy'"
-              (click)="theme.setDensity('airy')"
-            >
-              {{ i18n.t('settings.densidad_espacioso') }}
-            </button>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 24px">
-          <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.esquinas') }}</div>
-          <div class="seg-ctrl">
-            <button
-              class="seg-ctrl__btn"
-              [class.seg-ctrl__btn--active]="theme.shape() === 'rounded'"
-              (click)="theme.setShape('rounded')"
-            >
-              {{ i18n.t('settings.esquinas_redondeadas') }}
-            </button>
-            <button
-              class="seg-ctrl__btn"
-              [class.seg-ctrl__btn--active]="theme.shape() === 'sharp'"
-              (click)="theme.setShape('sharp')"
-            >
-              {{ i18n.t('settings.esquinas_anguladas') }}
-            </button>
-          </div>
-        </div>
-
-        <div
-          style="
-            padding: 16px;
-            background: var(--bg-2);
-            border-radius: var(--radius-card);
-            border: 1px solid var(--line);
-          "
-        >
-          <div class="eyebrow" style="margin-bottom: 8px">{{ i18n.t('settings.preview') }}</div>
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
-            <div class="card" style="padding: 10px 14px; display: flex; gap: 10px; align-items: center">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent)"></span>
-              <span style="font-size: 13px">{{ i18n.t('settings.preview_banco') }}</span>
-              <span class="mono" style="font-size: 13px; color: var(--positive)">+ $ 1.850.000</span>
-            </div>
-            <span class="tag tag--pos">{{ i18n.t('settings.preview_ingreso') }}</span>
-            <span class="tag tag--neg">{{ i18n.t('settings.preview_gasto') }}</span>
-            <span class="tag tag--accent">{{ i18n.t('settings.preview_cuota') }}</span>
-            <button class="btn btn--primary" style="font-size: 11px">{{ i18n.t('settings.preview_nuevo') }}</button>
-            <button class="btn btn--ghost" style="font-size: 11px">{{ i18n.t('settings.preview_filtros') }}</button>
-          </div>
-        </div>
-      </div>
-    }
-
-    @if (activeSection() === 'monedas') {
-      <div style="max-width: 480px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
-          {{ i18n.t('settings.currencies') }}
-        </h3>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          @for (curr of currencies; track curr.code) {
-            <div class="card" style="padding: 14px; display: flex; align-items: center; gap: 12px">
-              <span class="mono" style="font-size: 14px; font-weight: 500; width: 40px">{{ curr.code }}</span>
-              <div style="flex: 1">
-                <div>{{ curr.name }}</div>
-                <div class="mono subtle" style="font-size: 11px">{{ curr.symbol }}</div>
+                <span [style.background]="creatorFg()"></span>
+                <span [style.background]="creatorFg()"></span>
+                <span [style.background]="creatorFg()"></span>
               </div>
-              @if (curr.code === baseCurrency()) {
-                <span class="tag tag--accent">{{ i18n.t('settings.tag_principal') }}</span>
+              <div class="mockup__body">
+                <div
+                  class="mockup__sidebar"
+                  [style.background]="creatorSurface()"
+                  [style.border-color]="creatorLine()"
+                >
+                  <span class="mockup__navitem mockup__navitem--active" [style.background]="newThemeAccent"></span>
+                  <span class="mockup__navitem" [style.background]="creatorFg()"></span>
+                  <span class="mockup__navitem" [style.background]="creatorFg()"></span>
+                  <span class="mockup__navitem" [style.background]="creatorFg()"></span>
+                </div>
+                <div class="mockup__main">
+                  <div class="mockup__stats">
+                    <div
+                      class="mockup__stat"
+                      [style.background]="creatorSurface()"
+                      [style.border-color]="creatorLine()"
+                    >
+                      <span class="mockup__stat-label" [style.color]="creatorFg()">{{
+                        i18n.t('settings.preview_balance')
+                      }}</span>
+                      <span class="mono mockup__stat-value" [style.color]="newThemeAccent">$ 1.850.000</span>
+                    </div>
+                    <div
+                      class="mockup__stat"
+                      [style.background]="creatorSurface()"
+                      [style.border-color]="creatorLine()"
+                    >
+                      <span class="mockup__stat-label" [style.color]="creatorFg()">{{
+                        i18n.t('settings.preview_resumen')
+                      }}</span>
+                      <span class="mono mockup__stat-value" [style.color]="newThemeAccent3">+ $ 320.000</span>
+                    </div>
+                  </div>
+                  <div class="mockup__chart">
+                    <span style="height: 60%" [style.background]="newThemeAccent"></span>
+                    <span style="height: 38%" [style.background]="newThemeAccent2"></span>
+                    <span style="height: 80%" [style.background]="newThemeAccent3"></span>
+                    <span style="height: 30%" [style.background]="newThemeAccent"></span>
+                    <span style="height: 52%" [style.background]="newThemeAccent2"></span>
+                    <span style="height: 68%" [style.background]="newThemeAccent"></span>
+                  </div>
+                  <div class="mockup__row">
+                    <span class="draft-chip" [style.background]="newThemeAccent" [style.color]="newThemeBg">{{
+                      i18n.t('settings.preview_ingreso')
+                    }}</span>
+                    <span class="draft-chip" [style.background]="newThemeAccent2" [style.color]="newThemeBg">{{
+                      i18n.t('settings.preview_gasto')
+                    }}</span>
+                    <span class="draft-chip" [style.background]="newThemeAccent3" [style.color]="newThemeBg">{{
+                      i18n.t('settings.preview_cuota')
+                    }}</span>
+                    <span style="flex: 1"></span>
+                    <span class="draft-btn" [style.background]="newThemeAccent" [style.color]="newThemeBg">{{
+                      i18n.t('settings.preview_nuevo')
+                    }}</span>
+                    <span
+                      class="draft-btn draft-btn--ghost"
+                      [style.color]="creatorFg()"
+                      [style.border-color]="creatorLine()"
+                      >{{ i18n.t('settings.preview_filtros') }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="btn btn--primary creator-save"
+            [disabled]="!newThemeName.trim()"
+            (click)="saveCustomTheme()"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 8.5l4 4L14 4" />
+            </svg>
+            {{ i18n.t('settings.guardar_aplicar') }}
+          </button>
+        </div>
+
+        </div>
+
+        <div class="appearance-row">
+          <!-- Columna 1: densidad y esquinas apiladas -->
+          <div class="appearance-stack">
+            <div class="appearance-block">
+              <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.densidad') }}</div>
+              <div class="seg-ctrl">
+                <button
+                  class="seg-ctrl__btn"
+                  [class.seg-ctrl__btn--active]="theme.density() === 'dense'"
+                  (click)="theme.setDensity('dense')"
+                >
+                  {{ i18n.t('settings.densidad_compacto') }}
+                </button>
+                <button
+                  class="seg-ctrl__btn"
+                  [class.seg-ctrl__btn--active]="theme.density() === 'comfy'"
+                  (click)="theme.setDensity('comfy')"
+                >
+                  {{ i18n.t('settings.densidad_normal') }}
+                </button>
+                <button
+                  class="seg-ctrl__btn"
+                  [class.seg-ctrl__btn--active]="theme.density() === 'airy'"
+                  (click)="theme.setDensity('airy')"
+                >
+                  {{ i18n.t('settings.densidad_espacioso') }}
+                </button>
+              </div>
+            </div>
+
+            <div class="appearance-block">
+              <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.esquinas') }}</div>
+              <div class="seg-ctrl">
+                <button
+                  class="seg-ctrl__btn"
+                  [class.seg-ctrl__btn--active]="theme.shape() === 'rounded'"
+                  (click)="theme.setShape('rounded')"
+                >
+                  {{ i18n.t('settings.esquinas_redondeadas') }}
+                </button>
+                <button
+                  class="seg-ctrl__btn"
+                  [class.seg-ctrl__btn--active]="theme.shape() === 'sharp'"
+                  (click)="theme.setShape('sharp')"
+                >
+                  {{ i18n.t('settings.esquinas_anguladas') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna 2-3: tipografía con paginación -->
+          <div class="appearance-block appearance-block--wide">
+            <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.tipografia') }}</div>
+            <div class="font-grid" #fontGridRef>
+              @for (f of pagedFonts(); track f.id) {
+                <button
+                  class="font-card"
+                  [class.font-card--active]="theme.font() === f.id"
+                  [style.font-family]="f.family"
+                  (click)="theme.setFont(f.id)"
+                >
+                  <span class="font-card__sample">Ag</span>
+                  <span class="font-card__name">{{ f.name }}</span>
+                </button>
               }
             </div>
-          }
+            @if (fontPages() > 1) {
+              <div class="pager">
+                <button class="pager__btn" [disabled]="fontPage() === 0" (click)="fontPage.set(fontPage() - 1)">
+                  ‹
+                </button>
+                <span class="mono pager__info">{{ fontPage() + 1 }} / {{ fontPages() }}</span>
+                <button
+                  class="pager__btn"
+                  [disabled]="fontPage() >= fontPages() - 1"
+                  (click)="fontPage.set(fontPage() + 1)"
+                >
+                  ›
+                </button>
+              </div>
+            }
+          </div>
         </div>
       </div>
     }
 
     @if (activeSection() === 'atajos') {
-      <div style="max-width: 520px">
-        <h3 class="serif" style="font-size: 22px; font-weight: 400; margin-bottom: 20px">
-          {{ i18n.t('settings.shortcuts') }}
-        </h3>
-        <div class="card" style="padding: 0; overflow: hidden">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>{{ i18n.t('settings.accion') }}</th>
-                <th>{{ i18n.t('settings.atajo') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (s of shortcuts; track s.action) {
-                <tr>
-                  <td>{{ s.action }}</td>
-                  <td>
-                    <span class="kbd" style="font-size: 11px">{{ s.keys }}</span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+      <div class="section-wrap" style="max-width: 760px">
+        <h3 class="serif section-title">{{ i18n.t('settings.shortcuts') }}</h3>
+        <app-data-table
+          [columns]="shortcutCols()"
+          [data]="shortcuts"
+          [totalPages]="0"
+          [emptyMessage]="i18n.t('common.no_results')"
+        />
       </div>
     }
 
     @if (activeSection() === 'acerca') {
-      <div style="max-width: 400px">
-        <div style="text-align: center; padding: 40px 0">
-          <div
-            style="
-              font-family: 'Instrument Serif', serif;
-              font-style: italic;
-              font-size: 48px;
-              color: var(--accent);
-              margin-bottom: 8px;
-            "
-          >
-            finanzas
+      <div class="about-wrap">
+        <div class="card about-card">
+          <div class="about-logo serif">finanzas</div>
+          <div class="mono subtle about-version">{{ i18n.t('settings.app_version') }}</div>
+          <p class="about-desc">{{ i18n.t('settings.app_descripcion') }}</p>
+          <div class="about-stack">
+            <span class="tag">{{ i18n.t('settings.tech_angular') }}</span>
+            <span class="tag">{{ i18n.t('settings.tech_dotnet') }}</span>
           </div>
-          <div class="mono subtle" style="font-size: 12px; margin-bottom: 24px">
-            {{ i18n.t('settings.app_version') }}
-          </div>
-          <p style="font-size: 13px; color: var(--fg-2); line-height: 1.7; margin-bottom: 16px">
-            {{ i18n.t('settings.app_descripcion') }}
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--fg-3)">
-            <div>{{ i18n.t('settings.tech_angular') }}</div>
-            <div>{{ i18n.t('settings.tech_dotnet') }}</div>
-          </div>
+          @if (isElectron) {
+            <div class="about-updates">
+              <button class="btn btn--primary" [disabled]="updates.isBusy()" (click)="updates.check()">
+                {{ i18n.t('settings.buscar_actualizaciones') }}
+              </button>
+              @if (updates.status() === 'checking') {
+                <span class="mono about-update-status">…</span>
+              } @else if (updates.status() === 'available') {
+                <span class="mono about-update-status" style="color: var(--accent)"> v{{ updates.version() }} </span>
+              } @else if (updates.status() === 'not-available') {
+                <span class="mono about-update-status" style="color: var(--positive)">✓</span>
+              } @else if (updates.status() === 'error') {
+                <span class="mono about-update-status" style="color: var(--negative)">{{ updates.error() }}</span>
+              }
+            </div>
+          }
         </div>
       </div>
     }

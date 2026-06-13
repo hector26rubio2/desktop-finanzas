@@ -1,20 +1,34 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  signal,
+  computed,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  viewChild,
+  ElementRef,
+  effect,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { ThemeService, Theme, THEME_PRESETS } from '../../shared/services/theme.service';
+import { ThemeService, Theme, THEME_PRESETS, FONT_OPTIONS } from '../../shared/services/theme.service';
 import { PlatformService } from '../../shared/services/platform.service';
+import { UpdateService } from '../../shared/services/update/update.service';
+import { DataTableComponent, ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { Locale, TranslationKey } from '../../shared/i18n/locale.types';
 
-type Section = 'ajustes' | 'perfil' | 'apariencia' | 'idioma' | 'monedas' | 'atajos' | 'acerca';
+type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DataTableComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -37,29 +51,34 @@ export class SettingsComponent implements OnInit {
     { id: 'ajustes', labelKey: 'settings.ajustes' },
     { id: 'perfil', labelKey: 'settings.profile' },
     { id: 'apariencia', labelKey: 'settings.appearance' },
-    { id: 'idioma', labelKey: 'settings.language' },
-    { id: 'monedas', labelKey: 'settings.currencies' },
     { id: 'atajos', labelKey: 'settings.shortcuts' },
     { id: 'acerca', labelKey: 'settings.about' },
   ];
 
-  private validSections: Section[] = ['ajustes', 'perfil', 'apariencia', 'idioma', 'monedas', 'atajos', 'acerca'];
+  private validSections: Section[] = ['ajustes', 'perfil', 'apariencia', 'atajos', 'acerca'];
+
+  private resolveSection(raw: string | null): Section | null {
+    if (!raw) return null;
+    // Secciones idioma/monedas ahora viven dentro de perfil
+    if (raw === 'idioma' || raw === 'monedas') return 'perfil';
+    return this.validSections.includes(raw as Section) ? (raw as Section) : null;
+  }
 
   ngOnInit() {
-    const section = this.route.snapshot.queryParamMap.get('section');
-    if (section && this.validSections.includes(section as Section)) {
-      this.activeSection.set(section as Section);
-    }
-    this.route.queryParamMap.subscribe((params) => {
-      const s = params.get('section');
-      if (s && this.validSections.includes(s as Section)) {
-        this.activeSection.set(s as Section);
-      }
+    const section = this.resolveSection(this.route.snapshot.queryParamMap.get('section'));
+    if (section) this.activeSection.set(section);
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const s = this.resolveSection(params.get('section'));
+      if (s) this.activeSection.set(s);
     });
   }
 
   selectLang(id: Locale) {
     this.i18n.setLocale(id);
+  }
+
+  selectCurrency(code: string) {
+    this.auth.setBaseCurrency(code);
   }
 
   sectionLabel(s: { labelKey: TranslationKey }): string {
@@ -82,6 +101,97 @@ export class SettingsComponent implements OnInit {
 
   activeCustomName() {
     return localStorage.getItem('active-custom-theme') ?? '';
+  }
+
+  // Texto y líneas con contraste sobre el fondo elegido en el creador de temas
+  creatorFg(): string {
+    return this.isHexDark(this.newThemeBg) ? '#f4f4f2' : '#1d1b18';
+  }
+
+  creatorLine(): string {
+    return this.isHexDark(this.newThemeBg) ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.14)';
+  }
+
+  // Superficie elevada derivada del fondo elegido (solo para la maqueta del borrador)
+  creatorSurface(): string {
+    const toward = this.isHexDark(this.newThemeBg) ? '#ffffff' : '#000000';
+    return `color-mix(in srgb, ${this.newThemeBg} 93%, ${toward})`;
+  }
+
+  fontOptions = FONT_OPTIONS;
+
+  // Paginación adaptativa: el tamaño de página se calcula según el ancho real
+  // del contenedor (ResizeObserver). Si cabe todo, no hay pager.
+  private presetListRef = viewChild<ElementRef<HTMLElement>>('presetListRef');
+  private fontGridRef = viewChild<ElementRef<HTMLElement>>('fontGridRef');
+
+  themePageSize = signal(24);
+  fontPageSize = signal(13);
+  themePage = signal(0);
+  fontPage = signal(0);
+
+  private readonly themeItemMin = 180 + 6; // minmax + gap de .preset-list
+  private readonly themeMaxRows = 12;
+  private readonly fontItemMin = 150 + 10; // minmax + gap de .font-grid
+  private readonly fontRows = 2;
+
+  constructor() {
+    effect((onCleanup) => {
+      const els = [this.presetListRef()?.nativeElement, this.fontGridRef()?.nativeElement].filter(
+        (e): e is HTMLElement => !!e,
+      );
+      if (els.length === 0) return;
+      const ro = new ResizeObserver(() => this.recalcPageSizes());
+      els.forEach((e) => ro.observe(e));
+      this.recalcPageSizes();
+      onCleanup(() => ro.disconnect());
+    });
+  }
+
+  private recalcPageSizes() {
+    const themeEl = this.presetListRef()?.nativeElement;
+    if (themeEl && themeEl.clientWidth > 0) {
+      const cols = Math.max(1, Math.floor((themeEl.clientWidth + 6) / this.themeItemMin));
+      const size = cols * this.themeMaxRows;
+      if (size !== this.themePageSize()) {
+        this.themePageSize.set(size);
+        this.themePage.set(Math.min(this.themePage(), this.themePages() - 1));
+      }
+    }
+    const fontEl = this.fontGridRef()?.nativeElement;
+    if (fontEl && fontEl.clientWidth > 0) {
+      const cols = Math.max(1, Math.floor((fontEl.clientWidth + 10) / this.fontItemMin));
+      const size = cols * this.fontRows;
+      if (size !== this.fontPageSize()) {
+        this.fontPageSize.set(size);
+        this.fontPage.set(Math.min(this.fontPage(), this.fontPages() - 1));
+      }
+    }
+  }
+
+  pagedThemes() {
+    const start = this.themePage() * this.themePageSize();
+    return this.themeOptions.slice(start, start + this.themePageSize());
+  }
+
+  themePages(): number {
+    return Math.max(1, Math.ceil(this.themeOptions.length / this.themePageSize()));
+  }
+
+  pagedFonts() {
+    const start = this.fontPage() * this.fontPageSize();
+    return this.fontOptions.slice(start, start + this.fontPageSize());
+  }
+
+  fontPages(): number {
+    return Math.max(1, Math.ceil(this.fontOptions.length / this.fontPageSize()));
+  }
+
+  private isHexDark(hex: string): boolean {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 140;
   }
 
   triadicFrom(hex: string, offset: number): string {
@@ -143,6 +253,11 @@ export class SettingsComponent implements OnInit {
     { code: 'COP', name: 'Peso colombiano', symbol: 'COP' },
   ];
 
+  shortcutCols = computed<ColumnDef<{ action: string; keys: string }>[]>(() => [
+    { key: 'action', header: this.i18n.t('settings.accion'), sortable: true },
+    { key: 'keys', header: this.i18n.t('settings.atajo'), width: '120px' },
+  ]);
+
   get shortcuts() {
     const m = this.os.mod;
     return [
@@ -174,10 +289,13 @@ export class SettingsComponent implements OnInit {
 
   public auth = inject(AuthService);
   public theme = inject(ThemeService);
+  public updates = inject(UpdateService);
+  isElectron = typeof window !== 'undefined' && !!window.electronAPI;
   public os = inject(PlatformService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   public i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
 
   logout() {
     this.auth.logout();

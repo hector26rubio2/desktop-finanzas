@@ -1,25 +1,46 @@
-import { Component, OnInit, signal, inject, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  signal,
+  inject,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  viewChild,
+  TemplateRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatNumber } from '@angular/common';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { TranslationKey } from '../../shared/i18n/locale.types';
 import { ApiService, MovementResponse, PagedResult } from '../../shared/services/api.service';
-import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
-import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
-import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
+import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
+import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
+import { parseDate } from '../../shared/utils/date';
+import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 
 interface CalEvent {
   movement: MovementResponse;
   day: number;
 }
 
+type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, PaginationComponent, MovementDetailModalComponent, CatIconComponent, FmtDatePipe],
+  imports: [
+    CommonModule,
+    MovementDetailModalComponent,
+    CatIconComponent,
+    FmtDatePipe,
+    KpiStripComponent,
+    DataTableComponent,
+  ],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',
 })
@@ -66,17 +87,34 @@ export class CalendarComponent implements OnInit {
     return this.movements()
       .filter((m) => m.type === 'Expense')
       .map((m) => {
-        const d = new Date(m.date);
+        const d = parseDate(m.date);
         return { movement: m, day: d.getDate() };
       });
   });
 
   totalCommitted = computed(() => this.eventsThisMonth().reduce((s, e) => s + e.movement.amount, 0));
 
+  kpiItems = computed<KpiStripItem[]>(() => [
+    { label: this.i18n.t('calendar.pagos_mes'), value: '' + this.eventsThisMonth().length },
+    {
+      label: this.i18n.t('calendar.total_comprometido'),
+      value: '$ ' + formatNumber(this.totalCommitted(), 'en-US', '1.0-0'),
+      color: 'var(--negative)',
+    },
+    { label: this.i18n.t('calendar.proximo_pago'), value: this.nextEvent(), color: 'var(--accent)' },
+  ]);
+
   nextEvent = computed(() => {
-    const todayDay = this.today.getDate();
+    // Solo tiene sentido "próximo pago" mirando desde hoy: meses pasados no tienen próximos
+    const viewing = this.currentDate();
+    const now = this.today;
+    const viewingPast =
+      viewing.getFullYear() < now.getFullYear() ||
+      (viewing.getFullYear() === now.getFullYear() && viewing.getMonth() < now.getMonth());
+    if (viewingPast) return '—';
+    const isCurrent = this.isCurrentMonth();
     const upcoming = this.eventsThisMonth()
-      .filter((e) => e.day >= todayDay)
+      .filter((e) => !isCurrent || e.day >= now.getDate())
       .sort((a, b) => a.day - b.day);
     if (upcoming.length === 0) return '—';
     const next = upcoming[0];
@@ -208,4 +246,22 @@ export class CalendarComponent implements OnInit {
   }
 
   rowCount = computed(() => this.page()?.total ?? 0);
+
+  dateCell = viewChild<MovTpl>('dateCell');
+  conceptCell = viewChild<MovTpl>('conceptCell');
+  categoryCell = viewChild<MovTpl>('categoryCell');
+  sourceCell = viewChild<MovTpl>('sourceCell');
+  typeCell = viewChild<MovTpl>('typeCell');
+  amountCell = viewChild<MovTpl>('amountCell');
+
+  trackById = (m: MovementResponse) => m.id;
+
+  cols = computed<ColumnDef<MovementResponse>[]>(() => [
+    { key: 'date', header: this.i18n.t('transactions.table_fecha'), width: '110px', cellTpl: this.dateCell() },
+    { key: 'description', header: this.i18n.t('transactions.table_concepto'), cellTpl: this.conceptCell() },
+    { key: 'categoryName', header: this.i18n.t('transactions.table_categoria'), cellTpl: this.categoryCell() },
+    { key: 'sourceType', header: this.i18n.t('transactions.source'), cellTpl: this.sourceCell() },
+    { key: 'type', header: this.i18n.t('transactions.table_tipo'), width: '70px', cellTpl: this.typeCell() },
+    { key: 'amount', header: this.i18n.t('transactions.table_monto'), numeric: true, cellTpl: this.amountCell() },
+  ]);
 }

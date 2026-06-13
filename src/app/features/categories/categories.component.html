@@ -1,6 +1,5 @@
 <div class="view">
-  <div class="cat-header">
-    <h3 class="serif">{{ i18n.t('categories.title') }}</h3>
+  <div class="cat-header" style="justify-content: flex-end">
     <button class="btn btn--primary btn--sm" (click)="openCreate()">
       <svg
         width="12"
@@ -144,81 +143,56 @@
       <p>{{ i18n.t('categories.sin_categorias_desc') }}</p>
     </div>
   } @else {
-    <div class="card" style="padding: 0; overflow: hidden">
-      <table class="table">
-        <thead>
-          <tr>
-            <th style="width: 36px"></th>
-            <th>{{ i18n.t('categories.nombre') }}</th>
-            <th style="width: 80px">{{ i18n.t('categories.tipo') }}</th>
-            <th style="width: 60px">{{ i18n.t('categories.icono') }}</th>
-            <th>ES</th>
-            <th>EN</th>
-            <th>PT</th>
-            <th style="width: 60px"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of paged(); track c.id) {
-            <tr class="cat-table-row" (click)="openEdit(c)">
-              <td>
-                <span class="cat-icon-chip" [style.background]="c.color">
-                  <app-cat-icon [icon]="c.icon" [size]="14"></app-cat-icon>
-                </span>
-              </td>
-              <td>
-                <span class="cat-cell-name">{{ catName(c) }}</span>
-              </td>
-              <td>
-                <span class="tag" [class.tag--income]="c.type === 'Income'" [class.tag--expense]="c.type === 'Expense'">
-                  {{ c.type === 'Income' ? i18n.t('categories.income') : i18n.t('categories.expense') }}
-                </span>
-              </td>
-              <td class="mono" style="font-size: 11px; color: var(--fg-3)">{{ c.icon }}</td>
-              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['es-CO'] ?? '—' }}</td>
-              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['en-US'] ?? '—' }}</td>
-              <td class="cat-cell-tr" style="font-size: 11px">{{ c.translations?.['pt-BR'] ?? '—' }}</td>
-              <td>
-                <button
-                  class="btn btn--ghost btn--icon"
-                  style="color: var(--negative)"
-                  (click)="askDelete(c.id); $event.stopPropagation()"
-                  [title]="i18n.t('common.delete')"
-                >
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M1 1l14 14M15 1L1 15" />
-                  </svg>
-                </button>
-              </td>
-            </tr>
-          }
-          @if (filtered().length === 0) {
-            <tr>
-              <td colspan="8" class="empty-table-msg">
-                <div class="serif">{{ i18n.t('common.no_results') }}</div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      <app-pagination
-        [page]="page()"
-        [totalPages]="totalPages()"
-        [totalItems]="rowCount()"
-        [itemLabel]="i18n.t('categories.title').toLowerCase()"
-        [pageSizes]="pageSizes"
-        [pageSize]="pageSize()"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)"
-      />
-    </div>
+    <ng-template #iconCell let-c>
+      <span class="cat-icon-chip" [style.background]="c.color">
+        <app-cat-icon [icon]="c.icon" [size]="14"></app-cat-icon>
+      </span>
+    </ng-template>
+    <ng-template #nameCell let-c>
+      <span class="cat-cell-name">{{ catName(c) }}</span>
+    </ng-template>
+    <ng-template #typeCell let-c>
+      <span class="tag" [class]="c.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+        {{ c.type === 'Income' ? i18n.t('categories.income') : i18n.t('categories.expense') }}
+      </span>
+    </ng-template>
+    <ng-template #actionsCell let-c>
+      <span (click)="$event.stopPropagation()">
+        <button
+          class="btn btn--ghost btn--icon"
+          style="color: var(--negative)"
+          (click)="askDelete(c.id)"
+          [title]="i18n.t('common.delete')"
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M1 1l14 14M15 1L1 15" />
+          </svg>
+        </button>
+      </span>
+    </ng-template>
+    <app-data-table
+      [columns]="cols()"
+      [data]="paged()"
+      [trackBy]="trackById"
+      [rowClickable]="true"
+      (rowClick)="openEdit($event)"
+      [emptyMessage]="i18n.t('common.no_results')"
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [totalItems]="rowCount()"
+      [itemLabel]="i18n.t('categories.title').toLowerCase()"
+      [pageSizes]="pageSizes"
+      [pageSizeValue]="pageSize()"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    />
   }
 </div>

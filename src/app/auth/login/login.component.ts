@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '@shared/services/auth/auth.service';
@@ -31,6 +32,7 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
   formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
 
   form = this.fb.group({
@@ -39,10 +41,10 @@ export class LoginComponent implements OnInit {
     remember: [false],
   });
 
-  loading = false;
-  error: string | null = null;
+  loading = signal(false);
+  error = signal<string | null>(null);
   googleClientId = environment.googleClientId;
-  passwordVisible = false;
+  passwordVisible = signal(false);
 
   ngOnInit() {
     if (this.auth.isAuthenticated) {
@@ -53,22 +55,25 @@ export class LoginComponent implements OnInit {
   }
 
   togglePassword() {
-    this.passwordVisible = !this.passwordVisible;
+    this.passwordVisible.update((v) => !v);
   }
 
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
     const { email, password, remember } = this.form.value;
-    this.auth.login(email!, password!, remember ?? false).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      error: (_err) => {
-        this.error = this.i18n.t('auth.login_error');
-        this.loading = false;
-      },
-    });
+    this.auth
+      .login(email!, password!, remember ?? false)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: () => {
+          this.error.set(this.i18n.t('auth.login_error'));
+          this.loading.set(false);
+        },
+      });
   }
 
   private loadGoogleScript() {
@@ -93,13 +98,16 @@ export class LoginComponent implements OnInit {
   }
 
   private handleGoogleCallback(response: { credential: string }) {
-    this.loading = true;
-    this.auth.loginWithGoogle(response.credential).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      error: () => {
-        this.error = this.i18n.t('auth.google_error');
-        this.loading = false;
-      },
-    });
+    this.loading.set(true);
+    this.auth
+      .loginWithGoogle(response.credential)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: () => {
+          this.error.set(this.i18n.t('auth.google_error'));
+          this.loading.set(false);
+        },
+      });
   }
 }

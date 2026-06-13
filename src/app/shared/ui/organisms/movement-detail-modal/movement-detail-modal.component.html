@@ -1,0 +1,103 @@
+@if (movement(); as m) {
+  <app-modal
+    [title]="i18n.t('calendar.detail_title')"
+    (closeModal)="closeModal.emit()"
+    (overlayClick)="closeModal.emit()"
+  >
+    <div class="mdm">
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.type') }}</span>
+        <span class="mdm-value">
+          <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
+            {{ m.type === 'Income' ? i18n.t('transactions.income') : i18n.t('transactions.expense') }}
+          </span>
+        </span>
+      </div>
+      @if (m.subType) {
+        <div class="mdm-row">
+          <span class="mdm-label">{{ i18n.t('transactions.subtype') }}</span>
+          <span class="mdm-value">{{ subTypeLabel(m.subType, i18n) }}</span>
+        </div>
+      }
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.description') }}</span>
+        <span class="mdm-value">{{ m.description ?? '—' }}</span>
+      </div>
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.amount') }}</span>
+        <span class="mdm-value mono" [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'">
+          {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
+        </span>
+      </div>
+      @if (m.currency !== 'ARS' && m.trmApplied && m.trmApplied !== 1) {
+        <div class="mdm-row">
+          <span class="mdm-label">{{ i18n.t('transactions.trm') }}</span>
+          <span class="mdm-value mono">{{ m.trmApplied | number: '1.2-2' }}</span>
+        </div>
+      }
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.date') }}</span>
+        <span class="mdm-value">{{ m.date | fmtDate }}</span>
+      </div>
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.source') }}</span>
+        <span class="mdm-value">{{ sourceLabel(m.sourceType, i18n) }}</span>
+      </div>
+      @if (m.sourceType === 'Loan' && m.loanParty) {
+        <div class="mdm-row">
+          <span class="mdm-label">{{ i18n.t('transactions.lender') }}</span>
+          <span class="mdm-value">{{ m.loanParty }}</span>
+        </div>
+      }
+      @if (m.loanInterestRate) {
+        <div class="mdm-row">
+          <span class="mdm-label">{{ i18n.t('transactions.interest_rate') }}</span>
+          <span class="mdm-value">{{ m.loanInterestRate }}%</span>
+        </div>
+      }
+      @if (m.loanInstallments && m.loanInstallments > 1) {
+        <div class="mdm-plan">
+          <div class="mdm-plan-head">
+            <span class="mdm-label">{{ i18n.t('transactions.plan_cuotas') }}</span>
+            <span class="tag tag--accent">{{ currentInstallment(m) }}/{{ m.loanInstallments }}</span>
+          </div>
+          <div class="progress" style="margin: 8px 0 6px">
+            <div class="progress__fill" [style.width]="installmentPct(m) + '%'"></div>
+          </div>
+          <div class="mdm-plan-foot">
+            <span class="mono">{{ monthlyAmount(m) | number: '1.2-2' }} {{ m.currency }}/mes</span>
+            <span class="mono" style="color: var(--fg-3)">
+              {{ i18n.t('installments.restante') }}
+              {{ (m.loanInstallments - currentInstallment(m)) * monthlyAmount(m) | number: '1.0-0' }}
+              {{ m.currency }}
+            </span>
+          </div>
+        </div>
+      }
+      <div class="mdm-row">
+        <span class="mdm-label">{{ i18n.t('transactions.category') }}</span>
+        <span class="mdm-value">
+          @if (m.categoryIcon && m.categoryColor) {
+            <span class="cat-icon-badge" [style.background]="m.categoryColor" style="margin-right: 6px">
+              <app-cat-icon [icon]="m.categoryIcon" [size]="12"></app-cat-icon>
+            </span>
+          }
+          {{ m.categoryName ?? i18n.t('transactions.no_category') }}
+        </span>
+      </div>
+      @if (m.accountName) {
+        <div class="mdm-row">
+          <span class="mdm-label">{{ i18n.t('transactions.account') }}</span>
+          <span class="mdm-value">{{ m.accountName }}</span>
+        </div>
+      }
+      @if (editable()) {
+        <div class="mdm-actions">
+          <button class="btn btn--primary" style="font-size: var(--fs-xs)" (click)="edit.emit(m)">
+            {{ i18n.t('common.edit') }}
+          </button>
+        </div>
+      }
+    </div>
+  </app-modal>
+}

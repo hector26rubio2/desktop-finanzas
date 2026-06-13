@@ -1,4 +1,5 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '@shared/services/auth/auth.service';
@@ -21,6 +22,7 @@ export class RegisterComponent {
   private router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
   formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
 
   form = this.fb.group({
@@ -30,21 +32,24 @@ export class RegisterComponent {
     baseCurrency: ['ARS', [Validators.required, Validators.pattern(/^[A-Z]{3,4}$/)]],
   });
 
-  loading = false;
-  error: string | null = null;
+  loading = signal(false);
+  error = signal<string | null>(null);
 
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
     const v = this.form.value;
-    this.auth.register(v.name!, v.email!, v.password!, v.baseCurrency!).subscribe({
-      next: (res) => this.router.navigate(['/verify-email'], { state: { email: res.user.email } }),
-      error: () => {
-        this.error = this.i18n.t('auth.register_error');
-        this.loading = false;
-      },
-    });
+    this.auth
+      .register(v.name!, v.email!, v.password!, v.baseCurrency!)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => this.router.navigate(['/verify-email'], { state: { email: res.user.email } }),
+        error: () => {
+          this.error.set(this.i18n.t('auth.register_error'));
+          this.loading.set(false);
+        },
+      });
   }
 }

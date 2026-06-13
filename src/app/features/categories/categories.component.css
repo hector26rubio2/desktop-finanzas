@@ -67,7 +67,7 @@
 }
 
 .cat-filter-btn {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -179,26 +179,26 @@
 }
 
 .cat-count-inline {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--fg-3);
   text-transform: lowercase;
 }
 
 .cat-page-info {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-2);
 }
 
 .cat-page-info {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-2);
 }
 
 .cat-page-size {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   padding: 3px 9px;
@@ -251,7 +251,7 @@
 }
 
 .cat-section-title {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;

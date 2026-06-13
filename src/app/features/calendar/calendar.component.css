@@ -1,6 +1,20 @@
+.cal-event {
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
 .cal-event:hover {
   background: var(--bg-3) !important;
-  filter: brightness(1.2);
+  transform: translateX(2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cal-more {
+  font-size: 9px;
+  color: var(--fg-3);
+  padding: 2px 5px;
 }
 
 .cal-detail {
@@ -26,7 +40,7 @@
   color: var(--fg-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .cal-detail-value {
@@ -87,25 +101,6 @@
   white-space: nowrap;
 }
 
-.tag {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm, 4px);
-  white-space: nowrap;
-}
-
-.tag--pos {
-  background: var(--positive-soft, rgba(34, 197, 94, 0.12));
-  color: var(--positive, #22c55e);
-}
-
-.tag--neg {
-  background: var(--negative-soft, rgba(239, 68, 68, 0.12));
-  color: var(--negative, #ef4444);
-}
-
 .mov-footer {
   display: flex;
   justify-content: space-between;
@@ -135,18 +130,18 @@
 .mov-count-inline {
   font-size: 11px;
   color: var(--fg-3);
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .mov-page-info {
   font-size: 11px;
   color: var(--fg-2);
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .mov-page-size {
   font-size: 11px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   padding: 3px 8px;
   border-radius: var(--radius-sm, 4px);
   border: 1px solid var(--line);
@@ -166,9 +161,3 @@
   color: var(--accent);
 }
 
-.empty-table-msg {
-  text-align: center;
-  padding: 32px 16px;
-  color: var(--fg-3);
-  font-size: 13px;
-}

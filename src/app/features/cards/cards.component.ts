@@ -1,4 +1,15 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  viewChild,
+  TemplateRef,
+} from '@angular/core';
+import { formatNumber } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -12,15 +23,20 @@ import {
   PagedResult,
 } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
-import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
-import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
-import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
+import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
+import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
+import { parseDate } from '../../shared/utils/date';
+import type { InstallmentResponse } from '../../shared/models/installment.model';
+import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 
 interface CardWithBalance extends AccountResponse {
   balance: AccountBalance;
 }
+
+type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
 
 @Component({
   selector: 'app-cards',
@@ -32,8 +48,9 @@ interface CardWithBalance extends AccountResponse {
     RouterLink,
     CatIconComponent,
     FmtDatePipe,
-    PaginationComponent,
     MovementDetailModalComponent,
+    DataTableComponent,
+    KpiStripComponent,
   ],
   templateUrl: './cards.component.html',
   styleUrl: './cards.component.css',
@@ -50,12 +67,29 @@ export class CardsComponent implements OnInit {
   currentPage = signal(1);
   pageSize = signal(10);
   today = new Date();
+  installments = signal<InstallmentResponse[]>([]);
 
   private api = inject(ApiService);
   public i18n = inject(I18nService);
   sourceLabel = sourceLabel;
   subTypeLabel = subTypeLabel;
   private destroyRef = inject(DestroyRef);
+
+  dateCell = viewChild<MovTpl>('dateCell');
+  conceptCell = viewChild<MovTpl>('conceptCell');
+  cuotaCell = viewChild<MovTpl>('cuotaCell');
+  interesCell = viewChild<MovTpl>('interesCell');
+  amountCell = viewChild<MovTpl>('amountCell');
+
+  trackById = (m: MovementResponse) => m.id;
+
+  movementCols = computed<ColumnDef<MovementResponse>[]>(() => [
+    { key: 'date', header: this.i18n.t('transactions.table_fecha'), width: '100px', cellTpl: this.dateCell() },
+    { key: 'description', header: this.i18n.t('transactions.table_concepto'), cellTpl: this.conceptCell() },
+    { key: 'loanInstallments', header: this.i18n.t('cards.cuota'), width: '60px', cellTpl: this.cuotaCell() },
+    { key: 'loanInterestRate', header: this.i18n.t('cards.interes'), width: '60px', cellTpl: this.interesCell() },
+    { key: 'amount', header: this.i18n.t('transactions.table_monto'), numeric: true, cellTpl: this.amountCell() },
+  ]);
 
   uniqueCurrencies = computed(() => {
     const ccySet = new Set(this.cards().map((c) => c.currency));
@@ -107,6 +141,19 @@ export class CardsComponent implements OnInit {
   });
 
   totalUsed = computed(() => this.filteredCards().reduce((s, c) => s + c.balance.usedInCycle, 0));
+
+  summaryItems = computed<KpiStripItem[]>(() => {
+    const fmt = (v: number) => formatNumber(v, 'en-US', '1.0-0');
+    return [
+      { label: this.i18n.t('cards.total_utilizado'), value: fmt(this.totalUsed()), color: 'var(--negative)' },
+      { label: this.i18n.t('cards.disponible'), value: fmt(this.totalAvailable()), color: 'var(--positive)' },
+      {
+        label: this.i18n.t('cards.utilizacion_global'),
+        value: this.globalUsePct() + '%',
+        color: this.useColor(this.globalUsePct()),
+      },
+    ];
+  });
   totalLimit = computed(() => this.filteredCards().reduce((s, c) => s + (c.creditLimit ?? 0), 0));
   totalAvailable = computed(() => this.filteredCards().reduce((s, c) => s + this.available(c), 0));
   globalUsePct = computed(() => {
@@ -131,6 +178,27 @@ export class CardsComponent implements OnInit {
 
   selectedTotalToPay = computed(() => this.selectedTotalExpenses() + this.selectedTotalInterest());
 
+  /** Compras en cuotas activas de la tarjeta seleccionada */
+  selectedInstallments = computed(() => {
+    const id = this.selectedId();
+    if (!id) return [];
+    return this.installments().filter((i) => i.accountId === id && i.isActive);
+  });
+
+  instPct(inst: InstallmentResponse): number {
+    return Math.round((inst.paidCount / inst.installmentsCount) * 100);
+  }
+
+  markInstallmentPaid(inst: InstallmentResponse) {
+    const newCount = Math.min(inst.paidCount + 1, inst.installmentsCount);
+    this.api
+      .updateInstallmentPaid(inst.id, newCount)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));
+      });
+  }
+
   currentMonth(): string {
     const d = new Date();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -138,6 +206,10 @@ export class CardsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.api
+      .getInstallments()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (list) => this.installments.set(list), error: () => {} });
     this.api
       .getAccounts()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -243,10 +315,17 @@ export class CardsComponent implements OnInit {
 
   cuotaLabel(m: MovementResponse): string {
     if (!m.loanInstallments) return '';
-    return `1/${m.loanInstallments}`;
+    return `${this.currentInstallment(m)}/${m.loanInstallments}`;
   }
 
   hasInstallment(m: MovementResponse): boolean {
     return m.loanInstallments !== null && m.loanInstallments !== undefined && m.loanInstallments > 1;
+  }
+
+  currentInstallment(m: MovementResponse): number {
+    const start = parseDate(m.date);
+    const now = new Date();
+    const elapsed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
+    return Math.min(Math.max(elapsed, 1), m.loanInstallments ?? 1);
   }
 }

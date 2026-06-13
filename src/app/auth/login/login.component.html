@@ -149,13 +149,13 @@
             <input
               class="auth-input"
               id="password"
-              [type]="passwordVisible ? 'text' : 'password'"
+              [type]="passwordVisible() ? 'text' : 'password'"
               formControlName="password"
               autocomplete="current-password"
               placeholder="••••••••"
             />
             <button type="button" (click)="togglePassword()" class="auth-input-toggle">
-              @if (passwordVisible) {
+              @if (passwordVisible()) {
                 <svg
                   width="20"
                   height="20"
@@ -195,12 +195,12 @@
           <label class="auth-checkbox-label" for="remember">{{ i18n.t('common.remember') }}</label>
         </div>
 
-        @if (error) {
-          <div class="auth-error-banner">{{ error }}</div>
+        @if (error()) {
+          <div class="auth-error-banner">{{ error() }}</div>
         }
 
-        <button type="submit" class="auth-submit-btn" [disabled]="loading">
-          @if (loading) {
+        <button type="submit" class="auth-submit-btn" [disabled]="loading()">
+          @if (loading()) {
             <svg
               class="auth-spinner"
               width="20"

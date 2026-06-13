@@ -81,7 +81,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-3);
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .cmdk__item {
@@ -93,8 +93,25 @@
   transition: background var(--duration-fast) var(--ease-btn);
 }
 
-.cmdk__item:hover {
+.cmdk__item:hover,
+.cmdk__item--active {
   background: var(--hover);
+}
+
+.cmdk__item--active .cmdk__item-lbl {
+  color: var(--fg-0);
+}
+
+.cmdk__item-sub {
+  font-size: 10px;
+  color: var(--fg-3);
+}
+
+.cmdk__empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--fg-3);
+  font-size: 13px;
 }
 
 .cmdk__item-lbl {
@@ -105,7 +122,7 @@
 .cmdk__item-kbd {
   margin-left: auto;
   font-size: 10px;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   color: var(--fg-3);
   background: var(--bg-2);
   border: 1px solid var(--line-1);

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../../../environments/environment';
 
-type Level = 'log' | 'warn' | 'error';
+type Level = 'debug' | 'log' | 'warn' | 'error';
+
+const LEVEL_RANK: Record<Level, number> = { debug: 0, log: 1, warn: 2, error: 3 };
 
 interface ElectronLogAPI {
   log?: (level: Level, message: string, data?: unknown) => void;
@@ -8,16 +11,31 @@ interface ElectronLogAPI {
 
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
+  // In production only warnings and errors reach the console / log file.
+  private readonly threshold: Level = environment.production ? 'warn' : 'debug';
+
   private get api(): ElectronLogAPI | null {
     return (window as unknown as { electronAPI?: ElectronLogAPI }).electronAPI ?? null;
   }
 
   private write(level: Level, message: string, data?: unknown): void {
-    const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+    if (LEVEL_RANK[level] < LEVEL_RANK[this.threshold]) return;
+    const consoleFn =
+      level === 'error'
+        ? console.error
+        : level === 'warn'
+          ? console.warn
+          : level === 'debug'
+            ? console.debug
+            : console.log;
     consoleFn(`[${level}] ${message}`, data ?? '');
     try {
       this.api?.log?.(level, message, data);
     } catch (_) {}
+  }
+
+  debug(message: string, data?: unknown): void {
+    this.write('debug', message, data);
   }
 
   log(message: string, data?: unknown): void {

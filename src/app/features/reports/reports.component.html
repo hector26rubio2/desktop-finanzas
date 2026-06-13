@@ -13,7 +13,7 @@
       </button>
     </div>
     <div style="margin-left: auto">
-      <button class="btn btn--ghost" style="font-size: 11px">
+      <button class="btn btn--ghost" style="font-size: var(--fs-xs)" (click)="exportCsv()">
         <svg
           width="12"
           height="12"
@@ -36,86 +36,92 @@
       <div class="empty-state">
         <p>{{ i18n.t('reports.cargando') }}</p>
       </div>
-    } @else {
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('reports.ingresos_12m') }}</div>
-          <div class="num-md pos-text" style="margin-top: 8px; font-size: 24px">
-            {{ income12() | number: '1.0-0' }}
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('reports.gastos_12m') }}</div>
-          <div class="num-md" style="margin-top: 8px; font-size: 24px; color: var(--negative)">
-            {{ expense12() | number: '1.0-0' }}
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('reports.ahorro_neto') }}</div>
-          <div
-            class="num-md"
-            style="margin-top: 8px; font-size: 24px"
-            [style.color]="income12() - expense12() >= 0 ? 'var(--positive)' : 'var(--negative)'"
-          >
-            {{ income12() - expense12() | number: '1.0-0' }}
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="eyebrow">{{ i18n.t('reports.tasa_ahorro') }}</div>
-          <div class="num-md" style="margin-top: 8px; font-size: 24px">
-            {{ income12() > 0 ? (((income12() - expense12()) / income12()) * 100 | number: '1.1-1') : '0' }}%
-          </div>
-        </div>
+    } @else if (error()) {
+      <div class="empty-state">
+        <p>{{ i18n.t('reports.error') }}</p>
       </div>
+    } @else {
+      <app-kpi-strip [items]="kpiItems()" />
 
       <!-- Cashflow table -->
       <div class="card" style="padding: 0; overflow: hidden">
         <div class="card__h">
           <span class="card__title">{{ i18n.t('reports.cashflow_title') }}</span>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>{{ i18n.t('reports.table_mes') }}</th>
-              <th class="num">{{ i18n.t('reports.table_ingresos') }}</th>
-              <th class="num">{{ i18n.t('reports.table_gastos') }}</th>
-              <th class="num">{{ i18n.t('reports.table_neto') }}</th>
-              <th>{{ i18n.t('reports.table_barra') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (s of monthStats(); track s.month) {
-              @let neto = s.income - s.expense;
-              <tr>
-                <td class="mono" style="font-size: 12px">{{ s.month }}</td>
-                <td class="num pos-text mono">+ {{ s.income | number: '1.0-0' }}</td>
-                <td class="num mono" style="color: var(--negative)">− {{ s.expense | number: '1.0-0' }}</td>
-                <td class="num mono" [style.color]="neto >= 0 ? 'var(--positive)' : 'var(--negative)'">
-                  {{ neto >= 0 ? '+' : '−' }}{{ (neto < 0 ? -neto : neto) | number: '1.0-0' }}
-                </td>
-                <td style="padding-right: var(--pad-x)">
-                  <div class="progress" style="max-width: 120px">
-                    <div
-                      class="progress__fill"
-                      [style.width]="maxExpense() > 0 ? (s.expense / maxExpense()) * 100 + '%' : '0'"
-                      [style.background]="neto >= 0 ? 'var(--positive)' : 'var(--negative)'"
-                    ></div>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        <ng-template #cfMonthCell let-s>
+          <span class="mono" style="font-size: var(--fs-sm)">{{ s.month }}</span>
+        </ng-template>
+        <ng-template #cfIncomeCell let-s>
+          <span class="pos-text mono">+ {{ s.income | number: '1.0-0' }}</span>
+        </ng-template>
+        <ng-template #cfExpenseCell let-s>
+          <span class="mono" style="color: var(--negative)">− {{ s.expense | number: '1.0-0' }}</span>
+        </ng-template>
+        <ng-template #cfNetoCell let-s>
+          <span class="mono" [style.color]="s.neto >= 0 ? 'var(--positive)' : 'var(--negative)'">
+            {{ s.neto >= 0 ? '+' : '−' }}{{ (s.neto < 0 ? -s.neto : s.neto) | number: '1.0-0' }}
+          </span>
+        </ng-template>
+        <ng-template #cfBarCell let-s>
+          <div class="progress" style="max-width: 120px">
+            <div
+              class="progress__fill"
+              [style.width]="maxExpense() > 0 ? (s.expense / maxExpense()) * 100 + '%' : '0'"
+              [style.background]="s.neto >= 0 ? 'var(--positive)' : 'var(--negative)'"
+            ></div>
+          </div>
+        </ng-template>
+        <app-data-table
+          [columns]="cashflowCols()"
+          [data]="cashflowRows()"
+          [trackBy]="trackByMonth"
+          [totalPages]="0"
+          [emptyMessage]="i18n.t('reports.sin_datos')"
+        />
       </div>
     }
   }
 
   <!-- Categories tab -->
   @if (tab() === 'cat') {
-    <div class="empty-state">
-      <div class="serif">{{ i18n.t('reports.proximamente') }}</div>
-      <p>{{ i18n.t('reports.proximamente_desc') }}</p>
-    </div>
+    @if (catLoading()) {
+      <div class="empty-state">
+        <p>{{ i18n.t('reports.cargando') }}</p>
+      </div>
+    } @else if (catStats().length === 0) {
+      <div class="empty-state">
+        <p>{{ i18n.t('reports.sin_datos') }}</p>
+      </div>
+    } @else {
+      <div class="cat-report-grid">
+        <div class="card">
+          <div class="card__h">
+            <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
+          </div>
+          <div class="card__body cat-report-chart">
+            <app-pie-chart [categories]="catStats()" totalLabel="TOTAL" currency="ARS" />
+          </div>
+        </div>
+        <ng-template #catTotalCell let-c>
+          <span class="mono">{{ c.total | number: '1.0-0' }}</span>
+        </ng-template>
+        <ng-template #catPctCell let-c>
+          <span class="mono">{{ c.pct | number: '1.1-1' }}%</span>
+        </ng-template>
+        <ng-template #catBarCell let-c>
+          <div class="progress" style="max-width: 120px">
+            <div class="progress__fill" [style.width]="c.pct + '%'"></div>
+          </div>
+        </ng-template>
+        <app-data-table
+          [columns]="catCols()"
+          [data]="catStats()"
+          [trackBy]="trackByName"
+          [totalPages]="0"
+          [emptyMessage]="i18n.t('reports.sin_datos')"
+        />
+      </div>
+    }
   }
 
   <!-- Month over month -->
@@ -125,43 +131,46 @@
         <div class="card__h">
           <span class="card__title">{{ i18n.t('reports.comparativo_title') }}</span>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>{{ i18n.t('reports.table_mes') }}</th>
-              <th class="num">{{ i18n.t('reports.table_ingresos') }}</th>
-              <th class="num">{{ i18n.t('reports.table_vs_anterior') }}</th>
-              <th class="num">{{ i18n.t('reports.table_gastos') }}</th>
-              <th class="num">{{ i18n.t('reports.table_vs_anterior') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (s of monthStats(); track s.month; let i = $index) {
-              @let prev = i > 0 ? monthStats()[i - 1] : null;
-              @let incomeDelta = prev ? ((s.income - prev.income) / (prev.income || 1)) * 100 : 0;
-              @let expenseDelta = prev ? ((s.expense - prev.expense) / (prev.expense || 1)) * 100 : 0;
-              <tr>
-                <td class="mono" style="font-size: 12px">{{ s.month }}</td>
-                <td class="num mono pos-text">{{ s.income | number: '1.0-0' }}</td>
-                <td
-                  class="num mono"
-                  style="font-size: 11px"
-                  [style.color]="incomeDelta >= 0 ? 'var(--positive)' : 'var(--negative)'"
-                >
-                  {{ prev ? (incomeDelta >= 0 ? '+' : '') + (incomeDelta | number: '1.1-1') + '%' : '—' }}
-                </td>
-                <td class="num mono" style="color: var(--negative)">{{ s.expense | number: '1.0-0' }}</td>
-                <td
-                  class="num mono"
-                  style="font-size: 11px"
-                  [style.color]="expenseDelta <= 0 ? 'var(--positive)' : 'var(--negative)'"
-                >
-                  {{ prev ? (expenseDelta >= 0 ? '+' : '') + (expenseDelta | number: '1.1-1') + '%' : '—' }}
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        <ng-template #momMonthCell let-s>
+          <span class="mono" style="font-size: var(--fs-sm)">{{ s.month }}</span>
+        </ng-template>
+        <ng-template #momIncomeCell let-s>
+          <span class="mono pos-text">{{ s.income | number: '1.0-0' }}</span>
+        </ng-template>
+        <ng-template #momIncomeDeltaCell let-s>
+          <span
+            class="mono"
+            style="font-size: var(--fs-xs)"
+            [style.color]="(s.incomeDelta ?? 0) >= 0 ? 'var(--positive)' : 'var(--negative)'"
+          >
+            {{
+              s.incomeDelta !== null ? (s.incomeDelta >= 0 ? '+' : '') + (s.incomeDelta | number: '1.1-1') + '%' : '—'
+            }}
+          </span>
+        </ng-template>
+        <ng-template #momExpenseCell let-s>
+          <span class="mono" style="color: var(--negative)">{{ s.expense | number: '1.0-0' }}</span>
+        </ng-template>
+        <ng-template #momExpenseDeltaCell let-s>
+          <span
+            class="mono"
+            style="font-size: var(--fs-xs)"
+            [style.color]="(s.expenseDelta ?? 0) <= 0 ? 'var(--positive)' : 'var(--negative)'"
+          >
+            {{
+              s.expenseDelta !== null
+                ? (s.expenseDelta >= 0 ? '+' : '') + (s.expenseDelta | number: '1.1-1') + '%'
+                : '—'
+            }}
+          </span>
+        </ng-template>
+        <app-data-table
+          [columns]="momCols()"
+          [data]="momRows()"
+          [trackBy]="trackByMonth"
+          [totalPages]="0"
+          [emptyMessage]="i18n.t('reports.sin_datos')"
+        />
       </div>
     } @else if (!loading()) {
       <div class="empty-state">

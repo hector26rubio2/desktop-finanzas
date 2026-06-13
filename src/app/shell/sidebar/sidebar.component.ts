@@ -9,7 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { RoleService } from '../../shared/services/role.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
@@ -83,12 +83,16 @@ export class SidebarComponent {
   private sanitizer = inject(DomSanitizer);
 
   private iconCache = computed(() => {
-    const cache: Record<string, string> = {};
+    const cache = new Map<string, SafeHtml>();
     for (const [name, svg] of Object.entries(ICONS)) {
-      cache[name] = this.sanitizer.bypassSecurityTrustHtml(svg) as unknown as string;
+      cache.set(name, this.sanitizer.bypassSecurityTrustHtml(svg));
     }
     return cache;
   });
+
+  iconSvg(name: string): SafeHtml {
+    return this.iconCache().get(name) ?? '';
+  }
 
   userName = computed(() => this.auth.currentUser()?.name ?? 'Usuario');
   userEmail = computed(() => this.auth.currentUser()?.email ?? '');
@@ -107,10 +111,6 @@ export class SidebarComponent {
       items: g.items.map((i) => ({ ...i, label: this.i18n.t(i.key) })),
     })),
   );
-
-  iconSvg(name: string): string {
-    return (this.iconCache() as Record<string, string>)[name] ?? ICONS[name] ?? '';
-  }
 
   toggleUserMenu() {
     this.showUserMenu.update((v) => !v);

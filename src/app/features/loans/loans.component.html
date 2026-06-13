@@ -1,6 +1,5 @@
 <div class="view">
-  <div class="row-flex">
-    <h3 class="serif" style="font-size: 22px; font-weight: 400; flex: 1">{{ i18n.t('loans.title') }}</h3>
+  <div class="row-flex" style="justify-content: flex-end">
     <button class="btn btn--primary" (click)="showForm = !showForm">{{ i18n.t('loans.nuevo') }}</button>
   </div>
 
@@ -76,11 +75,11 @@
   }
 
   @if (loading()) {
-    <div class="empty-state">
+    <div class="empty-state" role="status">
       <p>{{ i18n.t('loans.cargando') }}</p>
     </div>
   } @else if (loans().length === 0) {
-    <div class="empty-state">
+    <div class="empty-state" role="status">
       <div class="serif">{{ i18n.t('loans.sin_prestamos') }}</div>
       <p>{{ i18n.t('loans.sin_prestamos_desc') }}</p>
     </div>
@@ -90,28 +89,31 @@
         @for (loan of loans(); track loan.id) {
           <div
             class="card"
+            role="button"
+            tabindex="0"
             style="padding: 14px; cursor: pointer; transition: border-color 0.15s; border: 2px solid"
             [style.border-color]="selectedId() === loan.id ? 'var(--accent)' : 'transparent'"
             (click)="selectedId.set(loan.id)"
+            (keydown.enter)="selectedId.set(loan.id)"
           >
             <div style="font-weight: 500; color: var(--fg-0); margin-bottom: 4px">{{ loan.description }}</div>
             @if (loan.party) {
-              <div class="subtle" style="font-size: 11px; margin-bottom: 6px">{{ loan.party }}</div>
+              <div class="subtle" style="font-size: var(--fs-xs); margin-bottom: 6px">{{ loan.party }}</div>
             }
             <div class="progress" style="margin-bottom: 6px">
               <div class="progress__fill" [style.width]="progressPct(loan) + '%'"></div>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center">
-              <span class="mono" style="font-size: 11px; color: var(--fg-2)"
+              <span class="mono" style="font-size: var(--fs-xs); color: var(--fg-2)"
                 >{{ loan.paidMonths }}/{{ loan.termMonths }} meses</span
               >
-              <span class="mono" style="font-size: 12px; color: var(--negative)"
+              <span class="mono" style="font-size: var(--fs-sm); color: var(--negative)"
                 >{{ loan.currency }} {{ monthlyPayment(loan) | number: '1.0-0' }}/mes</span
               >
             </div>
             <div style="margin-top: 6px; display: flex; gap: 6px">
-              <span class="tag tag--accent" style="font-size: 10px">{{ loan.loanType.toUpperCase() }}</span>
-              <span class="tag" style="font-size: 10px"
+              <span class="tag tag--accent" style="font-size: var(--fs-2xs)">{{ loan.loanType.toUpperCase() }}</span>
+              <span class="tag" style="font-size: var(--fs-2xs)"
                 >TEA {{ loan.interestRateAnnual * 100 | number: '1.0-1' }}%</span
               >
             </div>
@@ -122,30 +124,7 @@
       @if (selected()) {
         @let loan = selected()!;
         <div>
-          <div class="kpi-grid" style="margin-bottom: var(--gutter)">
-            <div class="kpi-card">
-              <div class="eyebrow">{{ i18n.t('loans.label_capital') }}</div>
-              <div class="num-sm" style="margin-top: 6px">
-                {{ loan.currency }} {{ loan.principal | number: '1.0-0' }}
-              </div>
-            </div>
-            <div class="kpi-card">
-              <div class="eyebrow">{{ i18n.t('loans.cuota_mensual') }}</div>
-              <div class="num-sm" style="margin-top: 6px; color: var(--negative)">
-                {{ loan.currency }} {{ monthlyPayment(loan) | number: '1.0-0' }}
-              </div>
-            </div>
-            <div class="kpi-card">
-              <div class="eyebrow">{{ i18n.t('loans.total_intereses') }}</div>
-              <div class="num-sm" style="margin-top: 6px; color: var(--warning)">
-                {{ loan.currency }} {{ totalInterest(loan) | number: '1.0-0' }}
-              </div>
-            </div>
-            <div class="kpi-card">
-              <div class="eyebrow">{{ i18n.t('loans.meses_restantes') }}</div>
-              <div class="num-sm" style="margin-top: 6px">{{ loan.remainingMonths }}</div>
-            </div>
-          </div>
+          <app-kpi-strip [items]="loanKpis(loan)" style="margin-bottom: var(--gutter); display: block" />
 
           <div class="card" style="padding: 0; overflow: hidden">
             <div class="card__h">
@@ -165,31 +144,29 @@
               </button>
             </div>
             <div style="max-height: 400px; overflow-y: auto">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th style="width: 40px">{{ i18n.t('loans.table_numero') }}</th>
-                    <th class="num">{{ i18n.t('loans.table_cuota') }}</th>
-                    <th class="num">{{ i18n.t('loans.table_interes') }}</th>
-                    <th class="num">{{ i18n.t('loans.table_capital') }}</th>
-                    <th class="num">{{ i18n.t('loans.table_saldo') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of amortTable(); track row.n) {
-                    <tr
-                      [style.opacity]="row.n <= loan.paidMonths ? '0.45' : '1'"
-                      [style.background]="row.n === loan.paidMonths + 1 ? 'var(--accent-soft)' : ''"
-                    >
-                      <td class="mono" style="font-size: 11px; color: var(--fg-2)">{{ row.n }}</td>
-                      <td class="num mono">{{ row.payment | number: '1.0-0' }}</td>
-                      <td class="num mono" style="color: var(--warning)">{{ row.interest | number: '1.0-0' }}</td>
-                      <td class="num mono" style="color: var(--positive)">{{ row.principal | number: '1.0-0' }}</td>
-                      <td class="num mono">{{ row.balance | number: '1.0-0' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+              <ng-template #amortNCell let-row>
+                <span class="mono" style="font-size: var(--fs-xs); color: var(--fg-2)">{{ row.n }}</span>
+              </ng-template>
+              <ng-template #amortPaymentCell let-row>
+                <span class="mono">{{ row.payment | number: '1.0-0' }}</span>
+              </ng-template>
+              <ng-template #amortInterestCell let-row>
+                <span class="mono" style="color: var(--warning)">{{ row.interest | number: '1.0-0' }}</span>
+              </ng-template>
+              <ng-template #amortPrincipalCell let-row>
+                <span class="mono" style="color: var(--positive)">{{ row.principal | number: '1.0-0' }}</span>
+              </ng-template>
+              <ng-template #amortBalanceCell let-row>
+                <span class="mono">{{ row.balance | number: '1.0-0' }}</span>
+              </ng-template>
+              <app-data-table
+                [columns]="amortCols()"
+                [data]="amortTable()"
+                [trackBy]="trackByN"
+                [rowClass]="amortRowClass(loan)"
+                [totalPages]="0"
+                [emptyMessage]="i18n.t('common.no_results')"
+              />
             </div>
           </div>
         </div>

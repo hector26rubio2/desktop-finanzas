@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.dt-wrap {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-0);
+}
+
+.dt-row {
+  transition: background 0.1s;
+}
+
+.dt-row--clickable {
+  cursor: pointer;
+}
+
+.dt-row:hover td {
+  background: var(--hover);
+}
+
+.dt-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.dt-sortable:hover {
+  color: var(--fg-0);
+}
+
+.dt-sort-icon {
+  font-size: 8px;
+  margin-left: 4px;
+  color: var(--fg-3);
+}
+
+.dt-empty {
+  text-align: center;
+  padding: 40px var(--pad-x);
+  color: var(--fg-3);
+}

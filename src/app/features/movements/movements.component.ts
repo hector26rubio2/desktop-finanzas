@@ -1,6 +1,17 @@
-import { Component, OnInit, signal, inject, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  signal,
+  inject,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  viewChild,
+  TemplateRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
@@ -13,13 +24,17 @@ import {
 } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { CatIconComponent } from '../../shared/ui/cat-icon/cat-icon.component';
-import { ModalComponent } from '../../shared/ui/modal/modal.component';
-import { PaginationComponent } from '../../shared/ui/pagination/pagination.component';
-import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
-import { MovementDetailModalComponent } from '../../shared/ui/movement-detail-modal/movement-detail-modal.component';
+import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
+import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
+import { parseDate } from '../../shared/utils/date';
+import type { InstallmentResponse } from '../../shared/models/installment.model';
+import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+
+type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
 
 @Component({
   selector: 'app-movements',
@@ -27,14 +42,15 @@ import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     FormsModule,
     FmtDatePipe,
     CatIconComponent,
     ModalComponent,
-    PaginationComponent,
     ConfirmDialogComponent,
     MovementDetailModalComponent,
+    DataTableComponent,
   ],
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.css',
@@ -54,6 +70,8 @@ export class MovementsComponent implements OnInit {
   showDetailModal = signal(false);
   selectedMovement = signal<MovementResponse | null>(null);
   deletingIds = signal<string[]>([]);
+  editingMovement = signal<MovementResponse | null>(null);
+  installments = signal<InstallmentResponse[]>([]);
 
   formAccountId = signal('');
   formCurrency = signal('ARS');
@@ -74,6 +92,26 @@ export class MovementsComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   baseCurrency = computed(() => this.auth.currentUser()?.baseCurrency ?? 'ARS');
+
+  dateCell = viewChild<MovTpl>('dateCell');
+  conceptCell = viewChild<MovTpl>('conceptCell');
+  categoryCell = viewChild<MovTpl>('categoryCell');
+  sourceCell = viewChild<MovTpl>('sourceCell');
+  typeCell = viewChild<MovTpl>('typeCell');
+  amountCell = viewChild<MovTpl>('amountCell');
+  actionsCell = viewChild<MovTpl>('actionsCell');
+
+  trackById = (m: MovementResponse) => m.id;
+
+  cols = computed<ColumnDef<MovementResponse>[]>(() => [
+    { key: 'date', header: this.i18n.t('transactions.table_fecha'), width: '110px', cellTpl: this.dateCell() },
+    { key: 'description', header: this.i18n.t('transactions.table_concepto'), cellTpl: this.conceptCell() },
+    { key: 'categoryName', header: this.i18n.t('transactions.table_categoria'), cellTpl: this.categoryCell() },
+    { key: 'sourceType', header: this.i18n.t('transactions.source'), width: '100px', cellTpl: this.sourceCell() },
+    { key: 'type', header: this.i18n.t('transactions.table_tipo'), width: '70px', cellTpl: this.typeCell() },
+    { key: 'amount', header: this.i18n.t('transactions.table_monto'), numeric: true, cellTpl: this.amountCell() },
+    { key: 'id', header: '', width: '36px', cellTpl: this.actionsCell() },
+  ]);
 
   totalPages = computed(() => {
     const p = this.page();
@@ -184,7 +222,29 @@ export class MovementsComponent implements OnInit {
     );
   });
 
+  /** Cuotas mensuales comprometidas (compras activas en cuotas) */
+  cuotasMes = computed(() =>
+    this.installments()
+      .filter((i) => i.isActive && i.paidCount < i.installmentsCount)
+      .reduce((s, i) => s + i.monthlyAmount * (i.trmApplied || 1), 0),
+  );
+
+  activeInstallmentsCount = computed(
+    () => this.installments().filter((i) => i.isActive && i.paidCount < i.installmentsCount).length,
+  );
+
+  currentInstallment(m: MovementResponse): number {
+    const start = parseDate(m.date);
+    const now = new Date();
+    const elapsed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
+    return Math.min(Math.max(elapsed, 1), m.loanInstallments ?? 1);
+  }
+
   ngOnInit() {
+    this.api
+      .getInstallments()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (list) => this.installments.set(list), error: () => {} });
     this.movForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((v) => {
       this.formAccountId.set(v.accountId ?? '');
       this.formCurrency.set(v.currency ?? 'ARS');
@@ -307,30 +367,69 @@ export class MovementsComponent implements OnInit {
     this.loadPage(1);
   }
 
+  openEdit(m: MovementResponse) {
+    this.showDetailModal.set(false);
+    this.selectedMovement.set(null);
+    this.editingMovement.set(m);
+    const d = parseDate(m.date);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    this.movForm.reset({
+      type: m.type,
+      sourceType: m.sourceType ?? 'Cash',
+      loanParty: m.loanParty ?? '',
+      loanInstallments: m.loanInstallments,
+      loanInterestRate: m.loanInterestRate,
+      amount: m.amount,
+      currency: m.currency,
+      trmApplied: m.trmApplied ?? 1,
+      date: local,
+      description: m.description ?? '',
+      categoryId: m.categoryId ?? '',
+      accountId: m.accountId ?? '',
+    });
+    this.formType.set(m.type);
+    this.formSourceType.set(m.sourceType ?? 'Cash');
+    this.formAccountId.set(m.accountId ?? '');
+    this.formCurrency.set(m.currency);
+    this.showModal.set(true);
+  }
+
   openCreate() {
+    this.editingMovement.set(null);
+    // La cuenta predeterminada del usuario precarga origen, cuenta y moneda
+    const def = this.accounts().find((a) => a.isDefault);
+    const sourceType = def
+      ? def.type === 'Cash'
+        ? 'Cash'
+        : def.type === 'Credit'
+          ? 'CreditCard'
+          : 'OwnAccount'
+      : 'Cash';
     this.movForm.reset({
       type: 'Expense',
-      sourceType: 'Cash',
+      sourceType,
       loanParty: '',
       loanInstallments: null,
       loanInterestRate: null,
       amount: null,
-      currency: 'ARS',
+      currency: def?.currency ?? 'ARS',
       trmApplied: 1,
       date: new Date().toISOString().slice(0, 16),
       description: '',
       categoryId: '',
-      accountId: '',
+      accountId: def?.id ?? '',
     });
     this.formType.set('Expense');
-    this.formSourceType.set('Cash');
-    this.formAccountId.set('');
-    this.formCurrency.set('ARS');
+    this.formSourceType.set(sourceType);
+    this.formAccountId.set(def?.id ?? '');
+    this.formCurrency.set(def?.currency ?? 'ARS');
     this.showModal.set(true);
   }
 
   closeModal() {
     this.showModal.set(false);
+    this.editingMovement.set(null);
   }
 
   save() {
@@ -343,31 +442,32 @@ export class MovementsComponent implements OnInit {
     if (v.sourceType === 'Loan' && v.type === 'Income') subType = 'LoanReceived';
     if (v.sourceType === 'Loan' && v.type === 'Expense') subType = 'LoanGiven';
 
-    this.api
-      .createMovement({
-        type: v.type!,
-        subType,
-        sourceType: v.sourceType || undefined,
-        loanParty: v.loanParty || undefined,
-        loanInstallments: v.loanInstallments || undefined,
-        loanInterestRate: v.loanInterestRate || undefined,
-        amount: v.amount!,
-        currency: v.currency!,
-        trmApplied: v.trmApplied ?? 1,
-        date: v.date!,
-        description: v.description || undefined,
-        categoryId: v.categoryId || undefined,
-        accountId: v.accountId || undefined,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.showModal.set(false);
-          this.loadPage(this.currentPage());
-        },
-        error: () => this.saving.set(false),
-      });
+    const req = {
+      type: v.type!,
+      subType,
+      sourceType: v.sourceType || undefined,
+      loanParty: v.loanParty || undefined,
+      loanInstallments: v.loanInstallments || undefined,
+      loanInterestRate: v.loanInterestRate || undefined,
+      amount: v.amount!,
+      currency: v.currency!,
+      trmApplied: v.trmApplied ?? 1,
+      date: v.date!,
+      description: v.description || undefined,
+      categoryId: v.categoryId || undefined,
+      accountId: v.accountId || undefined,
+    };
+    const editing = this.editingMovement();
+    const op = editing ? this.api.updateMovement(editing.id, req) : this.api.createMovement(req);
+    op.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.showModal.set(false);
+        this.editingMovement.set(null);
+        this.loadPage(this.currentPage());
+      },
+      error: () => this.saving.set(false),
+    });
   }
 
   askDelete(id: string) {

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@shared/guards/auth.guard';
-import { adminGuard } from '@shared/guards/admin.guard';
+import { authGuard } from '@core/guards/auth.guard';
+import { adminGuard } from '@core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

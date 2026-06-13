@@ -1,8 +1,21 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  viewChild,
+  TemplateRef,
+  DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule, formatNumber } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, LoanResponse, AccountResponse } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
+import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 
 interface AmortRow {
   n: number;
@@ -12,11 +25,13 @@ interface AmortRow {
   balance: number;
 }
 
+type AmortTpl = TemplateRef<{ $implicit: AmortRow; row: AmortRow }>;
+
 @Component({
   selector: 'app-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, KpiStripComponent],
   templateUrl: './loans.component.html',
   styleUrl: './loans.component.css',
 })
@@ -31,8 +46,45 @@ export class LoansComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
+  private destroyRef = inject(DestroyRef);
 
   selected = () => this.loans().find((l) => l.id === this.selectedId()) ?? null;
+
+  amortNCell = viewChild<AmortTpl>('amortNCell');
+  amortPaymentCell = viewChild<AmortTpl>('amortPaymentCell');
+  amortInterestCell = viewChild<AmortTpl>('amortInterestCell');
+  amortPrincipalCell = viewChild<AmortTpl>('amortPrincipalCell');
+  amortBalanceCell = viewChild<AmortTpl>('amortBalanceCell');
+
+  trackByN = (r: AmortRow) => String(r.n);
+
+  loanKpis(loan: LoanResponse): KpiStripItem[] {
+    const fmt = (v: number) => loan.currency + ' ' + formatNumber(v, 'en-US', '1.0-0');
+    return [
+      { label: this.i18n.t('loans.label_capital'), value: fmt(loan.principal) },
+      { label: this.i18n.t('loans.cuota_mensual'), value: fmt(this.monthlyPayment(loan)), color: 'var(--negative)' },
+      { label: this.i18n.t('loans.total_intereses'), value: fmt(this.totalInterest(loan)), color: 'var(--warning)' },
+      { label: this.i18n.t('loans.meses_restantes'), value: '' + loan.remainingMonths },
+    ];
+  }
+
+  amortRowClass(loan: LoanResponse) {
+    return (r: AmortRow) =>
+      r.n <= loan.paidMonths ? 'dt-row--muted' : r.n === loan.paidMonths + 1 ? 'dt-row--active' : null;
+  }
+
+  amortCols = computed<ColumnDef<AmortRow>[]>(() => [
+    { key: 'n', header: this.i18n.t('loans.table_numero'), width: '40px', cellTpl: this.amortNCell() },
+    { key: 'payment', header: this.i18n.t('loans.table_cuota'), numeric: true, cellTpl: this.amortPaymentCell() },
+    { key: 'interest', header: this.i18n.t('loans.table_interes'), numeric: true, cellTpl: this.amortInterestCell() },
+    {
+      key: 'principal',
+      header: this.i18n.t('loans.table_capital'),
+      numeric: true,
+      cellTpl: this.amortPrincipalCell(),
+    },
+    { key: 'balance', header: this.i18n.t('loans.table_saldo'), numeric: true, cellTpl: this.amortBalanceCell() },
+  ]);
 
   form = this.fb.group({
     description: ['', Validators.required],
@@ -48,15 +100,21 @@ export class LoansComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.api.getLoans().subscribe({
-      next: (list) => {
-        this.loans.set(list);
-        if (list.length) this.selectedId.set(list[0].id);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-    this.api.getAccounts().subscribe((list) => this.accounts.set(list));
+    this.api
+      .getLoans()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.loans.set(list);
+          if (list.length) this.selectedId.set(list[0].id);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+    this.api
+      .getAccounts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => this.accounts.set(list));
   }
 
   save() {
@@ -77,6 +135,7 @@ export class LoansComponent implements OnInit {
         startDate: v.startDate!,
         accountId: v.accountId || undefined,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (loan) => {
           this.loans.update((l) => [...l, loan]);
@@ -90,10 +149,13 @@ export class LoansComponent implements OnInit {
   }
 
   deleteLoan(id: string) {
-    this.api.deleteLoan(id).subscribe(() => {
-      this.loans.update((list) => list.filter((l) => l.id !== id));
-      if (this.selectedId() === id) this.selectedId.set(this.loans()[0]?.id ?? null);
-    });
+    this.api
+      .deleteLoan(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loans.update((list) => list.filter((l) => l.id !== id));
+        if (this.selectedId() === id) this.selectedId.set(this.loans()[0]?.id ?? null);
+      });
   }
 
   progressPct(loan: LoanResponse) {
@@ -115,7 +177,8 @@ export class LoansComponent implements OnInit {
 
   private buildAmort(loan: LoanResponse): AmortRow[] {
     const { principal, interestRateAnnual, termMonths, loanType } = loan;
-    const im = interestRateAnnual / 12;
+    // interestRateAnnual es TEA en % (ej. 45 = 45%); tasa mensual efectiva equivalente
+    const im = Math.pow(1 + interestRateAnnual / 100, 1 / 12) - 1;
     const rows: AmortRow[] = [];
     let balance = principal;
 

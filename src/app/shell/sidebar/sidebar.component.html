@@ -95,7 +95,14 @@
         {{ userInitials() }}
       </button>
       @if (!collapsed()) {
-        <div class="sidebar__foot-meta" (click)="toggleUserMenu()" style="cursor: pointer">
+        <div
+          class="sidebar__foot-meta"
+          role="button"
+          tabindex="0"
+          (click)="toggleUserMenu()"
+          (keydown.enter)="toggleUserMenu()"
+          style="cursor: pointer"
+        >
           <div class="sidebar__foot-name">{{ userName() }}</div>
           <div class="sidebar__foot-mail">{{ userEmail() }}</div>
         </div>
