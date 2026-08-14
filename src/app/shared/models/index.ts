@@ -5,4 +5,3 @@ export * from './category.model';
 export * from './loan.model';
 export * from './installment.model';
 export * from './recurring-transaction.model';
-export * from './nav.model';
