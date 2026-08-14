@@ -23,6 +23,12 @@ test('the main process exposes no traffic encryption and derives no key from the
   }
   assert.doesNotMatch(security, /FINANZAS_ENCRYPTION_KEY|pbkdf2/);
   assert.doesNotMatch(preload, /cryptoEncrypt|cryptoDecrypt/);
+
+  // Ni se cargan ficheros de secretos ni se empaquetan en el distribuible.
+  // `process.env.NODE_ENV` es legítimo: lo pone el script, no un fichero.
+  const main = withoutComments(read('main.js'));
+  assert.doesNotMatch(main, /loadEnvironment|readFileSync/, 'main.js vuelve a cargar un fichero de entorno');
+  assert.doesNotMatch(withoutComments(read('../electron-builder.yml')), /\.env/, 'el instalador vuelve a empaquetar un .env');
   // Lo que sí debe seguir: el cifrado del sistema operativo para la sesión.
   assert.match(security, /safeStorage\.encryptString/);
   assert.match(security, /safeStorage\.decryptString/);

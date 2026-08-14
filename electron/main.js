@@ -1,6 +1,4 @@
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 const { app, BrowserWindow, ipcMain, Menu, safeStorage, session } = require('electron');
 const { LocalDatabase } = require('./local-data/database');
 const { LocalAuthStore } = require('./local-data/auth-store');
@@ -11,17 +9,11 @@ const { registerSecurityIpc } = require('./services/security');
 const { setupUpdater } = require('./services/updater');
 const { createWindow } = require('./services/window');
 
+// La aplicación no lee ninguna variable de entorno propia. Aquí se cargaba un
+// `.env` con la clave del cifrado de tráfico, el client id de Google y la URL
+// del API: las tres desaparecieron con el servidor. Cargar un fichero de
+// secretos que nadie consulta solo sirve para que alguien vuelva a meter uno.
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-function loadEnvironment() {
-  const candidates = isDev ? [path.join(__dirname, '..', '.env')] : [path.join(process.resourcesPath, '.env.production'), path.join(__dirname, '..', '.env.production')];
-  const file = candidates.find(fs.existsSync);
-  if (!file) return;
-  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-    const index = line.indexOf('=');
-    if (index > 0 && !line.trim().startsWith('#')) process.env[line.slice(0, index).trim()] ||= line.slice(index + 1).trim();
-  }
-}
-loadEnvironment();
 
 const logger = createLogger(app);
 let database;

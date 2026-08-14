@@ -14,9 +14,9 @@ files:
 asarUnpack:
   - node_modules/better-sqlite3/**
 
-extraResources:
-  - from: .env.production
-    to: .env.production
+# Aquí se empaquetaba un fichero de entorno de producción dentro del instalador.
+# Nada lo lee ya, y un fichero de secretos dentro de un distribuible es un
+# secreto repartido. No volver a añadir extraResources con secretos.
 
 win:
   target:
