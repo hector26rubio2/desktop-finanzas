@@ -39,7 +39,7 @@ app.whenReady().then(async () => {
   database = new LocalDatabase({ app, safeStorage, logger, syncEnabled: false });
   database.open();
   registerLocalDataIpc({ ipcMain, database, app });
-  registerAuthIpc({ ipcMain, store: new LocalAuthStore({ app, safeStorage, logger }) });
+  registerAuthIpc({ ipcMain, store: new LocalAuthStore({ app, safeStorage, logger }), database });
   setupUpdater({ ipcMain, BrowserWindow, isDev, logger });
   await createWindow({ BrowserWindow, session, isDev, nonce: crypto.randomBytes(16).toString('base64'), logger });
 });

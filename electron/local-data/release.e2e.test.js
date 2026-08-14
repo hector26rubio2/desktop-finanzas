@@ -25,7 +25,7 @@ function start(root = fs.mkdtempSync(path.join(os.tmpdir(), 'finanzas-e2e-'))) {
 // la aplicación arrancaría vacía sobre datos que siguen en el disco.
 test('release journey: local profile owns the ledger across password change and recovery', () => {
   const f = start();
-  const enrollment = f.auth.register({ name: 'Titular', email: 'titular@local', password: 'contrasena1', baseCurrency: 'COP' });
+  const enrollment = f.auth.register({ name: 'Titular', email: 'titular@local', password: 'contrasena1', baseCurrency: 'COP', existingOwners: f.db.owners() });
   const owner = enrollment.ownerId;
 
   f.db.put('movement', owner, { id: 'e2e-1', type: 'Expense', amount: 120, amountBase: 120, currency: 'COP', trmApplied: 1, date: '2026-07-05' }, 'create');
@@ -47,6 +47,26 @@ test('release journey: local profile owns the ledger across password change and 
   assert.equal(recovered.ownerId, owner);
   assert.equal(restarted.db.get('movement', owner, 'e2e-1').amountBase, 120);
   restarted.db.close();
+});
+
+// El caso real de la migración: la base ya tiene datos del API viejo y todavía
+// no hay perfil. Si el alta acuñara un id nuevo, la app abriría vacía.
+test('release journey: upgrading over API-era data keeps the ledger visible', () => {
+  const f = start();
+  const legacyOwner = 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f';
+  f.db.put('movement', legacyOwner, { id: 'old-1', type: 'Expense', amount: 50, amountBase: 50, currency: 'COP', trmApplied: 1, date: '2026-06-10' }, 'create');
+  f.db.put('account', legacyOwner, { id: 'old-account', name: 'Efectivo', type: 'Cash', currency: 'COP', isActive: true }, 'create');
+
+  const owners = f.db.owners();
+  assert.equal(owners.length, 1);
+  assert.equal(owners[0].ownerId, legacyOwner);
+
+  const enrollment = f.auth.register({ name: 'Titular', password: 'contrasena1', baseCurrency: 'COP', existingOwners: owners });
+
+  assert.equal(enrollment.ownerId, legacyOwner);
+  assert.equal(f.db.list('movement', enrollment.ownerId).length, 1);
+  assert.equal(f.db.summary(enrollment.ownerId, 2026, 6).totalExpense, 50);
+  f.db.close();
 });
 
 test('release journey: first start, offline close, backup restore and monthly close', () => {

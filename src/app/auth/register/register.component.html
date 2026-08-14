@@ -131,6 +131,10 @@
           <p class="auth-form-subtitle">{{ i18n.t('auth.setup_desc') }}</p>
         </div>
 
+        @if (adoptedDocuments() > 0) {
+          <div class="auth-success-banner">{{ adoptionNotice() }}</div>
+        }
+
         <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
         <div class="auth-field-group">
           <label class="auth-field-label">{{ i18n.t('auth.name') }}</label>

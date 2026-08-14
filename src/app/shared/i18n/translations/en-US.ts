@@ -198,6 +198,7 @@ const en: Record<TranslationKey, string> = {
   'auth.feature_no_server': 'No server, no cloud account',
   'auth.brand_local_title': 'Your finances, on your machine.',
   'auth.brand_local_desc': 'Data is stored encrypted on this computer. It never travels to a server.',
+  'auth.adopting_data': 'This computer already holds {count} records. This profile claims them: they will be there when you sign in.',
 
   'settings.profile': 'Profile',
   'settings.appearance': 'Appearance',

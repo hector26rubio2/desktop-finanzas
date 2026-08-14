@@ -32,7 +32,7 @@ export class LocalAuthService {
     const api = bridge();
     // Fuera de Electron no hay perfil que abrir; se responde el estado vacío en
     // vez de reventar, para que el `dev server` del navegador siga arrancando.
-    if (!api) return Promise.resolve({ hasProfile: false, suggestedName: '', unlocked: false, lockedUntil: 0 });
+    if (!api) return Promise.resolve({ hasProfile: false, suggestedName: '', unlocked: false, lockedUntil: 0, orphanOwners: [] });
     return api.status();
   }
 

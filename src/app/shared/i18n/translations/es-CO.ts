@@ -200,6 +200,7 @@ const es: Record<TranslationKey, string> = {
   'auth.feature_no_server': 'Sin servidor ni cuenta en la nube',
   'auth.brand_local_title': 'Tus finanzas, en tu equipo.',
   'auth.brand_local_desc': 'Los datos se guardan cifrados en este computador. No viajan a ningún servidor.',
+  'auth.adopting_data': 'Ya hay {count} registros guardados en este equipo. Este perfil los reclama: al entrar los verás como siempre.',
 
   'settings.profile': 'Perfil',
   'settings.appearance': 'Apariencia',

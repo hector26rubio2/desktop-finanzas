@@ -26,4 +26,10 @@ export interface LocalAuthStatus {
   unlocked: boolean;
   /** Epoch ms hasta el que el ingreso está pausado por intentos fallidos; 0 si no lo está. */
   lockedUntil: number;
+  /**
+   * Datos que ya viven en SQLite sin perfil que los reclame — típicamente de
+   * cuando la identidad la daba el API. El alta adopta el dueño cuando hay uno
+   * solo; con varios exige que el usuario elija.
+   */
+  orphanOwners: Array<{ ownerId: string; documents: number }>;
 }

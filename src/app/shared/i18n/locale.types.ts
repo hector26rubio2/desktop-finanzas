@@ -193,6 +193,7 @@ export type TranslationKey =
   | 'auth.feature_no_server'
   | 'auth.brand_local_title'
   | 'auth.brand_local_desc'
+  | 'auth.adopting_data'
   | 'settings.profile'
   | 'settings.appearance'
   | 'settings.currencies'

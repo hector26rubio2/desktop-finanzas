@@ -50,6 +50,44 @@ test('registering opens a session, normalizes the profile and issues a recovery 
   assert.equal(stored.includes(Buffer.from(enrollment.recoveryCode)), false);
 });
 
+// Al retirar el API, el id del usuario dejó de venir del servidor. Un perfil que
+// acuñe un id nuevo sobre datos existentes los deja invisibles sin borrar nada:
+// la aplicación abriría vacía sobre el libro entero.
+test('the profile adopts the only owner already holding data', () => {
+  const { store } = fixture();
+  const existingOwners = [{ ownerId: 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f', documents: 73 }];
+
+  assert.deepEqual(store.status(existingOwners).orphanOwners, existingOwners);
+
+  const enrollment = store.register({ ...CREDENTIALS, existingOwners });
+  assert.equal(enrollment.ownerId, 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f');
+  // Y sigue siendo el mismo tras entrar de nuevo.
+  assert.equal(store.login({ password: CREDENTIALS.password }).ownerId, 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f');
+  // Con perfil ya creado no quedan datos huérfanos que reclamar.
+  assert.deepEqual(store.status(existingOwners).orphanOwners, []);
+});
+
+test('with no previous data the profile mints its own owner id', () => {
+  const { store } = fixture();
+  const enrollment = store.register({ ...CREDENTIALS, existingOwners: [] });
+  assert.match(enrollment.ownerId, /^[0-9a-f-]{36}$/);
+});
+
+test('with several owners it refuses to guess whose the data is', () => {
+  const { store } = fixture();
+  const existingOwners = [{ ownerId: 'owner-a', documents: 40 }, { ownerId: 'owner-b', documents: 5 }];
+
+  assert.throws(() => store.register({ ...CREDENTIALS, existingOwners }), /more than one owner/);
+  assert.equal(store.status(existingOwners).hasProfile, false);
+
+  // Solo con una elección explícita, y solo si ese dueño existe.
+  assert.throws(
+    () => store.register({ ...CREDENTIALS, existingOwners, adoptOwnerId: 'owner-c' }),
+    /no data on this machine/,
+  );
+  assert.equal(store.register({ ...CREDENTIALS, existingOwners, adoptOwnerId: 'owner-b' }).ownerId, 'owner-b');
+});
+
 test('a second profile cannot be created over an existing one', () => {
   const { store } = fixture();
   store.register(CREDENTIALS);

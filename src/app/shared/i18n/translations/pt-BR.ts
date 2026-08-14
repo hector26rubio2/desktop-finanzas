@@ -199,6 +199,7 @@ const pt: Record<TranslationKey, string> = {
   'auth.feature_no_server': 'Sem servidor nem conta na nuvem',
   'auth.brand_local_title': 'Suas finanças, na sua máquina.',
   'auth.brand_local_desc': 'Os dados ficam criptografados neste computador. Não vão para nenhum servidor.',
+  'auth.adopting_data': 'Este computador já tem {count} registros. Este perfil os reivindica: vão estar lá quando você entrar.',
 
   'settings.profile': 'Perfil',
   'settings.appearance': 'Aparência',

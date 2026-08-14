@@ -37,6 +37,16 @@ class LocalDatabase {
   }
 
   close() { this.db?.close(); this.db = null; }
+
+  /**
+   * Dueños con documentos vivos. Lo usa el alta local para no acuñar un
+   * `ownerId` nuevo sobre datos que ya existen: al retirar el API, el id del
+   * usuario dejó de venir del servidor y un id nuevo dejaría el libro entero
+   * fuera de vista sin borrar nada.
+   */
+  owners() {
+    return this.db.prepare('SELECT owner_id AS ownerId, COUNT(*) AS documents FROM local_documents WHERE deleted = 0 GROUP BY owner_id ORDER BY documents DESC').all();
+  }
   status() { return { schemaVersion: Number(this.db.pragma('user_version', { simple: true })), path: this.databasePath, encryptedPayloads: true, syncEnabled: this.syncEnabled }; }
 
   list(kind, ownerId) {

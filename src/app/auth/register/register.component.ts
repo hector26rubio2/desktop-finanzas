@@ -38,6 +38,9 @@ export class RegisterComponent implements OnInit {
   /** El código solo existe en memoria y solo hasta que el usuario confirme haberlo guardado. */
   recoveryCode = signal<string | null>(null);
   recoveryAcknowledged = signal(false);
+  /** Documentos que ya están en el disco y que este perfil va a reclamar. */
+  adoptedDocuments = signal(0);
+  adoptionNotice = () => this.i18n.t('auth.adopting_data').replace('{count}', String(this.adoptedDocuments()));
 
   async ngOnInit() {
     const status = await this.auth.status().catch(() => null);
@@ -46,6 +49,7 @@ export class RegisterComponent implements OnInit {
       return;
     }
     if (status?.suggestedName) this.form.patchValue({ name: status.suggestedName });
+    this.adoptedDocuments.set((status?.orphanOwners ?? []).reduce((total, owner) => total + owner.documents, 0));
   }
 
   submit() {

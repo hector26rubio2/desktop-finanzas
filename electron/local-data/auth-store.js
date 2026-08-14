@@ -64,7 +64,7 @@ class LocalAuthStore {
     this.lockedUntil = 0;
   }
 
-  status() {
+  status(existingOwners = []) {
     const profile = this.#read();
     return {
       hasProfile: profile !== null,
@@ -72,20 +72,45 @@ class LocalAuthStore {
       suggestedName: profile?.user.name || os.userInfo().username || '',
       unlocked: this.session !== null,
       lockedUntil: this.lockedUntil > Date.now() ? this.lockedUntil : 0,
+      // Datos que ya viven en el disco sin perfil que los reclame.
+      orphanOwners: profile ? [] : existingOwners,
     };
   }
 
-  register({ name, email, password, baseCurrency }) {
+  /**
+   * `existingOwners` son los dueños con documentos vivos en SQLite.
+   *
+   * Con exactamente uno, el perfil **adopta** ese id: es el caso inequívoco —el
+   * usuario tiene una sola historia financiera en esta máquina y acuñar un id
+   * nuevo la dejaría invisible sin borrar un solo registro.
+   *
+   * Con varios no se elige por él: se exige que indique cuál, porque adivinar
+   * ahí es decidir de quién son unos movimientos.
+   */
+  register({ name, email, password, baseCurrency, existingOwners = [], adoptOwnerId = null }) {
     if (this.#read()) throw new Error('A local profile already exists on this machine');
     this.#assertPassword(password);
     const trimmedName = String(name || '').trim();
     if (!trimmedName) throw new Error('name is required');
 
+    const owners = existingOwners.map((owner) => String(owner?.ownerId ?? owner)).filter(Boolean);
+    let ownerId;
+    if (adoptOwnerId) {
+      if (owners.length > 0 && !owners.includes(String(adoptOwnerId))) throw new Error('The chosen owner has no data on this machine');
+      ownerId = String(adoptOwnerId);
+    } else if (owners.length === 1) {
+      ownerId = owners[0];
+    } else if (owners.length > 1) {
+      throw new Error('This machine holds data from more than one owner: choose which one this profile adopts');
+    } else {
+      ownerId = crypto.randomUUID();
+    }
+
     const recoveryCode = newRecoveryCode();
     const profile = {
       version: PROFILE_VERSION,
       user: {
-        id: crypto.randomUUID(),
+        id: ownerId,
         name: trimmedName,
         email: String(email || '').trim().toLowerCase(),
         baseCurrency: String(baseCurrency || 'COP').toUpperCase(),
