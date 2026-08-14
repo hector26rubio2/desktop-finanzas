@@ -31,6 +31,7 @@ import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
 import type { InstallmentResponse } from '../../shared/models/installment.model';
+import { installmentPaymentKey } from '../../shared/services/api/installments-api.service';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
@@ -367,7 +368,7 @@ export class CardsComponent implements OnInit {
     const source = this.fundingAccounts().find((a) => a.currency === inst.currency);
     if (!source) return;
     this.api
-      .payInstallment(inst.id, source.id, crypto.randomUUID())
+      .payInstallment(inst.id, source.id, installmentPaymentKey(inst))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
         this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));

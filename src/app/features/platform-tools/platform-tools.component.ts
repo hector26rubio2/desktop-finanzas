@@ -10,6 +10,7 @@ import {
   type MovementImportPreview,
 } from './movement-import';
 import { auditLocalData, type LocalDataAuditReport } from './local-data-audit';
+import { planLocalDataRepair, type LocalRepairPlan } from './local-data-repair';
 @Component({
   selector: 'app-platform-tools',
   standalone: true,
@@ -23,8 +24,10 @@ export class PlatformToolsComponent {
   platform = inject(PlatformService);
   preview = signal<MovementImportPreview | null>(null);
   auditReport = signal<LocalDataAuditReport | null>(null);
+  repairPlan = signal<LocalRepairPlan | null>(null);
   importing = signal(false);
   auditing = signal(false);
+  repairing = signal(false);
   message = signal('');
   backupPath = '';
   restorePath = '';
@@ -133,8 +136,10 @@ export class PlatformToolsComponent {
         this.local.list<unknown>('loan'),
         this.local.list<unknown>('installmentpurchase'),
       ]);
-      const report = auditLocalData({ movements, accounts, categories, loans, installmentPurchases });
+      const scanned = { movements, accounts, categories, loans, installmentPurchases };
+      const report = auditLocalData(scanned);
       this.auditReport.set(report);
+      this.repairPlan.set(report.summary.total === 0 ? null : planLocalDataRepair(report, scanned));
       this.message.set(
         report.summary.total === 0
           ? 'Auditoría local terminada sin hallazgos. El escaneo fue de solo lectura.'
@@ -145,6 +150,41 @@ export class PlatformToolsComponent {
     } finally {
       this.auditing.set(false);
     }
+  }
+
+  /**
+   * Aplica solo los cambios que el plan declaró deducibles, en un único lote.
+   * Los que requieren decisión quedan intactos y siguen listados: si esta
+   * función los tocara, estaría corrigiendo información ambigua en silencio.
+   */
+  async applyRepair() {
+    const plan = this.repairPlan();
+    if (this.repairing() || !plan || plan.operations.length === 0) return;
+    this.repairing.set(true);
+    try {
+      await this.local.batch(plan.operations);
+      this.message.set(
+        `Reparación aplicada en un único lote: ${plan.summary.repairable} corregido(s). `
+        + `${plan.summary.requiresDecision} caso(s) siguen esperando tu decisión y no se tocaron.`,
+      );
+      // El informe anterior ya no describe el estado del disco.
+      this.auditReport.set(null);
+      this.repairPlan.set(null);
+      await this.loadMetrics();
+    } catch {
+      this.message.set('La reparación no se aplicó. El lote local fue rechazado sin confirmar cambios.');
+    } finally {
+      this.repairing.set(false);
+    }
+  }
+
+  exportRepairPlan() {
+    const plan = this.repairPlan();
+    if (!plan) return;
+    this.downloadJson(
+      { ...plan, exportedAt: new Date().toISOString() },
+      `finanzas-repair-plan-${new Date().toISOString().slice(0, 10)}.json`,
+    );
   }
 
   exportAudit() {

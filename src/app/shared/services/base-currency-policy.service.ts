@@ -11,8 +11,6 @@ const FINANCIAL_DATA_KINDS = [
   'portfolioentity',
   'portfoliovaluation',
   'investmenttransaction',
-  'budget',
-  'financialgoal',
 ] as const satisfies readonly LocalKind[];
 
 export type BaseCurrencyChangeResult =

@@ -91,6 +91,39 @@
       @if (report.summary.total === 0) {
         <div class="audit-clean">No se detectaron inconsistencias en las reglas auditadas.</div>
       } @else {
+        @if (repairPlan(); as plan) {
+          <div class="audit-repair">
+            <p class="hint">
+              De {{ plan.summary.findings }} hallazgo(s), <strong>{{ plan.summary.repairable }}</strong> se deducen del
+              propio libro o por aritmética y pueden repararse.
+              <strong>{{ plan.summary.requiresDecision }}</strong> requieren tu decisión y no se tocarán: repararlos
+              exigiría inventar un dato que no está.
+            </p>
+            @if (plan.changes.length > 0) {
+              <ul class="audit-repair__list">
+                @for (change of plan.changes.slice(0, 20); track change.entityKind + ':' + change.entityId + ':' + change.field) {
+                  <li>
+                    <code>{{ change.entityKind }} · {{ change.entityId }}</code>
+                    <span>{{ change.field }}: {{ change.before }} → <strong>{{ change.after }}</strong></span>
+                    <small>{{ change.reason }}</small>
+                  </li>
+                }
+              </ul>
+            }
+            <div class="audit-panel__actions">
+              <button
+                class="btn btn--primary"
+                [disabled]="repairing() || plan.operations.length === 0"
+                (click)="applyRepair()"
+              >
+                {{ repairing() ? 'Reparando…' : 'Reparar ' + plan.summary.repairable + ' caso(s) deducibles' }}
+              </button>
+              <button class="btn btn--ghost" [disabled]="repairing()" (click)="exportRepairPlan()">
+                Exportar plan de reparación
+              </button>
+            </div>
+          </div>
+        }
         <div class="audit-codes">
           @for (item of report.summary.byCode; track item.code) {
             <span class="audit-code" [attr.data-severity]="item.severity">

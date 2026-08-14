@@ -12,8 +12,6 @@ export type LocalKind =
   | 'portfolioentity'
   | 'portfoliovaluation'
   | 'investmenttransaction'
-  | 'budget'
-  | 'financialgoal'
   | 'financialoperation';
 export type LocalBatchOperation =
   | { action: 'put'; kind: LocalKind; value: unknown; operation?: string }

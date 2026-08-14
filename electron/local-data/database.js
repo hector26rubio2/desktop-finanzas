@@ -9,6 +9,9 @@ const SCHEMA_VERSION = 2;
 const KINDS = new Set([
   'movement', 'account', 'category', 'entity', 'portfolioentity',
   'portfoliovaluation', 'investmenttransaction', 'loan',
+  // `budget` y `financialgoal` ya no existen en el renderer: eran tipos sin
+  // producto. Se siguen aceptando aquí para que un respaldo antiguo restaure
+  // sin reventar; nada los escribe.
   'budget', 'financialgoal', 'financialoperation', 'installmentpurchase',
   'recurringtransaction',
 ]);

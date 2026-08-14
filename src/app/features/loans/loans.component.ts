@@ -177,6 +177,9 @@ export class LoansComponent implements OnInit {
   }
 
   save() {
+    // Sin esta guarda, un doble clic creaba dos préstamos con sus dos
+    // desembolsos: `createLoan` no lleva clave de idempotencia que los una.
+    if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.saving.set(true);

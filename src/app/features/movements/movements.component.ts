@@ -557,6 +557,7 @@ export class MovementsComponent implements OnInit {
   }
 
   saveTransfer() {
+    if (this.saving()) return;
     this.transferForm.markAllAsTouched();
     if (this.transferForm.invalid) return;
     const value = this.transferForm.getRawValue();
@@ -603,6 +604,9 @@ export class MovementsComponent implements OnInit {
   }
 
   save() {
+    // `createMovement` no lleva clave de idempotencia: sin esta guarda un doble
+    // clic registraba el mismo gasto dos veces.
+    if (this.saving()) return;
     this.movForm.markAllAsTouched();
     if (this.movForm.invalid) return;
     const v = this.movForm.value;

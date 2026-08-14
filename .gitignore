@@ -30,4 +30,8 @@ npm-debug.log*
 .agents
 # Google OAuth secrets
 client_secret_*.json
+# Lleva apiUrl, googleClientId y encryptionKey con valores reales. Nadie lo lee
+# (provideAppConfig inyecta `environment`), pero angular.json copia src/assets/
+# entera a dist/, así que se empaquetaba en el instalador.
+src/assets/app-config.json
 skills-lock.json

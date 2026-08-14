@@ -56,8 +56,6 @@ describe('BaseCurrencyPolicyService', () => {
       'portfolioentity',
       'portfoliovaluation',
       'investmenttransaction',
-      'budget',
-      'financialgoal',
     ]);
     expect(token.updateBaseCurrency).toHaveBeenCalledWith('USD');
   });
@@ -71,8 +69,6 @@ describe('BaseCurrencyPolicyService', () => {
     'portfolioentity',
     'portfoliovaluation',
     'investmenttransaction',
-    'budget',
-    'financialgoal',
   ])(
     'blocks a change when %s data exists',
     async (blockingKind) => {

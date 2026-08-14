@@ -26,11 +26,18 @@ export class LoansApiService {
     return from(this.update(id, req));
   }
 
+  /**
+   * `idempotencyKey` es obligatoria a propósito. Con un valor por defecto
+   * generado aquí, cada reintento traía una clave nueva y la protección contra
+   * el doble pago no se activaba nunca: quien omitiera el argumento perdía la
+   * garantía sin enterarse. La clave debe fijarse antes del reintento —al abrir
+   * el diálogo— o derivarse de la operación.
+   */
   payLoan(
     id: string,
     sourceAccountId: string,
-    extraPrincipal = 0,
-    idempotencyKey: string = globalThis.crypto.randomUUID(),
+    extraPrincipal: number,
+    idempotencyKey: string,
   ): Observable<LoanResponse> {
     return from(this.pay(id, sourceAccountId, extraPrincipal, idempotencyKey));
   }

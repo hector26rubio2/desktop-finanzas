@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, formatNumber } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, InstallmentResponse, AccountResponse } from '../../shared/services/api.service';
+import { installmentPaymentKey } from '../../shared/services/api/installments-api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
@@ -63,6 +64,8 @@ export class InstallmentsComponent implements OnInit {
   }
 
   save() {
+    // Un doble clic creaba dos compras a cuotas con sus dos movimientos.
+    if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.saving.set(true);
@@ -94,7 +97,7 @@ export class InstallmentsComponent implements OnInit {
     const source = this.accounts().find((a) => a.type !== 'Credit' && a.isActive && a.currency === inst.currency);
     if (!source) return;
     this.api
-      .payInstallment(inst.id, source.id, crypto.randomUUID())
+      .payInstallment(inst.id, source.id, installmentPaymentKey(inst))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
         this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));

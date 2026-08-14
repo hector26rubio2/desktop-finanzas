@@ -5,7 +5,7 @@ import type { AccountResponse } from '../../models/account.model';
 import type { InstallmentResponse } from '../../models/installment.model';
 import type { MovementResponse } from '../../models/movement.model';
 import { LocalDataRepository, type LocalBatchOperation, type LocalKind } from '../local/local-data.repository';
-import { InstallmentsApiService } from './installments-api.service';
+import { InstallmentsApiService, installmentPaymentKey } from './installments-api.service';
 import { LoansApiService } from './loans-api.service';
 import { MovementsApiService } from './movements-api.service';
 
@@ -50,11 +50,11 @@ class MemoryLocalData {
   }
 }
 
-const account = (id: string, type: AccountResponse['type']): AccountResponse => ({
+const account = (id: string, type: AccountResponse['type'], currency = 'COP'): AccountResponse => ({
   id,
   name: id,
   type,
-  currency: 'COP',
+  currency,
   bank: null,
   lastFour: null,
   creditLimit: type === 'Credit' ? 5000 : null,
@@ -77,6 +77,8 @@ describe('local financial operation services', () => {
     local.seed('account', account('cash', 'Debit'));
     local.seed('account', account('savings', 'Debit'));
     local.seed('account', account('card', 'Credit'));
+    local.seed('account', account('usd', 'Debit', 'USD'));
+    local.seed('account', { ...account('closed', 'Debit'), isActive: false });
     TestBed.configureTestingModule({
       providers: [
         MovementsApiService,
@@ -152,5 +154,204 @@ describe('local financial operation services', () => {
     expect(rows).toHaveLength(3);
     expect(rows.filter((item) => item.operationType === 'CreditPayment')).toHaveLength(2);
     expect(rows.find((item) => item.operationType === 'CreditInterest')?.amount).toBe(2);
+  });
+
+  // La clave se generaba con randomUUID() en el click, así que cada reintento
+  // traía una clave nueva y el segundo cobro pasaba como operación distinta.
+  describe('installment payment key', () => {
+    it('identifies the installment being paid, not the moment of the click', () => {
+      expect(installmentPaymentKey({ id: 'plan-a', paidCount: 0 })).toBe('plan-a:installment:1');
+      expect(installmentPaymentKey({ id: 'plan-a', paidCount: 2 })).toBe('plan-a:installment:3');
+      // Debe sobrevivir la validación del servicio.
+      expect(installmentPaymentKey({ id: 'plan-a', paidCount: 0 })).toMatch(/^[A-Za-z0-9._:-]{1,128}$/);
+    });
+
+    it('collapses a double click into a single charge', async () => {
+      const purchase = await firstValueFrom(movements.createMovement({
+        type: 'Expense', sourceType: 'CreditCard', accountId: 'card', amount: 300, currency: 'COP',
+        trmApplied: 1, date: '2026-08-01', description: 'Equipo', loanInstallments: 3,
+      }));
+      const plan = (await local.list<InstallmentResponse>('installmentpurchase'))[0];
+
+      // Los dos clics ven el mismo `paidCount`, así que derivan la misma clave.
+      const key = installmentPaymentKey(plan);
+      await firstValueFrom(installments.payInstallment(plan.id, 'cash', key));
+      const second = await firstValueFrom(installments.payInstallment(plan.id, 'cash', key));
+
+      expect(second.paidCount).toBe(1);
+      const charges = (await local.list<MovementResponse>('movement')).filter(
+        (item) => item.operationType === 'CreditPayment' && item.installmentPurchaseId === plan.id,
+      );
+      expect(charges).toHaveLength(2); // las dos patas de UN pago, no de dos
+      expect(purchase.installmentPurchaseId).toBe(plan.id);
+    });
+  });
+
+  describe('cross-currency operations are rejected instead of guessed', () => {
+    it('rejects a transfer between accounts in different currencies', async () => {
+      await expect(firstValueFrom(movements.createTransfer({
+        sourceAccountId: 'cash', destinationAccountId: 'usd', amount: 10, currency: 'COP',
+        trmApplied: 1, date: '2026-08-02', isSaving: false,
+      }, 'cross-1'))).rejects.toThrow('cross_currency_transfer_requires_an_exchange_operation');
+    });
+
+    it('rejects a loan payment from an account in another currency', async () => {
+      const loan = await firstValueFrom(loans.createLoan({
+        description: 'Banco', principal: 1200, currency: 'COP', trmApplied: 1,
+        interestRateAnnual: 12, termMonths: 12, startDate: '2026-08-01', accountId: 'cash',
+      }));
+      await expect(
+        firstValueFrom(loans.payLoan(loan.id, 'usd', 0, 'cross-loan-1')),
+      ).rejects.toThrow('cross_currency_loan_payment_requires_an_exchange_operation');
+    });
+
+    it('rejects an installment payment from an account in another currency', async () => {
+      await firstValueFrom(movements.createMovement({
+        type: 'Expense', sourceType: 'CreditCard', accountId: 'card', amount: 300, currency: 'COP',
+        trmApplied: 1, date: '2026-08-01', description: 'Equipo', loanInstallments: 3,
+      }));
+      const plan = (await local.list<InstallmentResponse>('installmentpurchase'))[0];
+      await expect(
+        firstValueFrom(installments.payInstallment(plan.id, 'usd', 'cross-quota-1')),
+      ).rejects.toThrow('cross_currency_installment_payment_requires_an_exchange_operation');
+    });
+  });
+
+  describe('transfer guards', () => {
+    const base = {
+      sourceAccountId: 'cash', destinationAccountId: 'savings', amount: 50, currency: 'COP',
+      trmApplied: 1, date: '2026-08-02', isSaving: false,
+    };
+
+    it('records an ordinary transfer as Transfer, not as income and expense', async () => {
+      await firstValueFrom(movements.createTransfer(base, 'transfer-1'));
+      const legs = (await local.list<MovementResponse>('movement')).filter((item) => item.operationId === 'transfer-1');
+      expect(legs).toHaveLength(2);
+      expect(legs.every((item) => item.operationType === 'Transfer')).toBe(true);
+      expect(legs.filter((item) => item.type === 'Expense')).toHaveLength(1);
+      expect(legs.filter((item) => item.type === 'Income')).toHaveLength(1);
+    });
+
+    it.each([
+      [{ amount: 0 }, 'transfer_amount_must_be_positive'],
+      [{ amount: -5 }, 'transfer_amount_must_be_positive'],
+      [{ trmApplied: 0 }, 'transfer_trm_must_be_positive'],
+      [{ destinationAccountId: 'cash' }, 'transfer_accounts_must_be_different'],
+      [{ destinationAccountId: 'missing' }, 'transfer_account_not_found'],
+      [{ destinationAccountId: 'closed' }, 'transfer_account_is_inactive'],
+      [{ sourceAccountId: 'card' }, 'transfer_source_must_be_cash_or_debit'],
+      [{ destinationAccountId: 'card' }, 'use_card_payment_for_credit_accounts'],
+    ])('rejects %o', async (patch, message) => {
+      await expect(
+        firstValueFrom(movements.createTransfer({ ...base, ...patch }, 'guard-1')),
+      ).rejects.toThrow(message as string);
+    });
+
+    it('demands a valid idempotency key', async () => {
+      await expect(firstValueFrom(movements.createTransfer(base, ''))).rejects.toThrow('invalid_idempotency_key');
+    });
+  });
+
+  describe('credit card payment', () => {
+    it('moves the debt with both legs and marks them as CreditPayment', async () => {
+      await firstValueFrom(movements.createCreditCardPayment({
+        sourceAccountId: 'cash', creditAccountId: 'card', amount: 120, currency: 'COP',
+        trmApplied: 1, date: '2026-08-10', description: 'Pago tarjeta',
+      }, 'card-payment-1'));
+
+      const legs = (await local.list<MovementResponse>('movement')).filter((item) => item.operationId === 'card-payment-1');
+      expect(legs).toHaveLength(2);
+      expect(legs.every((item) => item.operationType === 'CreditPayment')).toBe(true);
+      expect(legs.find((item) => item.accountId === 'cash')?.type).toBe('Expense');
+      expect(legs.find((item) => item.accountId === 'card')?.type).toBe('Income');
+    });
+
+    it('refuses a destination that is not a credit account', async () => {
+      await expect(firstValueFrom(movements.createCreditCardPayment({
+        sourceAccountId: 'cash', creditAccountId: 'savings', amount: 120, currency: 'COP',
+        trmApplied: 1, date: '2026-08-10', description: 'Pago tarjeta',
+      }, 'card-payment-2'))).rejects.toThrow('card_payment_requires_a_credit_destination');
+    });
+
+    it('replays without duplicating and rejects a conflicting reuse of the key', async () => {
+      const request = {
+        sourceAccountId: 'cash', creditAccountId: 'card', amount: 120, currency: 'COP',
+        trmApplied: 1, date: '2026-08-10', description: 'Pago tarjeta',
+      };
+      await firstValueFrom(movements.createCreditCardPayment(request, 'card-payment-3'));
+      await firstValueFrom(movements.createCreditCardPayment(request, 'card-payment-3'));
+      await expect(
+        firstValueFrom(movements.createCreditCardPayment({ ...request, amount: 121 }, 'card-payment-3')),
+      ).rejects.toThrow('idempotency_key_conflict');
+      const legs = (await local.list<MovementResponse>('movement')).filter((item) => item.operationId === 'card-payment-3');
+      expect(legs).toHaveLength(2);
+    });
+  });
+
+  describe('linked operations cannot be broken from a single leg', () => {
+    it('refuses to edit one leg of a transfer', async () => {
+      await firstValueFrom(movements.createTransfer({
+        sourceAccountId: 'cash', destinationAccountId: 'savings', amount: 50, currency: 'COP',
+        trmApplied: 1, date: '2026-08-02', isSaving: false,
+      }, 'edit-guard-1'));
+      const leg = (await local.list<MovementResponse>('movement')).find((item) => item.operationId === 'edit-guard-1')!;
+      await expect(firstValueFrom(movements.updateMovement(leg.id, {
+        type: 'Expense', sourceType: 'OwnAccount', accountId: 'cash', amount: 99, currency: 'COP',
+        trmApplied: 1, date: '2026-08-02',
+      }))).rejects.toThrow('linked_financial_operation_cannot_be_edited');
+    });
+
+    it('deletes both legs when one is removed', async () => {
+      await firstValueFrom(movements.createTransfer({
+        sourceAccountId: 'cash', destinationAccountId: 'savings', amount: 50, currency: 'COP',
+        trmApplied: 1, date: '2026-08-02', isSaving: false,
+      }, 'delete-cascade-1'));
+      const leg = (await local.list<MovementResponse>('movement')).find((item) => item.operationId === 'delete-cascade-1')!;
+
+      await firstValueFrom(movements.deleteMovement(leg.id));
+
+      const left = (await local.list<MovementResponse>('movement')).filter((item) => item.operationId === 'delete-cascade-1');
+      expect(left).toHaveLength(0);
+    });
+
+    it('refuses to delete a loan movement from the movements list', async () => {
+      const loan = await firstValueFrom(loans.createLoan({
+        description: 'Banco', principal: 1200, currency: 'COP', trmApplied: 1,
+        interestRateAnnual: 12, termMonths: 12, startDate: '2026-08-01', accountId: 'cash',
+      }));
+      const disbursement = (await local.list<MovementResponse>('movement'))
+        .find((item) => item.loanId === loan.id && item.operationType === 'LoanDisbursement')!;
+      await expect(
+        firstValueFrom(movements.deleteMovement(disbursement.id)),
+      ).rejects.toThrow('loan_movements_must_be_changed_from_the_loan');
+    });
+
+    it('refuses to delete an installment purchase that already has payments', async () => {
+      const purchase = await firstValueFrom(movements.createMovement({
+        type: 'Expense', sourceType: 'CreditCard', accountId: 'card', amount: 300, currency: 'COP',
+        trmApplied: 1, date: '2026-08-01', description: 'Equipo', loanInstallments: 3,
+      }));
+      const plan = (await local.list<InstallmentResponse>('installmentpurchase'))[0];
+      await firstValueFrom(installments.payInstallment(plan.id, 'cash', installmentPaymentKey(plan)));
+
+      await expect(
+        firstValueFrom(movements.deleteMovement(purchase.id)),
+      ).rejects.toThrow('paid_installment_purchase_cannot_be_deleted');
+    });
+
+    it('refuses to change the financial terms of a loan that is already being paid', async () => {
+      const loan = await firstValueFrom(loans.createLoan({
+        description: 'Banco', principal: 1200, currency: 'COP', trmApplied: 1,
+        interestRateAnnual: 12, termMonths: 12, startDate: '2026-08-01', accountId: 'cash',
+      }));
+      await firstValueFrom(loans.payLoan(loan.id, 'cash', 0, 'loan-lock-1'));
+
+      await expect(firstValueFrom(loans.updateLoan(loan.id, {
+        description: 'Banco', principal: 2400, currency: 'COP', trmApplied: 1,
+        interestRateAnnual: 12, termMonths: 12, startDate: '2026-08-01', accountId: 'cash',
+      }))).rejects.toThrow('paid_loan_financial_terms_are_locked');
+
+      await expect(firstValueFrom(loans.deleteLoan(loan.id))).rejects.toThrow('paid_loan_cannot_be_deleted');
+    });
   });
 });

@@ -50,6 +50,16 @@ test('no server is left to call and the profile never leaves the main process', 
   for (const file of ['../src/environments/environment.ts', '../src/environments/environment.prod.ts']) {
     assert.doesNotMatch(read(file), /apiUrl/);
   }
+  // `src/assets/` se copia entera a dist/ y de ahí al instalador. Cualquier
+  // fichero con secretos ahí se publica: así se filtró `app-config.json`, que
+  // llevaba apiUrl, googleClientId y encryptionKey con valores reales.
+  const assets = path.resolve(__dirname, '..', 'src', 'assets');
+  const assetFiles = fs.existsSync(assets) ? fs.readdirSync(assets, { recursive: true }) : [];
+  for (const entry of assetFiles) {
+    const file = path.join(assets, String(entry));
+    if (!fs.statSync(file).isFile()) continue;
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /encryptionKey|clientSecret|apiUrl|password/i, `secreto publicado en src/assets/${entry}`);
+  }
   // El interceptor ya no tiene rama de paso: no hay lista blanca que burlar.
   assert.doesNotMatch(guard, /next\(req\)/);
   // La capa IPC solo delega en el store: no lee el archivo ni compone respuestas.

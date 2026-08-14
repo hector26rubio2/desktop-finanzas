@@ -5,19 +5,50 @@ const assert = require('node:assert/strict'),
   test = require('node:test');
 const { performance } = require('node:perf_hooks');
 const { LocalDatabase } = require('./database');
+const { LocalAuthStore } = require('./auth-store');
 const safeStorage = {
   isEncryptionAvailable: () => true,
   encryptString: (v) => Buffer.from(`wrapped:${v}`),
   decryptString: (v) => v.toString().slice(8),
 };
-const logger = { info() {}, error() {} };
+const logger = { info() {}, warn() {}, error() {} };
 function start(root = fs.mkdtempSync(path.join(os.tmpdir(), 'finanzas-e2e-'))) {
   const databasePath = path.join(root, 'finanzas.sqlite3'),
     app = { getPath: () => root },
     db = new LocalDatabase({ app, safeStorage, logger, databasePath, syncEnabled: false });
   db.open();
-  return { root, databasePath, db };
+  const auth = new LocalAuthStore({ app, safeStorage, logger, profilePath: path.join(root, 'profile.dat') });
+  return { root, databasePath, db, auth };
 }
+// El ownerId de todo el libro es el id del perfil local. Si cambiara al cambiar
+// la contraseña o al recuperar el acceso, los movimientos quedarían huérfanos y
+// la aplicación arrancaría vacía sobre datos que siguen en el disco.
+test('release journey: local profile owns the ledger across password change and recovery', () => {
+  const f = start();
+  const enrollment = f.auth.register({ name: 'Titular', email: 'titular@local', password: 'contrasena1', baseCurrency: 'COP' });
+  const owner = enrollment.ownerId;
+
+  f.db.put('movement', owner, { id: 'e2e-1', type: 'Expense', amount: 120, amountBase: 120, currency: 'COP', trmApplied: 1, date: '2026-07-05' }, 'create');
+  assert.equal(f.db.list('movement', owner).length, 1);
+
+  // Reinicio: se entra con la contraseña y el libro sigue siendo el mismo.
+  f.db.close();
+  const restarted = start(f.root);
+  assert.equal(restarted.auth.status().hasProfile, true);
+  assert.equal(restarted.auth.login({ password: 'contrasena1' }).ownerId, owner);
+  assert.equal(restarted.db.list('movement', owner).length, 1);
+
+  // Cambio de contraseña: la identidad no se mueve.
+  restarted.auth.changePassword({ currentPassword: 'contrasena1', newPassword: 'contrasena2' });
+  assert.equal(restarted.auth.login({ password: 'contrasena2' }).ownerId, owner);
+
+  // Recuperación con el código: tampoco.
+  const recovered = restarted.auth.recover({ recoveryCode: enrollment.recoveryCode, newPassword: 'contrasena3' });
+  assert.equal(recovered.ownerId, owner);
+  assert.equal(restarted.db.get('movement', owner, 'e2e-1').amountBase, 120);
+  restarted.db.close();
+});
+
 test('release journey: first start, offline close, backup restore and monthly close', () => {
   const f = start();
   assert.equal(f.db.status().schemaVersion, 2);

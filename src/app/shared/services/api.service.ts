@@ -168,8 +168,8 @@ export class ApiService {
   payLoan(
     id: string,
     sourceAccountId: string,
-    extraPrincipal = 0,
-    idempotencyKey?: string,
+    extraPrincipal: number,
+    idempotencyKey: string,
   ): Observable<LoanResponse> {
     return this.loansApi.payLoan(id, sourceAccountId, extraPrincipal, idempotencyKey);
   }
