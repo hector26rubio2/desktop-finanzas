@@ -1,15 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// La clave de cifrado YA NO se expone al renderer. El cifrado/descifrado de
-// tráfico ocurre en el proceso main (crypto:encrypt/decrypt) y los secretos del
-// cliente usan safeStorage del SO (secure:encrypt/decrypt).
+// Ninguna clave de cifrado se expone al renderer. Tampoco queda cifrado de
+// tráfico: la aplicación no tiene servidor al que hablar.
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   log: (level, message, data) => ipcRenderer.send('log:write', { level, message, data }),
-  // Cifrado de tráfico (clave en el proceso main, nunca en el renderer).
-  cryptoEncrypt: (plain) => ipcRenderer.invoke('crypto:encrypt', plain),
-  cryptoDecrypt: (b64) => ipcRenderer.invoke('crypto:decrypt', b64),
-  // Cifrado a nivel de SO para secretos del cliente (refresh token). Devuelven
+  // Cifrado a nivel de SO para el token de reanudación de sesión. Devuelven
   // null si no está disponible → el renderer usa su cifrado web de respaldo.
   secureEncrypt: (plain) => ipcRenderer.invoke('secure:encrypt', plain),
   secureDecrypt: (b64) => ipcRenderer.invoke('secure:decrypt', b64),

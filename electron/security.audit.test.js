@@ -1,31 +1,31 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const crypto = require('node:crypto');
 const path = require('node:path');
 const test = require('node:test');
 
 const read = (relative) => fs.readFileSync(path.resolve(__dirname, relative), 'utf8');
 
-test('traffic encryption uses API-compatible IV + tag + ciphertext layout', async () => {
-  const previous = process.env.FINANZAS_ENCRYPTION_KEY;
-  process.env.FINANZAS_ENCRYPTION_KEY = 'compatibility-test-secret';
-  const handlers = new Map();
-  const ipcMain = { handle: (name, handler) => handlers.set(name, handler) };
-  const safeStorage = { isEncryptionAvailable: () => false };
-  const logger = { error() {} };
-  const { registerSecurityIpc } = require('./services/security');
-  registerSecurityIpc({ ipcMain, safeStorage, logger });
-  const plain = JSON.stringify({ ok: true });
-  const payload = await handlers.get('crypto:encrypt')(null, plain);
-  const raw = Buffer.from(payload, 'base64');
-  const key = crypto.pbkdf2Sync(process.env.FINANZAS_ENCRYPTION_KEY, 'finanzas-salt-v2', 600000, 32, 'sha256');
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, raw.subarray(0, 12));
-  decipher.setAuthTag(raw.subarray(12, 28));
-  const apiPlain = Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString('utf8');
-  assert.equal(apiPlain, plain);
-  assert.equal(await handlers.get('crypto:decrypt')(null, payload), plain);
-  if (previous === undefined) delete process.env.FINANZAS_ENCRYPTION_KEY;
-  else process.env.FINANZAS_ENCRYPTION_KEY = previous;
+// Antes había aquí una prueba de interoperabilidad byte a byte entre el cifrado
+// de tráfico y el AesGcmEncryptionService de C#. Se retiró con los canales
+// `crypto:*`: sin servidor no hay tráfico que cifrar, y mantener el canal vivo
+// solo para conservar la prueba dejaba abierta una superficie IPC que nadie usa
+// y un uso nominal de una clave que llegó a publicarse.
+test('the main process exposes no traffic encryption and derives no key from the environment', () => {
+  // Se juzga el código, no los comentarios: el propio comentario que documenta
+  // la retirada nombra los canales y la variable que ya no se usan.
+  const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\/|(^|\s)\/\/.*$/gm, '$1');
+  const security = withoutComments(read('services/security.js'));
+  const preload = withoutComments(read('preload.js'));
+
+  for (const channel of ['crypto:encrypt', 'crypto:decrypt']) {
+    assert.doesNotMatch(security, new RegExp(channel.replace(':', '\\:')), `${channel} sigue registrado`);
+    assert.doesNotMatch(preload, new RegExp(channel.replace(':', '\\:')), `${channel} sigue expuesto al renderer`);
+  }
+  assert.doesNotMatch(security, /FINANZAS_ENCRYPTION_KEY|pbkdf2/);
+  assert.doesNotMatch(preload, /cryptoEncrypt|cryptoDecrypt/);
+  // Lo que sí debe seguir: el cifrado del sistema operativo para la sesión.
+  assert.match(security, /safeStorage\.encryptString/);
+  assert.match(security, /safeStorage\.decryptString/);
 });
 
 test('renderer never receives encryption keys and refresh tokens prefer OS storage', () => {

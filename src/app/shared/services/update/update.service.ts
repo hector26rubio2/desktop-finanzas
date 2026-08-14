@@ -12,10 +12,11 @@ export interface UpdateInfo {
 
 declare global {
   interface Window {
+    // Solo lo que `electron/preload.js` expone de verdad. Declarar de más aquí
+    // no da acceso a nada: da un tipo que compila y un `undefined` en ejecución.
+    // `cspNonce` y `encryptionKey` estaban declaradas y nunca se expusieron.
     electronAPI?: {
       platform: string;
-      cspNonce: string;
-      encryptionKey: string;
       log?: (level: 'log' | 'warn' | 'error', message: string, data?: unknown) => void;
       onUpdateStatus: (cb: (data: UpdateInfo) => void) => void;
       checkForUpdates: () => Promise<{ available: boolean; error?: string }>;

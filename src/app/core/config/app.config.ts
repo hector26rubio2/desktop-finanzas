@@ -3,7 +3,6 @@ import { environment } from '@env/environment';
 
 export interface AppConfig {
   production: boolean;
-  encryptionKey: string;
 }
 
 export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
