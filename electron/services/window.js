@@ -4,6 +4,13 @@ const { startLocalServer } = require('./local-server');
 function configureHeaders(session, { isDev, nonce }) {
   // La app no tiene servidor ni acceso con Google: la política no concede
   // ningún origen externo. Lo único que queda es el websocket del dev server.
+  //
+  // `script-src` no lleva 'unsafe-inline' a propósito, y eso obliga a apagar
+  // `optimization.styles.inlineCritical` en angular.json: esa optimización carga
+  // la hoja como `media="print"` y la activa con un `onload` EN LÍNEA. Sin
+  // 'unsafe-inline' ese manejador no corre, la hoja se queda en `print` y la
+  // aplicación abre sin estilos — solo en el paquete de producción, que es donde
+  // esta política se aplica. Si alguien reactiva inlineCritical, vuelve el fallo.
   const csp = [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''}`,
