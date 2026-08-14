@@ -2,7 +2,6 @@ import { Component, computed, EventEmitter, inject, Output, ChangeDetectionStrat
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { RoleService } from '../../shared/services/role.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { ICONS } from '../../shared/icons';
 
@@ -21,7 +20,6 @@ export class UserMenuComponent {
   @Output() openCmdk = new EventEmitter<void>();
 
   public auth = inject(AuthService);
-  public role = inject(RoleService);
   public i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
 

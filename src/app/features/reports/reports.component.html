@@ -99,7 +99,7 @@
             <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
           </div>
           <div class="card__body cat-report-chart">
-            <app-pie-chart [categories]="catStats()" totalLabel="TOTAL" currency="ARS" />
+            <app-pie-chart [categories]="catStats()" totalLabel="TOTAL" [currency]="auth.baseCurrency()" />
           </div>
         </div>
         <ng-template #catTotalCell let-c>

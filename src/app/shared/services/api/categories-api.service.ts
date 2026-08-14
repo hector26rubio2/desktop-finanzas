@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import type { CategoryResponse, CategoryTranslations } from '../../models/category.model';
+import { LocalDataRepository } from '../local/local-data.repository';
 
 export interface CategoryCreateRequest {
   name: string;
@@ -14,22 +13,31 @@ export interface CategoryCreateRequest {
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesApiService {
-  private http = inject(HttpClient);
-  private base = environment.apiUrl;
+  private local = inject(LocalDataRepository);
 
   getCategories(): Observable<CategoryResponse[]> {
-    return this.http.get<CategoryResponse[]>(`${this.base}/categories`);
+    return from(this.local.list<CategoryResponse>('category'));
   }
 
   createCategory(req: CategoryCreateRequest): Observable<CategoryResponse> {
-    return this.http.post<CategoryResponse>(`${this.base}/categories`, req);
+    return from(this.local.put('category', this.localCategory(req), 'create'));
   }
 
   deleteCategory(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/categories/${id}`);
+    return from(this.local.remove('category', id));
   }
 
   updateCategory(id: string, req: CategoryCreateRequest): Observable<CategoryResponse> {
-    return this.http.put<CategoryResponse>(`${this.base}/categories/${id}`, req);
+    return from(this.local.put('category', this.localCategory(req, id), 'update'));
+  }
+
+  private localCategory(req: CategoryCreateRequest, id: string = crypto.randomUUID()): CategoryResponse {
+    return {
+      id,
+      ...req,
+      translations: req.translations ?? null,
+      isDefault: false,
+      createdAt: new Date().toISOString(),
+    };
   }
 }

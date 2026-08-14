@@ -10,6 +10,7 @@
           <label style="grid-column: 1/-1">
             {{ i18n.t('loans.descripcion') }}
             <input formControlName="description" placeholder="{{ i18n.t('loans.descripcion_placeholder') }}" />
+            <app-field-error [control]="form.get('description')" />
           </label>
           <label>
             {{ i18n.t('loans.contraparte') }}
@@ -18,6 +19,7 @@
           <label>
             {{ i18n.t('loans.capital') }}
             <input type="number" formControlName="principal" min="1" />
+            <app-field-error [control]="form.get('principal')" />
           </label>
           <label>
             {{ i18n.t('loans.moneda') }}
@@ -35,10 +37,12 @@
           <label>
             {{ i18n.t('loans.tea') }}
             <input type="number" formControlName="interestRateAnnual" min="0" step="0.01" />
+            <app-field-error [control]="form.get('interestRateAnnual')" />
           </label>
           <label>
             {{ i18n.t('loans.plazo') }}
             <input type="number" formControlName="termMonths" min="1" max="600" />
+            <app-field-error [control]="form.get('termMonths')" />
           </label>
           <label>
             {{ i18n.t('loans.tipo_amortizacion') }}
@@ -51,6 +55,7 @@
           <label>
             {{ i18n.t('loans.fecha_inicio') }}
             <input type="date" formControlName="startDate" />
+            <app-field-error [control]="form.get('startDate')" />
           </label>
           <label>
             {{ i18n.t('loans.cuenta_asociada') }}
@@ -74,11 +79,16 @@
     </div>
   }
 
-  @if (loading()) {
+  @if (loadState() === 'loading') {
     <div class="empty-state" role="status">
       <p>{{ i18n.t('loans.cargando') }}</p>
     </div>
-  } @else if (loans().length === 0) {
+  } @else if (loadState() === 'error') {
+    <div class="empty-state" role="alert" aria-live="assertive">
+      <p>{{ i18n.t('common.load_error') }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">{{ i18n.t('common.retry') }}</button>
+    </div>
+  } @else if (loadState() === 'empty') {
     <div class="empty-state" role="status">
       <div class="serif">{{ i18n.t('loans.sin_prestamos') }}</div>
       <p>{{ i18n.t('loans.sin_prestamos_desc') }}</p>
@@ -93,8 +103,8 @@
             tabindex="0"
             style="padding: 14px; cursor: pointer; transition: border-color 0.15s; border: 2px solid"
             [style.border-color]="selectedId() === loan.id ? 'var(--accent)' : 'transparent'"
-            (click)="selectedId.set(loan.id)"
-            (keydown.enter)="selectedId.set(loan.id)"
+            (click)="selectLoan(loan.id)"
+            (keydown.enter)="selectLoan(loan.id)"
           >
             <div style="font-weight: 500; color: var(--fg-0); margin-bottom: 4px">{{ loan.description }}</div>
             @if (loan.party) {
@@ -114,7 +124,7 @@
             <div style="margin-top: 6px; display: flex; gap: 6px">
               <span class="tag tag--accent" style="font-size: var(--fs-2xs)">{{ loan.loanType.toUpperCase() }}</span>
               <span class="tag" style="font-size: var(--fs-2xs)"
-                >TEA {{ loan.interestRateAnnual * 100 | number: '1.0-1' }}%</span
+                >TEA {{ loan.interestRateAnnual | number: '1.0-1' }}%</span
               >
             </div>
           </div>
@@ -125,6 +135,44 @@
         @let loan = selected()!;
         <div>
           <app-kpi-strip [items]="loanKpis(loan)" style="margin-bottom: var(--gutter); display: block" />
+
+          <div style="display: flex; justify-content: flex-end; margin-bottom: var(--gutter)">
+            <button class="btn btn--primary" [disabled]="!loan.isActive" (click)="openPayment(loan)">
+              {{ i18n.t('transactions.payment') }}
+            </button>
+          </div>
+
+          @if (showPayment()) {
+            <div class="card" style="padding: var(--pad-x); margin-bottom: var(--gutter)">
+              <form [formGroup]="paymentForm" (ngSubmit)="savePayment(loan)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                  <label>
+                    {{ i18n.t('transactions.origin') }}
+                    <select formControlName="sourceAccountId">
+                      @for (account of accounts(); track account.id) {
+                        @if (account.type !== 'Credit' && account.isActive && account.currency === loan.currency) {
+                          <option [value]="account.id">{{ account.name }} · {{ account.currency }}</option>
+                        }
+                      }
+                    </select>
+                    <app-field-error [control]="paymentForm.get('sourceAccountId')" />
+                  </label>
+                  <label>
+                    {{ i18n.t('loans.label_capital') }} +
+                    <input type="number" min="0" step="0.01" formControlName="extraPrincipal" />
+                  </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px">
+                  <button type="button" class="btn btn--ghost" (click)="closePayment()">
+                    {{ i18n.t('common.cancel') }}
+                  </button>
+                  <button type="submit" class="btn btn--primary" [disabled]="paymentSaving()">
+                    {{ paymentSaving() ? i18n.t('common.saving') : i18n.t('transactions.payment') }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
 
           <div class="card" style="padding: 0; overflow: hidden">
             <div class="card__h">

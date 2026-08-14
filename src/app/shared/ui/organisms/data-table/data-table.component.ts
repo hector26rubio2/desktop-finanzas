@@ -26,6 +26,10 @@ export class DataTableComponent<T> {
   data = input.required<T[]>();
   trackBy = input<(item: T) => string>();
   emptyMessage = input('No results');
+  loading = input(false);
+  errorMessage = input('');
+  searchable = input(false);
+  searchPlaceholder = input('Buscar');
   /** Si true, las filas son clickeables y accesibles por teclado */
   rowClickable = input(false);
   /** Clase CSS extra por fila (ej. dt-row--muted para cuotas pagadas) */
@@ -44,12 +48,26 @@ export class DataTableComponent<T> {
 
   sortKey = signal<string | null>(null);
   sortDir = signal<1 | -1>(1);
+  query = signal('');
+  hiddenColumns = signal<Set<string>>(new Set());
+
+  visibleColumns = computed(() => this.columns().filter((x) => !this.hiddenColumns().has(x.key)));
 
   sortedData = computed<T[]>(() => {
     const key = this.sortKey();
-    if (!key) return this.data();
+    const q = this.query().trim().toLocaleLowerCase();
+    const filtered = q
+      ? this.data().filter((item) =>
+          Object.values(item as Record<string, unknown>).some((value) =>
+            String(value ?? '')
+              .toLocaleLowerCase()
+              .includes(q),
+          ),
+        )
+      : this.data();
+    if (!key) return filtered;
     const dir = this.sortDir();
-    return [...this.data()].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const av = (a as Record<string, unknown>)[key];
       const bv = (b as Record<string, unknown>)[key];
       if (av == null) return 1;
@@ -71,6 +89,13 @@ export class DataTableComponent<T> {
       this.sortKey.set(col.key);
       this.sortDir.set(1);
     }
+  }
+
+  toggleColumn(key: string) {
+    const next = new Set(this.hiddenColumns());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.hiddenColumns.set(next);
   }
 
   cellValue(item: T, col: ColumnDef<T>): unknown {

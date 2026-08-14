@@ -1,4 +1,13 @@
-import { Component, input, output, computed, ChangeDetectionStrategy, inject, viewChild, TemplateRef } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  computed,
+  ChangeDetectionStrategy,
+  inject,
+  viewChild,
+  TemplateRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../i18n/i18n.service';
 import { DataTableComponent, type ColumnDef } from '../data-table/data-table.component';

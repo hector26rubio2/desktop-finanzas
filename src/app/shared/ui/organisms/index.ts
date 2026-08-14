@@ -5,3 +5,9 @@ export { RecentMovementsComponent, RecentMovement } from './recent-movements/rec
 export { LineChartComponent, DataPoint } from './line-chart/line-chart.component';
 export { PieChartComponent, CategoryExpense } from './pie-chart/pie-chart.component';
 export { UpdateBannerComponent } from './update-banner/update-banner.component';
+export { DynamicFormComponent, DynamicField } from './dynamic-form/dynamic-form.component';
+export {
+  InspectorPanelComponent,
+  InspectorSection,
+  InspectorAction,
+} from './inspector-panel/inspector-panel.component';

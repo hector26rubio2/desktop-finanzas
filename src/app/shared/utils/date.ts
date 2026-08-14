@@ -49,3 +49,13 @@ export function getWeekRange(date: Date, lang = 'es'): { start: Date; end: Date;
 export function range(n: number, max = 36): number[] {
   return Array.from({ length: Math.min(n, max) }, (_, i) => i);
 }
+
+/** Formato de fecha+hora para display (locale-aware). Reemplaza fmtDateTime locales. */
+export function formatDateTime(dateStr: string, locale = 'es-AR'): string {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const date = d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  return `${date} ${hours}:${mins}`;
+}

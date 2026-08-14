@@ -15,12 +15,10 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import type { TranslationKey } from '../../shared/i18n/locale.types';
 import { ApiService, MovementResponse, PagedResult } from '../../shared/services/api.service';
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
-import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
-import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
-import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
-import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import type { KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import type { ColumnDef } from '@ui/organisms/data-table/data-table.component';
 
 interface CalEvent {
   movement: MovementResponse;
@@ -33,14 +31,7 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
   selector: 'app-calendar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    MovementDetailModalComponent,
-    CatIconComponent,
-    FmtDatePipe,
-    KpiStripComponent,
-    DataTableComponent,
-  ],
+  imports: [CommonModule, MovementDetailModalComponent],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css',
 })

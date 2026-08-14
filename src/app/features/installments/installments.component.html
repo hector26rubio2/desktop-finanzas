@@ -1,6 +1,6 @@
 <div class="view">
   <div class="row-flex" style="justify-content: flex-end">
-    <button class="btn btn--primary" (click)="showForm.set(true)">{{ i18n.t('installments.nueva_compra') }}</button>
+    <button class="btn btn--primary" (click)="createPurchase()">{{ i18n.t('installments.nueva_compra') }}</button>
   </div>
 
   @if (showForm()) {
@@ -14,10 +14,12 @@
           <label style="grid-column: 1/-1">
             {{ i18n.t('installments.descripcion') }}
             <input formControlName="description" [placeholder]="i18n.t('installments.descripcion_placeholder')" />
+            <app-field-error [control]="form.get('description')" />
           </label>
           <label>
             {{ i18n.t('installments.monto_total') }}
             <input type="number" formControlName="totalAmount" min="1" />
+            <app-field-error [control]="form.get('totalAmount')" />
           </label>
           <label>
             {{ i18n.t('installments.moneda') }}
@@ -35,6 +37,7 @@
           <label>
             {{ i18n.t('installments.cantidad_cuotas') }}
             <input type="number" formControlName="installmentsCount" min="1" max="120" />
+            <app-field-error [control]="form.get('installmentsCount')" />
           </label>
           <label>
             {{ i18n.t('installments.cuotas_pagadas') }}
@@ -43,6 +46,7 @@
           <label>
             {{ i18n.t('installments.fecha_primera') }}
             <input type="date" formControlName="startDate" />
+            <app-field-error [control]="form.get('startDate')" />
           </label>
           <label>
             {{ i18n.t('installments.tarjeta_cuenta') }}
@@ -135,7 +139,7 @@
             >
             <button
               class="btn btn--ghost inst-mark-btn"
-              [disabled]="inst.paidCount >= inst.installmentsCount"
+              [disabled]="inst.paidCount >= inst.installmentsCount || !hasPaymentSource(inst)"
               (click)="markPaid(inst)"
             >
               {{ i18n.t('installments.marcar_cuota') }}

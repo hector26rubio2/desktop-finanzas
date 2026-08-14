@@ -1,1 +1,1 @@
-export { APP_CONFIG, API_URL, GOOGLE_CLIENT_ID, type AppConfig } from './app.config';
+export { APP_CONFIG, type AppConfig } from './app.config';

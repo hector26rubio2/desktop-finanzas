@@ -58,29 +58,6 @@
         </button>
       }
     }
-    @if (role.isAdmin()) {
-      <div class="sidebar__group" role="separator">{{ i18n.t('nav.admin') }}</div>
-      <button
-        class="nav-item"
-        [class.nav-item--active]="activeView() === 'admin'"
-        [attr.aria-current]="activeView() === 'admin' ? 'page' : null"
-        [attr.title]="collapsed() ? i18n.t('nav.admin') : null"
-        (click)="navigateTo.emit('admin')"
-      >
-        <svg
-          class="nav-item__icon"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          [innerHTML]="iconSvg('admin')"
-          aria-hidden="true"
-        ></svg>
-        <span>{{ i18n.t('nav.admin') }}</span>
-      </button>
-    }
   </nav>
 
   <div class="sidebar__foot">

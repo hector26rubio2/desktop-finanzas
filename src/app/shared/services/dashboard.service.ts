@@ -1,14 +1,16 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import { forkJoin, of, switchMap } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { catchError, map, timeout } from 'rxjs/operators';
 import { MovementsApiService } from './api/movements-api.service';
 import { CategoriesApiService } from './api/categories-api.service';
+import { FinancialApiService } from './api/financial-api.service';
 import type { MovementResponse } from '../models/movement.model';
 import type { CategoryResponse } from '../models/category.model';
 import { I18nService } from '../i18n/i18n.service';
 import { LoggerService } from './logger/logger.service';
 import { getMonthKey, getWeekRange, parseDate, toDateKey, toMonthKey } from '../utils/date';
+import { financialFlowContribution } from '../utils/financial-classification';
 
 export type Granularity = 'day' | 'week' | 'month' | 'year';
 export type TypeFilter = 'all' | 'Income' | 'Expense';
@@ -27,6 +29,7 @@ function toDateStr(y: number, m: number, d: number): string {
 export class DashboardService {
   private movementsApi = inject(MovementsApiService);
   private categoriesApi = inject(CategoriesApiService);
+  private financialApi = inject(FinancialApiService);
   private i18n = inject(I18nService);
   private logger = inject(LoggerService);
   private destroyRef = inject(DestroyRef);
@@ -46,10 +49,14 @@ export class DashboardService {
   readonly offset = signal(0);
   readonly typeFilter = signal<TypeFilter>('all');
   readonly categoryFilterId = signal('');
+  readonly accountFilterId = signal('');
+  readonly currencyFilter = signal('');
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
   readonly categories = signal<CategoryResponse[]>([]);
+  readonly accountOptions = signal<Array<{ id: string; name: string }>>([]);
+  readonly currencyOptions = signal<string[]>([]);
 
   readonly lineData = signal<DataPoint[]>([]);
   readonly categoryExpenses = signal<{ name: string; total: number; icon: string; color: string }[]>([]);
@@ -59,6 +66,8 @@ export class DashboardService {
   readonly topLabel = signal('');
   readonly topAmount = signal(0);
   readonly transactionCount = signal(0);
+  readonly netWorth = signal(0);
+  readonly totalLiabilities = signal(0);
 
   readonly currentLabel = computed(() => {
     const now = new Date();
@@ -158,6 +167,22 @@ export class DashboardService {
     this.recompute();
   }
 
+  setAccountFilterId(id: string) {
+    this.accountFilterId.set(id);
+    this.recompute();
+  }
+  setCurrencyFilter(currency: string) {
+    this.currencyFilter.set(currency);
+    this.recompute();
+  }
+  resetFilters() {
+    this.typeFilter.set('all');
+    this.categoryFilterId.set('');
+    this.accountFilterId.set('');
+    this.currencyFilter.set('');
+    this.recompute();
+  }
+
   load() {
     this.loading.set(true);
     this.error.set(null);
@@ -167,6 +192,16 @@ export class DashboardService {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (list) => this.categories.set(list),
+        error: () => {},
+      });
+    this.financialApi
+      .getSnapshot()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (snapshot) => {
+          this.netWorth.set(snapshot.netWorth);
+          this.totalLiabilities.set(snapshot.totalLiabilities);
+        },
         error: () => {},
       });
     const g = this.granularity();
@@ -197,37 +232,53 @@ export class DashboardService {
     }
   }
 
+  // Trae TODAS las páginas de un mes (el backend capa pageSize en 100). Sin esto,
+  // un mes con >100 movimientos subestima todos los KPIs del dashboard.
+  private fetchYm(ym: string) {
+    const PAGE = 100;
+    return this.movementsApi.getMovements(ym, 1, PAGE).pipe(
+      switchMap((first) => {
+        const total = first.total ?? 0;
+        const items = first.items ?? [];
+        if (items.length >= total || total <= PAGE) return of({ items, total });
+        const lastPage = Math.ceil(total / PAGE);
+        const rest = [];
+        for (let p = 2; p <= lastPage; p++) rest.push(this.movementsApi.getMovements(ym, p, PAGE));
+        return forkJoin(rest).pipe(
+          map((pages) => ({ items: [...items, ...pages.flatMap((p) => p.items ?? [])], total })),
+        );
+      }),
+      timeout(20_000),
+      catchError((err) => {
+        this.logger.error(`[dashboard] error fetching ${ym}`, err);
+        return of({ items: [] as MovementResponse[], total: 0 });
+      }),
+    );
+  }
+
   private fetchAll(yms: string[]) {
     of(yms)
       .pipe(
-        switchMap((ymList) =>
-          forkJoin(
-            ymList.map((ym) =>
-              this.movementsApi.getMovements(ym, 1, 100).pipe(
-                timeout(15_000),
-                catchError((err) => {
-                  this.logger.error(`[dashboard] error fetching ${ym}`, err);
-                  return of({ items: [], total: 0, page: 1, pageSize: 0 });
-                }),
-              ),
-            ),
-          ),
-        ),
+        switchMap((ymList) => forkJoin(ymList.map((ym) => this.fetchYm(ym)))),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (pages) => {
           this.cache = pages.flatMap((p) => p.items ?? []);
-          const allEmpty = pages.every((p) => p.total === 0);
-          if (allEmpty && pages.length > 0) {
-            this.error.set('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
-          }
+          this.accountOptions.set(
+            [
+              ...new Map(
+                this.cache.filter((x) => x.accountId).map((x) => [x.accountId!, x.accountName ?? 'Cuenta']),
+              ).entries(),
+            ].map(([id, name]) => ({ id, name })),
+          );
+          this.currencyOptions.set([...new Set(this.cache.map((x) => x.currency).filter(Boolean))].sort());
           this.recompute();
           this.loading.set(false);
         },
         error: (err) => {
           this.logger.error('[dashboard] fetchAll failed', err);
-          this.error.set('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
+          this.error.set('No se pudieron leer los datos locales cifrados. Intenta recargar la aplicación.');
           this.loading.set(false);
         },
       });
@@ -268,6 +319,10 @@ export class DashboardService {
 
     const tf = this.typeFilter();
     if (tf !== 'all') periodData = periodData.filter((m) => m.type === tf);
+    const afi = this.accountFilterId();
+    if (afi) periodData = periodData.filter((m) => m.accountId === afi);
+    const ccy = this.currencyFilter();
+    if (ccy) periodData = periodData.filter((m) => m.currency === ccy);
 
     let lineData: DataPoint[];
     if (g === 'year') {
@@ -301,8 +356,9 @@ export class DashboardService {
       const dt = parseDate(m.createdAt ?? m.date);
       const hour = dt.getHours();
       const e = slots.get(hour)!;
-      if (m.type === 'Income') e.income += m.amountBase;
-      else e.expense += m.amountBase;
+      const flow = financialFlowContribution(m);
+      e.income += flow.income;
+      e.expense += flow.expense;
     }
 
     return [...slots.entries()].map(([hour, v]) => ({
@@ -331,8 +387,9 @@ export class DashboardService {
         const day = md.getDate();
         const e = map.get(day);
         if (e) {
-          if (m.type === 'Income') e.income += m.amountBase;
-          else e.expense += m.amountBase;
+          const flow = financialFlowContribution(m);
+          e.income += flow.income;
+          e.expense += flow.expense;
         }
       }
 
@@ -359,8 +416,9 @@ export class DashboardService {
         const key = toDateKey(parseDate(m.date));
         const e = map.get(key);
         if (e) {
-          if (m.type === 'Income') e.income += m.amountBase;
-          else e.expense += m.amountBase;
+          const flow = financialFlowContribution(m);
+          e.income += flow.income;
+          e.expense += flow.expense;
         }
       }
 
@@ -380,8 +438,9 @@ export class DashboardService {
     for (const m of movements) {
       const day = toDateKey(parseDate(m.date));
       const e = dayMap.get(day) ?? { income: 0, expense: 0 };
-      if (m.type === 'Income') e.income += m.amountBase;
-      else e.expense += m.amountBase;
+      const flow = financialFlowContribution(m);
+      e.income += flow.income;
+      e.expense += flow.expense;
       dayMap.set(day, e);
     }
     return [...dayMap.entries()]
@@ -409,8 +468,9 @@ export class DashboardService {
       const mk = toMonthKey(parseDate(m.date));
       const e = map.get(mk);
       if (e) {
-        if (m.type === 'Income') e.income += m.amountBase;
-        else e.expense += m.amountBase;
+        const flow = financialFlowContribution(m);
+        e.income += flow.income;
+        e.expense += flow.expense;
       }
     }
 
@@ -428,15 +488,16 @@ export class DashboardService {
   ): { name: string; total: number; icon: string; color: string }[] {
     const catMap = new Map<string, { name: string; total: number; icon: string; color: string }>();
     for (const m of movements) {
-      if (m.type !== 'Expense') continue;
+      const expense = financialFlowContribution(m).expense;
+      if (expense <= 0) continue;
       const key = m.categoryId ?? '__none__';
       const existing = catMap.get(key);
       if (existing) {
-        existing.total += m.amountBase ?? 0;
+        existing.total += expense;
       } else {
         catMap.set(key, {
           name: m.categoryName ?? this.i18n.t('dashboard.sin_categoria'),
-          total: m.amountBase ?? 0,
+          total: expense,
           icon: m.categoryIcon ?? 'tag',
           color: m.categoryColor ?? '#6b7280',
         });

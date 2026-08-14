@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.rec-paused {
+  opacity: 0.6;
+}

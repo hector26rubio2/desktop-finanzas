@@ -3,6 +3,7 @@
    ============================================================ */
 
 :root {
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--fs-lg:18px;
   /* ΓöÇΓöÇ Primary: Purple ΓöÇΓöÇ */
   --color-primary-50: oklch(97% 0.012 280);
   --color-primary-100: oklch(92% 0.025 280);
@@ -86,7 +87,7 @@
 
   --color-text-body: var(--color-neutral-900);
   --color-text-muted: var(--color-neutral-600);
-  --color-text-subtle: var(--color-neutral-400);
+  --color-text-subtle: var(--color-neutral-500);
 
   --color-border-subtle: var(--color-neutral-200);
   --color-border-default: var(--color-neutral-300);
@@ -108,7 +109,7 @@
   --fg-0: var(--color-text-body);
   --fg-1: var(--color-text-muted);
   --fg-2: var(--color-text-subtle);
-  --fg-3: var(--color-neutral-400);
+  --fg-3: var(--color-neutral-500);
   --fg-4: var(--color-neutral-300);
   --accent: var(--color-primary);
   --accent-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);

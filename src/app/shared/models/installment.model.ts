@@ -3,6 +3,8 @@ export interface InstallmentResponse {
   userId: string;
   description: string;
   accountId: string | null;
+  purchaseMovementId?: string | null;
+  interestRatePercent?: number;
   totalAmount: number;
   currency: string;
   trmApplied: number;

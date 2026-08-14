@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth.guard';
-import { adminGuard } from '@core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -13,16 +12,10 @@ export const routes: Routes = [
     loadComponent: () => import('@auth/register').then((m) => m.RegisterComponent),
   },
   {
-    path: 'verify-email',
-    loadComponent: () => import('@auth/verify-email').then((m) => m.VerifyEmailComponent),
-  },
-  {
-    path: 'forgot-password',
-    loadComponent: () => import('@auth/forgot-password').then((m) => m.ForgotPasswordComponent),
-  },
-  {
-    path: 'reset-password',
-    loadComponent: () => import('@auth/reset-password').then((m) => m.ResetPasswordComponent),
+    // Sin servidor no hay correo de verificación ni enlace de restablecimiento:
+    // la única vuelta atrás es el código emitido al crear el perfil.
+    path: 'recover',
+    loadComponent: () => import('@auth/recover').then((m) => m.RecoverComponent),
   },
   {
     path: 'dashboard',
@@ -33,11 +26,22 @@ export const routes: Routes = [
     path: 'movements',
     canActivate: [authGuard],
     loadComponent: () => import('./features/movements/movements.component').then((m) => m.MovementsComponent),
-  },  
+  },
   {
     path: 'accounts',
     canActivate: [authGuard],
     loadComponent: () => import('./features/accounts/accounts.component').then((m) => m.AccountsComponent),
+  },
+  {
+    path: 'portfolio',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/portfolio/portfolio.component').then((m) => m.PortfolioComponent),
+  },
+  {
+    path: 'platform-tools',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/platform-tools/platform-tools.component').then((m) => m.PlatformToolsComponent),
   },
   {
     path: 'cards',
@@ -48,6 +52,11 @@ export const routes: Routes = [
     path: 'loans',
     canActivate: [authGuard],
     loadComponent: () => import('./features/loans/loans.component').then((m) => m.LoansComponent),
+  },
+  {
+    path: 'recurring',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/recurring/recurring.component').then((m) => m.RecurringComponent),
   },
   {
     path: 'reports',
@@ -68,11 +77,6 @@ export const routes: Routes = [
     path: 'settings',
     canActivate: [authGuard],
     loadComponent: () => import('./features/settings/settings.component').then((m) => m.SettingsComponent),
-  },
-  {
-    path: 'admin',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
   },
   { path: '**', redirectTo: 'dashboard' },
 ];

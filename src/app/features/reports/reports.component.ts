@@ -17,11 +17,14 @@ import { PieChartComponent, CategoryExpense } from '@ui/organisms/pie-chart/pie-
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { forkJoin } from 'rxjs';
+import { FinancialApiService } from '../../shared/services/api/financial-api.service';
+import { AuthService } from '../../shared/services/auth/auth.service';
 
 interface MonthStat {
   month: string;
   income: number;
   expense: number;
+  savings: number;
 }
 
 interface CashflowRow extends MonthStat {
@@ -57,6 +60,7 @@ export class ReportsComponent implements OnInit {
   monthStats = signal<MonthStat[]>([]);
   income12 = signal(0);
   expense12 = signal(0);
+  savings12 = signal(0);
   maxExpense = signal(0);
 
   catLoading = signal(true);
@@ -64,7 +68,9 @@ export class ReportsComponent implements OnInit {
   commitments = signal(0);
 
   private api = inject(ApiService);
+  private financialApi = inject(FinancialApiService);
   public i18n = inject(I18nService);
+  public auth = inject(AuthService);
   private destroyRef = inject(DestroyRef);
 
   avgMonthlyExpense = computed(() => {
@@ -95,7 +101,7 @@ export class ReportsComponent implements OnInit {
   kpiItems = computed<KpiStripItem[]>(() => {
     const fmt = (v: number) => formatNumber(v, 'en-US', '1.0-0');
     const neto = this.income12() - this.expense12();
-    const rate = this.income12() > 0 ? formatNumber((neto / this.income12()) * 100, 'en-US', '1.1-1') : '0';
+    const rate = this.income12() > 0 ? formatNumber((this.savings12() / this.income12()) * 100, 'en-US', '1.1-1') : '0';
     const items: KpiStripItem[] = [
       { label: this.i18n.t('reports.ingresos_12m'), value: fmt(this.income12()), color: 'var(--positive)' },
       { label: this.i18n.t('reports.gastos_12m'), value: fmt(this.expense12()), color: 'var(--negative)' },
@@ -194,14 +200,20 @@ export class ReportsComponent implements OnInit {
     });
     const currentYm = requests[requests.length - 1];
 
-    forkJoin(requests.map((ym) => this.api.getMovementSummary(ym)))
+    forkJoin(requests.map((ym) => this.financialApi.getKpis(ym)))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (sums) => {
-          const stats = sums.map((s, i) => ({ month: requests[i], income: s.totalIncome, expense: s.totalExpense }));
+          const stats = sums.map((s, i) => ({
+            month: requests[i],
+            income: s.income,
+            expense: s.expense,
+            savings: s.savings,
+          }));
           this.monthStats.set(stats);
           this.income12.set(stats.reduce((a, s) => a + s.income, 0));
           this.expense12.set(stats.reduce((a, s) => a + s.expense, 0));
+          this.savings12.set(stats.reduce((a, s) => a + s.savings, 0));
           this.maxExpense.set(Math.max(...stats.map((s) => s.expense), 1));
           this.loading.set(false);
         },

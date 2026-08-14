@@ -1,23 +1,28 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthApiService } from './api/auth-api.service';
 import { AccountsApiService } from './api/accounts-api.service';
 import { MovementsApiService } from './api/movements-api.service';
 import { CategoriesApiService } from './api/categories-api.service';
 import { LoansApiService } from './api/loans-api.service';
 import { InstallmentsApiService } from './api/installments-api.service';
-import { AdminApiService } from './api/admin-api.service';
+import { RecurringTransactionsApiService } from './api/recurring-transactions-api.service';
 
-import type { AuthResponse } from '../models/auth.model';
 import type { AccountResponse, AccountRequest, AccountBalance } from '../models/account.model';
 import type { CategoryResponse } from '../models/category.model';
-import type { MovementResponse, MovementRequest, MovementSummary, PagedResult } from '../models/movement.model';
+import type {
+  MovementResponse,
+  MovementRequest,
+  MovementSummary,
+  PagedResult,
+  TransferRequest,
+  TransferResponse,
+  CreditCardPaymentRequest,
+} from '../models/movement.model';
 import type { LoanResponse, LoanRequest } from '../models/loan.model';
 import type { InstallmentResponse, InstallmentRequest } from '../models/installment.model';
-import type { AdminUserDto } from '../models/admin.model';
+import type { RecurringTransactionResponse, RecurringTransactionRequest } from '../models/recurring-transaction.model';
 
 export type {
-  AuthResponse,
   AccountResponse,
   AccountRequest,
   AccountBalance,
@@ -26,62 +31,27 @@ export type {
   MovementRequest,
   MovementSummary,
   PagedResult,
+  TransferRequest,
+  TransferResponse,
+  CreditCardPaymentRequest,
   LoanResponse,
   LoanRequest,
   InstallmentResponse,
   InstallmentRequest,
-  AdminUserDto,
+  RecurringTransactionResponse,
+  RecurringTransactionRequest,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private authApi = inject(AuthApiService);
   private accountsApi = inject(AccountsApiService);
   private movementsApi = inject(MovementsApiService);
   private categoriesApi = inject(CategoriesApiService);
   private loansApi = inject(LoansApiService);
   private installmentsApi = inject(InstallmentsApiService);
-  private adminApi = inject(AdminApiService);
+  private recurringApi = inject(RecurringTransactionsApiService);
 
-  // ── Auth ──────────────────────────────────────────────────────────────
-  loginWithGoogle(idToken: string): Observable<AuthResponse> {
-    return this.authApi.loginWithGoogle(idToken);
-  }
-  register(name: string, email: string, password: string, baseCurrency: string): Observable<AuthResponse> {
-    return this.authApi.register(name, email, password, baseCurrency);
-  }
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.authApi.login(email, password);
-  }
-  refresh(refreshToken: string): Observable<AuthResponse> {
-    return this.authApi.refresh(refreshToken);
-  }
-  logout(refreshToken: string): Observable<void> {
-    return this.authApi.logout(refreshToken);
-  }
-  forgotPassword(email: string): Observable<void> {
-    return this.authApi.forgotPassword(email);
-  }
-  resetPassword(token: string, password: string): Observable<void> {
-    return this.authApi.resetPassword(token, password);
-  }
-  verifyEmail(token: string): Observable<void> {
-    return this.authApi.verifyEmail(token);
-  }
-  resendVerification(email: string): Observable<void> {
-    return this.authApi.resendVerification(email);
-  }
-
-  // ── Admin ─────────────────────────────────────────────────────────────
-  getAdminUsers(): Observable<AdminUserDto[]> {
-    return this.adminApi.getAdminUsers();
-  }
-  setUserRole(id: string, role: string): Observable<void> {
-    return this.adminApi.setUserRole(id, role);
-  }
-  setUserActive(id: string, isActive: boolean): Observable<void> {
-    return this.adminApi.setUserActive(id, isActive);
-  }
+  // La autenticación ya no pasa por aquí: es local y va por IPC (LocalAuthService).
 
   // ── Accounts ──────────────────────────────────────────────────────────
   getAccounts(): Observable<AccountResponse[]> {
@@ -138,7 +108,14 @@ export class ApiService {
     yearMonth: string,
     page = 1,
     pageSize = 20,
-    filters?: { currency?: string; categoryId?: string; accountId?: string },
+    filters?: {
+      currency?: string;
+      categoryId?: string;
+      accountId?: string;
+      type?: 'Income' | 'Expense';
+      portfolioEntityId?: string;
+      portfolioType?: string;
+    },
   ): Observable<PagedResult<MovementResponse>> {
     return this.movementsApi.getMovements(yearMonth, page, pageSize, filters);
   }
@@ -147,6 +124,12 @@ export class ApiService {
   }
   createMovement(req: MovementRequest): Observable<MovementResponse> {
     return this.movementsApi.createMovement(req);
+  }
+  createTransfer(req: TransferRequest, idempotencyKey: string): Observable<TransferResponse> {
+    return this.movementsApi.createTransfer(req, idempotencyKey);
+  }
+  createCreditCardPayment(req: CreditCardPaymentRequest, idempotencyKey: string): Observable<TransferResponse> {
+    return this.movementsApi.createCreditCardPayment(req, idempotencyKey);
   }
   deleteMovement(id: string): Observable<void> {
     return this.movementsApi.deleteMovement(id);
@@ -179,7 +162,38 @@ export class ApiService {
   updateInstallmentPaid(id: string, paidCount: number): Observable<InstallmentResponse> {
     return this.installmentsApi.updateInstallmentPaid(id, paidCount);
   }
+  getLoanSchedule(id: string) {
+    return this.loansApi.getSchedule(id);
+  }
+  payLoan(
+    id: string,
+    sourceAccountId: string,
+    extraPrincipal = 0,
+    idempotencyKey?: string,
+  ): Observable<LoanResponse> {
+    return this.loansApi.payLoan(id, sourceAccountId, extraPrincipal, idempotencyKey);
+  }
+  payInstallment(id: string, sourceAccountId: string, idempotencyKey: string): Observable<InstallmentResponse> {
+    return this.installmentsApi.payInstallment(id, sourceAccountId, idempotencyKey);
+  }
   deleteInstallment(id: string): Observable<void> {
     return this.installmentsApi.deleteInstallment(id);
+  }
+
+  // ── Recurring transactions ────────────────────────────────────────────
+  getRecurring(): Observable<RecurringTransactionResponse[]> {
+    return this.recurringApi.getRecurring();
+  }
+  createRecurring(req: RecurringTransactionRequest): Observable<RecurringTransactionResponse> {
+    return this.recurringApi.createRecurring(req);
+  }
+  updateRecurring(id: string, req: RecurringTransactionRequest): Observable<RecurringTransactionResponse> {
+    return this.recurringApi.updateRecurring(id, req);
+  }
+  toggleRecurringActive(id: string, isActive: boolean): Observable<RecurringTransactionResponse> {
+    return this.recurringApi.toggleActive(id, isActive);
+  }
+  deleteRecurring(id: string): Observable<void> {
+    return this.recurringApi.deleteRecurring(id);
   }
 }

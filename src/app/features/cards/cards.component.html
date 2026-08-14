@@ -1,66 +1,118 @@
 @if (showInstModal()) {
-<app-modal
-  [title]="i18n.t('installments.nueva_compra')"
-  (closeModal)="closeInstModal()"
-  (overlayClick)="closeInstModal()"
->
-  <form [formGroup]="instForm" (ngSubmit)="saveNewInst()" style="display:flex;flex-direction:column;gap:12px">
-    <label class="form-label">
-      {{ i18n.t('transactions.table_concepto') }}
-      <input formControlName="description" [placeholder]="i18n.t('installments.descripcion_placeholder')" />
-    </label>
-    <div class="acc-form-row">
-      <label class="form-label" style="flex:1">
-        {{ i18n.t('installments.monto_total') }}
-        <input type="number" formControlName="totalAmount" min="1" step="0.01" placeholder="0" />
+  <app-modal
+    [title]="i18n.t('installments.nueva_compra')"
+    (closeModal)="closeInstModal()"
+    (overlayClick)="closeInstModal()"
+  >
+    <form [formGroup]="instForm" (ngSubmit)="saveNewInst()" style="display: flex; flex-direction: column; gap: 12px">
+      <label class="form-label">
+        {{ i18n.t('transactions.table_concepto') }}
+        <input formControlName="description" [placeholder]="i18n.t('installments.descripcion_placeholder')" />
+        <app-field-error [control]="instForm.get('description')" />
       </label>
-      <label class="form-label" style="flex:0 0 90px">
-        {{ i18n.t('transactions.installments') }}
-        <input type="number" formControlName="installmentsCount" min="2" max="120" step="1" placeholder="6" />
-      </label>
-    </div>
-    @if (instForm.value.totalAmount && instForm.value.installmentsCount) {
-      <div class="mov-card-info" style="flex-direction:column;align-items:flex-start;gap:3px">
-        <span class="mov-card-info-item">
-          Base: {{ selectedCard()?.currency }}
-          {{ (instForm.value.totalAmount / instForm.value.installmentsCount) | number:'1.2-2' }}/mes
-        </span>
-        @if (selectedCard()?.interestRate) {
-          <span class="mov-card-info-item" style="color:var(--warning)">
-            Interés {{ selectedCard()!.interestRate }}%: {{ selectedCard()?.currency }}
-            {{ ((instForm.value.totalAmount / instForm.value.installmentsCount) * (selectedCard()!.interestRate! / 100)) | number:'1.2-2' }}/mes
-          </span>
-        }
-        <span class="mov-card-info-item" style="color:var(--positive);font-weight:700">
-          Total cuota: {{ selectedCard()?.currency }}
-          {{ instMonthlyWithInterest() | number:'1.2-2' }}/mes
-        </span>
+      <div class="acc-form-row">
+        <label class="form-label" style="flex: 1">
+          {{ i18n.t('installments.monto_total') }}
+          <input type="number" formControlName="totalAmount" min="1" step="0.01" placeholder="0" />
+          <app-field-error [control]="instForm.get('totalAmount')" />
+        </label>
+        <label class="form-label" style="flex: 0 0 90px">
+          {{ i18n.t('transactions.installments') }}
+          <input type="number" formControlName="installmentsCount" min="2" max="120" step="1" placeholder="6" />
+          <app-field-error [control]="instForm.get('installmentsCount')" />
+        </label>
       </div>
-    }
-    <label class="form-label">
-      {{ i18n.t('transactions.date') }}
-      <input type="date" formControlName="startDate" />
-    </label>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
-      <button type="button" class="btn btn--ghost" (click)="closeInstModal()">
-        {{ i18n.t('common.cancel') }}
-      </button>
-      <button type="submit" class="btn btn--primary" [disabled]="instSaving()">
-        {{ instSaving() ? i18n.t('common.saving') : i18n.t('common.save') }}
-      </button>
-    </div>
-  </form>
-</app-modal>
+      @if (instForm.value.totalAmount && instForm.value.installmentsCount) {
+        <div class="mov-card-info" style="flex-direction: column; align-items: flex-start; gap: 3px">
+          <span class="mov-card-info-item">
+            Base: {{ selectedCard()?.currency }}
+            {{ instForm.value.totalAmount / instForm.value.installmentsCount | number: '1.2-2' }}/mes
+          </span>
+          @if (selectedCard()?.interestRate) {
+            <span class="mov-card-info-item" style="color: var(--warning)">
+              Interés {{ selectedCard()!.interestRate }}%: {{ selectedCard()?.currency }}
+              {{
+                (instForm.value.totalAmount / instForm.value.installmentsCount) * (selectedCard()!.interestRate! / 100)
+                  | number: '1.2-2'
+              }}/mes
+            </span>
+          }
+          <span class="mov-card-info-item" style="color: var(--positive); font-weight: 700">
+            Total cuota: {{ selectedCard()?.currency }} {{ instMonthlyWithInterest() | number: '1.2-2' }}/mes
+          </span>
+        </div>
+      }
+      <label class="form-label">
+        {{ i18n.t('transactions.date') }}
+        <input type="date" formControlName="startDate" />
+        <app-field-error [control]="instForm.get('startDate')" />
+      </label>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px">
+        <button type="button" class="btn btn--ghost" (click)="closeInstModal()">
+          {{ i18n.t('common.cancel') }}
+        </button>
+        <button type="submit" class="btn btn--primary" [disabled]="instSaving()">
+          {{ instSaving() ? i18n.t('common.saving') : i18n.t('common.save') }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (showPaymentModal()) {
+  <app-modal [title]="i18n.t('cards.pagar')" (closeModal)="closePaymentModal()" (overlayClick)="closePaymentModal()">
+    <form [formGroup]="paymentForm" (ngSubmit)="savePayment()" style="display: flex; flex-direction: column; gap: 12px">
+      <label class="form-label">
+        {{ i18n.t('transactions.origin') }}
+        <select formControlName="sourceAccountId">
+          @for (account of paymentFundingAccounts(); track account.id) {
+            <option [value]="account.id">{{ account.name }} · {{ account.currency }}</option>
+          }
+        </select>
+        <app-field-error [control]="paymentForm.get('sourceAccountId')" />
+      </label>
+      <label class="form-label">
+        {{ i18n.t('transactions.amount') }}
+        <input type="number" formControlName="amount" min="0.01" step="0.01" />
+        <app-field-error [control]="paymentForm.get('amount')" />
+      </label>
+      <label class="form-label">
+        {{ i18n.t('transactions.date') }}
+        <input type="date" formControlName="date" />
+      </label>
+      <label class="form-label">
+        {{ i18n.t('transactions.table_concepto') }}
+        <input formControlName="description" />
+      </label>
+      <div style="display: flex; justify-content: flex-end; gap: 8px">
+        <button type="button" class="btn btn--ghost" (click)="closePaymentModal()">
+          {{ i18n.t('common.cancel') }}
+        </button>
+        <button type="submit" class="btn btn--primary" [disabled]="paymentSaving() || paymentFundingAccounts().length === 0">
+          {{ paymentSaving() ? i18n.t('common.saving') : i18n.t('cards.pagar') }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
 }
 
 <div class="view" [attr.aria-busy]="loading()">
-  <app-movement-detail-modal [movement]="selectedMovement()" [installment]="selectedInstallment()" (closeModal)="closeDetail()" />
+  <app-movement-detail-modal
+    [movement]="selectedMovement()"
+    [installment]="selectedInstallment()"
+    (closeModal)="closeDetail()"
+  />
 
-  @if (loading()) {
+  @if (loadState() === 'loading') {
     <div class="empty-state" role="status" aria-live="polite">
       <p>{{ i18n.t('cards.cargando') }}</p>
     </div>
-  } @else if (cards().length === 0) {
+  } @else if (loadState() === 'error') {
+    <div class="empty-state" role="alert" aria-live="assertive">
+      <p>{{ i18n.t('common.load_error') }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">{{ i18n.t('common.retry') }}</button>
+    </div>
+  } @else if (loadState() === 'empty') {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('cards.sin_tarjetas') }}</div>
       <p>{{ i18n.t('cards.sin_tarjetas_desc') }}</p>
@@ -78,7 +130,9 @@
           (ngModelChange)="searchQuery.set($event)"
         />
         <select class="cards-filter" [ngModel]="filterCcy()" (ngModelChange)="filterCcy.set($event)">
-          <option value="">{{ i18n.t('cards.all_currencies') }}</option>
+          @if (uniqueCurrencies().length <= 1) {
+            <option value="">{{ i18n.t('cards.all_currencies') }}</option>
+          }
           @for (ccy of uniqueCurrencies(); track ccy) {
             <option [value]="ccy">{{ ccy }}</option>
           }
@@ -94,140 +148,163 @@
     </div>
 
     <div class="cards-top-row">
-    <div class="cards-scroll-wrap">
-      <div class="cards-scroll">
-        <div class="cards-track">
-          @for (card of filteredCards(); track card.id) {
-            <div
-              class="cc-card"
-              [class.cc-card--selected]="selectedId() === card.id"
-              role="button"
-              tabindex="0"
-              [attr.aria-label]="card.name"
-              (click)="selectCard(card.id)"
-              (keydown.enter)="selectCard(card.id)"
-            >
-              <div class="cc-card-visual">
-                <div class="cc-card-top-row">
-                  <div>
-                    <div class="cc-card-bank">{{ card.bank?.toUpperCase() ?? i18n.t('cards.fallback_banco') }}</div>
-                    @if (cardBrand(card)) {
-                      <div class="cc-card-brand">{{ cardBrand(card) }}</div>
-                    }
+      <div class="cards-scroll-wrap">
+        <div class="cards-scroll">
+          <div class="cards-track">
+            @for (card of filteredCards(); track card.id) {
+              <div
+                class="cc-card"
+                [class.cc-card--selected]="selectedId() === card.id"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="card.name"
+                (click)="selectCard(card.id)"
+                (keydown.enter)="selectCard(card.id)"
+              >
+                <div class="cc-card-visual">
+                  <div class="cc-card-top-row">
+                    <div>
+                      <div class="cc-card-bank">{{ card.bank?.toUpperCase() ?? i18n.t('cards.fallback_banco') }}</div>
+                      @if (cardBrand(card)) {
+                        <div class="cc-card-brand">{{ cardBrand(card) }}</div>
+                      }
+                    </div>
+                    <div class="cc-card-name">{{ card.name }}</div>
                   </div>
-                  <div class="cc-card-name">{{ card.name }}</div>
-                </div>
-                <div class="cc-card-number">•••• {{ card.lastFour ?? '????' }}</div>
-                <div class="cc-card-bottom-row">
-                  <div>
-                    <div class="cc-card-eyebrow">{{ i18n.t('cards.disponible') }}</div>
-                    <div class="cc-card-amount mono">{{ card.currency }} {{ available(card) | number: '1.0-0' }}</div>
-                  </div>
-                  <div class="cc-card-right">
-                    <div class="cc-card-eyebrow">{{ i18n.t('cards.vence') }}</div>
-                    <div class="cc-card-date mono">
-                      {{ card.paymentDay ? i18n.t('cards.dia') + ' ' + card.paymentDay : '—' }}
+                  <div class="cc-card-number">•••• {{ card.lastFour ?? '????' }}</div>
+                  <div class="cc-card-bottom-row">
+                    <div>
+                      <div class="cc-card-eyebrow">{{ i18n.t('cards.disponible') }}</div>
+                      <div class="cc-card-amount mono">{{ card.currency }} {{ available(card) | number: '1.0-0' }}</div>
+                    </div>
+                    <div class="cc-card-right">
+                      <div class="cc-card-eyebrow">{{ i18n.t('cards.vence') }}</div>
+                      <div class="cc-card-date mono">
+                        {{ card.paymentDay ? i18n.t('cards.dia') + ' ' + card.paymentDay : '—' }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="cc-card-body">
-                <div class="cc-card-row three-cols">
-                  <div class="cc-card-metric">
-                    <span class="cc-card-metric-label">{{ i18n.t('cards.label_limite') }}</span>
-                    <span class="cc-card-metric-value mono"
-                      >{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span
+                <div class="cc-card-body">
+                  <div class="cc-card-row three-cols">
+                    <div class="cc-card-metric">
+                      <span class="cc-card-metric-label">{{ i18n.t('cards.label_limite') }}</span>
+                      <span class="cc-card-metric-value mono"
+                        >{{ card.currency }} {{ card.creditLimit! | number: '1.0-0' }}</span
+                      >
+                    </div>
+                    <div class="cc-card-metric">
+                      <span class="cc-card-metric-label">{{ i18n.t('cards.total_utilizado') }}</span>
+                      <span class="cc-card-metric-value mono" style="color: var(--negative)">
+                        {{ card.currency }} {{ outstandingDebt(card) | number: '1.0-0' }}
+                      </span>
+                    </div>
+                    <div class="cc-card-metric">
+                      <span class="cc-card-metric-label">{{ i18n.t('cards.disponible') }}</span>
+                      <span class="cc-card-metric-value mono" style="color: var(--positive)">
+                        {{ card.currency }} {{ available(card) | number: '1.0-0' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="cc-card-progress-row">
+                    <span style="font-size: var(--fs-xs); color: var(--fg-2)">{{
+                      i18n.t('cards.total_utilizado')
+                    }}</span>
+                    <span
+                      class="mono"
+                      style="font-size: var(--fs-sm); font-weight: 600"
+                      [style.color]="useColor(usePct(card))"
                     >
-                  </div>
-                  <div class="cc-card-metric">
-                    <span class="cc-card-metric-label">{{ i18n.t('cards.total_utilizado') }}</span>
-                    <span class="cc-card-metric-value mono" style="color: var(--negative)">
-                      {{ card.currency }} {{ card.balance.usedInCycle | number: '1.0-0' }}
+                      {{ usePct(card) }}%
                     </span>
                   </div>
-                  <div class="cc-card-metric">
-                    <span class="cc-card-metric-label">{{ i18n.t('cards.disponible') }}</span>
-                    <span class="cc-card-metric-value mono" style="color: var(--positive)">
-                      {{ card.currency }} {{ available(card) | number: '1.0-0' }}
-                    </span>
+                  <div class="progress">
+                    <div
+                      class="progress__fill"
+                      [style.width]="usePct(card) + '%'"
+                      [style.background]="useColor(usePct(card))"
+                    ></div>
                   </div>
+                  @if (card.interestRate) {
+                    <div class="cc-card-interest-row">
+                      <span class="cc-card-eyebrow">{{ i18n.t('transactions.interest_rate') }}</span>
+                      <span class="mono" style="font-size: var(--fs-xs); color: var(--warning)"
+                        >{{ card.interestRate }}%</span
+                      >
+                    </div>
+                  }
                 </div>
-
-                <div class="cc-card-progress-row">
-                  <span style="font-size: var(--fs-xs); color: var(--fg-2)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
-                  <span
-                    class="mono"
-                    style="font-size: var(--fs-sm); font-weight: 600"
-                    [style.color]="useColor(usePct(card))"
-                  >
-                    {{ usePct(card) }}%
-                  </span>
-                </div>
-                <div class="progress">
-                  <div
-                    class="progress__fill"
-                    [style.width]="usePct(card) + '%'"
-                    [style.background]="useColor(usePct(card))"
-                  ></div>
-                </div>
-                @if (card.interestRate) {
-                  <div class="cc-card-interest-row">
-                    <span class="cc-card-eyebrow">{{ i18n.t('transactions.interest_rate') }}</span>
-                    <span class="mono" style="font-size: var(--fs-xs); color: var(--warning)">{{ card.interestRate }}%</span>
-                  </div>
-                }
               </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de pago: columna derecha del top-row -->
+      @if (selectedCard(); as card) {
+        <div class="card payment-summary cards-top-summary">
+          <div class="payment-summary-title">
+            <span class="serif" style="font-size: 15px">{{ i18n.t('cards.resumen_pago') }}</span>
+            <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.currency }}</span>
+          </div>
+          <div class="payment-row">
+            <span class="payment-label">{{ i18n.t('cards.gastos_ciclo') }}</span>
+            <span class="payment-value mono">{{ selectedTotalExpenses() | number: '1.2-2' }}</span>
+          </div>
+          @if (card.interestRate) {
+            <div class="payment-row">
+              <span class="payment-label"
+                >{{ i18n.t('cards.interes_estimado') }}
+                <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.interestRate }}%</span>
+              </span>
+              <span class="payment-value mono" style="color: var(--warning)">{{
+                selectedTotalInterest() | number: '1.2-2'
+              }}</span>
             </div>
           }
-        </div>
-      </div>
-    </div>
-
-    <!-- Resumen de pago: columna derecha del top-row -->
-    @if (selectedCard(); as card) {
-      <div class="card payment-summary cards-top-summary">
-        <div class="payment-summary-title">
-          <span class="serif" style="font-size: 15px">{{ i18n.t('cards.resumen_pago') }}</span>
-          <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.currency }}</span>
-        </div>
-        <div class="payment-row">
-          <span class="payment-label">{{ i18n.t('cards.gastos_ciclo') }}</span>
-          <span class="payment-value mono">{{ selectedTotalExpenses() | number: '1.2-2' }}</span>
-        </div>
-        @if (card.interestRate) {
+          <div class="payment-row payment-row--total">
+            <span class="payment-label" style="font-weight: 600">{{ i18n.t('cards.total_a_pagar') }}</span>
+            <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{
+              selectedTotalToPay() | number: '1.2-2'
+            }}</span>
+          </div>
+          <div class="payment-divider"></div>
           <div class="payment-row">
-            <span class="payment-label">{{ i18n.t('cards.interes_estimado') }}
-              <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.interestRate }}%</span>
-            </span>
-            <span class="payment-value mono" style="color: var(--warning)">{{ selectedTotalInterest() | number: '1.2-2' }}</span>
+            <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.disponible') }}</span>
+            <span class="payment-value mono" style="color: var(--positive)">{{
+              available(card) | number: '1.0-0'
+            }}</span>
           </div>
-        }
-        <div class="payment-row payment-row--total">
-          <span class="payment-label" style="font-weight: 600">{{ i18n.t('cards.total_a_pagar') }}</span>
-          <span class="payment-value mono" style="color: var(--negative); font-weight: 700; font-size: 16px">{{ selectedTotalToPay() | number: '1.2-2' }}</span>
-        </div>
-        <div class="payment-divider"></div>
-        <div class="payment-row">
-          <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.disponible') }}</span>
-          <span class="payment-value mono" style="color: var(--positive)">{{ available(card) | number: '1.0-0' }}</span>
-        </div>
-        <div class="payment-row">
-          <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
-          <span class="payment-value mono">{{ card.balance.usedInCycle | number: '1.0-0' }}</span>
-        </div>
-        <div style="margin-top: 12px">
-          <div class="progress" style="margin-bottom: 8px">
-            <div class="progress__fill" [style.width]="usePct(card) + '%'" [style.background]="useColor(usePct(card))"></div>
+          <div class="payment-row">
+            <span class="payment-label" style="color: var(--fg-3)">{{ i18n.t('cards.utilizado_ciclo') }}</span>
+            <span class="payment-value mono">{{ cycleSpend(card) | number: '1.0-0' }}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center">
-            <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span>
-            <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{ card.creditLimit! | number: '1.0-0' }}</span>
+          <div style="margin-top: 12px">
+            <div class="progress" style="margin-bottom: 8px">
+              <div
+                class="progress__fill"
+                [style.width]="usePct(card) + '%'"
+                [style.background]="useColor(usePct(card))"
+              ></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)"
+                >{{ usePct(card) }}% {{ i18n.t('cards.usado') }}</span
+              >
+              <span class="mono" style="font-size: var(--fs-2xs); color: var(--fg-3)">{{
+                card.creditLimit! | number: '1.0-0'
+              }}</span>
+            </div>
+            <button class="btn btn--primary" style="width: 100%; margin-top: 12px" (click)="openPaymentModal()">
+              {{ i18n.t('cards.pagar') }}
+            </button>
           </div>
         </div>
-      </div>
-    }
-    </div><!-- /cards-top-row -->
+      }
+    </div>
+    <!-- /cards-top-row -->
 
     @if (selectedCard(); as card) {
       <div class="cards-content">
@@ -241,7 +318,18 @@
                 </span>
               </div>
               <button class="btn btn--ghost cc-inst-add-btn" (click)="openInstModal()">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/></svg>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M8 1v14M1 8h14" />
+                </svg>
                 {{ i18n.t('installments.nueva_compra') }}
               </button>
             </div>
@@ -332,7 +420,6 @@
               />
             </div>
           </div>
-
         </div>
       </div>
     }

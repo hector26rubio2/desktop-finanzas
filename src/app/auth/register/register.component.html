@@ -18,8 +18,8 @@
         <path d="M1 10h22" />
         <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
       </svg>
-      <h1 class="auth-brand-title">{{ i18n.t('auth.brand_future_title') }}</h1>
-      <p class="auth-brand-subtitle">{{ i18n.t('auth.brand_future_desc') }}</p>
+      <h1 class="auth-brand-title">{{ i18n.t('auth.brand_local_title') }}</h1>
+      <p class="auth-brand-subtitle">{{ i18n.t('auth.brand_local_desc') }}</p>
       <div class="auth-brand-features">
         <div class="auth-brand-feature">
           <div class="auth-brand-feature-icon">
@@ -37,7 +37,7 @@
               <polyline points="17 6 23 6 23 12" />
             </svg>
           </div>
-          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_multicurrency') }}</span>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_no_server') }}</span>
         </div>
         <div class="auth-brand-feature">
           <div class="auth-brand-feature-icon">
@@ -59,7 +59,7 @@
               <circle cx="19" cy="5" r="2" fill="currentColor" stroke="none" />
             </svg>
           </div>
-          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_reports') }}</span>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_offline') }}</span>
         </div>
       </div>
     </div>
@@ -96,22 +96,53 @@
         <span class="auth-mobile-brand-text">{{ i18n.t('auth.brand_name') }}</span>
       </div>
 
-      <div class="auth-form-header">
-        <h2 class="auth-form-title">{{ i18n.t('auth.register') }}</h2>
-        <p class="auth-form-subtitle">{{ i18n.t('auth.register_desc') }}</p>
-      </div>
+      @if (recoveryCode(); as code) {
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">{{ i18n.t('auth.recovery_title') }}</h2>
+          <p class="auth-form-subtitle">{{ i18n.t('auth.recovery_desc') }}</p>
+        </div>
 
-      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="auth-form">
+          <div class="auth-field-group">
+            <label class="auth-field-label" for="recovery-code">{{ i18n.t('auth.recovery_code') }}</label>
+            <output class="auth-input auth-recovery-code" id="recovery-code">{{ code }}</output>
+          </div>
+
+          <div class="auth-error-banner">{{ i18n.t('auth.recovery_warning') }}</div>
+
+          <div class="auth-checkbox-row">
+            <input
+              class="auth-checkbox-input"
+              id="recovery-ack"
+              type="checkbox"
+              [checked]="recoveryAcknowledged()"
+              (change)="acknowledge($any($event.target).checked)"
+            />
+            <label class="auth-checkbox-label" for="recovery-ack">{{ i18n.t('auth.recovery_saved') }}</label>
+          </div>
+
+          <button type="button" class="auth-submit-btn" [disabled]="!recoveryAcknowledged()" (click)="finish()">
+            <span>{{ i18n.t('auth.recovery_confirm') }}</span>
+          </button>
+        </div>
+      } @else {
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">{{ i18n.t('auth.setup_title') }}</h2>
+          <p class="auth-form-subtitle">{{ i18n.t('auth.setup_desc') }}</p>
+        </div>
+
+        <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
         <div class="auth-field-group">
           <label class="auth-field-label">{{ i18n.t('auth.name') }}</label>
           <input class="auth-input" formControlName="name" [placeholder]="i18n.t('auth.name')" />
+          <span class="auth-field-hint">{{ i18n.t('auth.name_hint') }}</span>
           @if (form.get('name')?.invalid && form.get('name')?.touched) {
             <span class="auth-field-error">{{ i18n.t('auth.required') }}</span>
           }
         </div>
 
         <div class="auth-field-group">
-          <label class="auth-field-label">{{ i18n.t('auth.email') }}</label>
+          <label class="auth-field-label">{{ i18n.t('auth.email_optional') }}</label>
           <div class="auth-input-wrapper">
             <input
               class="auth-input"
@@ -135,6 +166,7 @@
               <path d="M2 6l10 7 10-7" />
             </svg>
           </div>
+          <span class="auth-field-hint">{{ i18n.t('auth.email_hint') }}</span>
           @if (form.get('email')?.invalid && form.get('email')?.touched) {
             <span class="auth-field-error">{{ i18n.t('auth.invalid_email') }}</span>
           }
@@ -193,7 +225,7 @@
               />
             </svg>
           } @else {
-            <span>{{ i18n.t('auth.register') }}</span>
+            <span>{{ i18n.t('auth.setup_btn') }}</span>
             <svg
               class="auth-submit-arrow"
               width="18"
@@ -210,14 +242,8 @@
             </svg>
           }
         </button>
-      </form>
-
-      <div class="auth-footer">
-        <p class="auth-footer-text">
-          {{ i18n.t('auth.have_account') }}
-          <a routerLink="/login" class="auth-footer-link">{{ i18n.t('auth.login_link') }}</a>
-        </p>
-      </div>
+        </form>
+      }
     </div>
   </div>
 </main>

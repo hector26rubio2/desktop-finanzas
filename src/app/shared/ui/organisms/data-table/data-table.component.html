@@ -1,8 +1,34 @@
 <div class="dt-wrap">
+  @if (searchable()) {
+    <div class="dt-tools">
+      <input
+        type="search"
+        [placeholder]="searchPlaceholder()"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+      />
+      <details>
+        <summary>Columnas</summary>
+        @for (col of columns(); track col.key) {
+          <label
+            ><input type="checkbox" [checked]="!hiddenColumns().has(col.key)" (change)="toggleColumn(col.key)" />{{
+              col.header || col.key
+            }}</label
+          >
+        }
+      </details>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="dt-status dt-status--error" role="alert">{{ errorMessage() }}</div>
+  }
+  @if (loading()) {
+    <div class="dt-status" role="status">Cargando…</div>
+  }
   <table class="table">
     <thead>
       <tr>
-        @for (col of columns(); track col.key) {
+        @for (col of visibleColumns(); track col.key) {
           <th
             [style.width]="col.width ?? null"
             [class.num]="col.numeric"
@@ -34,7 +60,7 @@
           (click)="onRowClick(item)"
           (keydown.enter)="onRowClick(item)"
         >
-          @for (col of columns(); track col.key) {
+          @for (col of visibleColumns(); track col.key) {
             <td [class.num]="col.numeric">
               @if (col.cellTpl) {
                 <ng-container
@@ -50,7 +76,7 @@
       }
       @if (data().length === 0) {
         <tr>
-          <td [attr.colspan]="columns().length" class="dt-empty">
+          <td [attr.colspan]="visibleColumns().length" class="dt-empty">
             <div class="serif">{{ emptyMessage() }}</div>
           </td>
         </tr>

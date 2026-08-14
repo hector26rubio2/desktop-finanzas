@@ -58,6 +58,6 @@ export class MovementDetailModalComponent {
   }
 
   totalInstallments(m: MovementResponse): number {
-    return this.installment()?.installmentsCount ?? (m.loanInstallments ?? 1);
+    return this.installment()?.installmentsCount ?? m.loanInstallments ?? 1;
   }
 }

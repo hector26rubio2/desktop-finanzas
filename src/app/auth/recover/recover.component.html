@@ -1,0 +1,121 @@
+<main class="auth-main">
+  <div class="auth-brand-panel">
+    <div class="auth-brand-dots"></div>
+    <div class="auth-brand-content">
+      <svg
+        class="auth-brand-icon"
+        width="56"
+        height="56"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="3" y="11" width="18" height="10" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      <h1 class="auth-brand-title">{{ i18n.t('auth.recover_brand_title') }}</h1>
+      <p class="auth-brand-subtitle">{{ i18n.t('auth.recover_brand_desc') }}</p>
+    </div>
+  </div>
+
+  <div class="auth-form-panel">
+    <div class="auth-top-bar">
+      <app-lang-picker [currentLocale]="i18n.currentLocale()" (localeChange)="i18n.setLocale($event)" />
+      <app-theme-picker
+        [currentTheme]="theme.theme()"
+        [formatLabel]="formatThemeLabel"
+        (themeChange)="theme.setTheme($event)"
+      />
+    </div>
+
+    <div class="auth-form-container">
+      @if (recoveryCode(); as code) {
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">{{ i18n.t('auth.recovery_title') }}</h2>
+          <p class="auth-form-subtitle">{{ i18n.t('auth.recovery_desc') }}</p>
+        </div>
+
+        <div class="auth-form">
+          <div class="auth-field-group">
+            <label class="auth-field-label" for="new-recovery-code">{{ i18n.t('auth.recovery_code') }}</label>
+            <output class="auth-input auth-recovery-code" id="new-recovery-code">{{ code }}</output>
+          </div>
+
+          <div class="auth-error-banner">{{ i18n.t('auth.recovery_warning') }}</div>
+
+          <div class="auth-checkbox-row">
+            <input
+              class="auth-checkbox-input"
+              id="new-recovery-ack"
+              type="checkbox"
+              [checked]="recoveryAcknowledged()"
+              (change)="acknowledge($any($event.target).checked)"
+            />
+            <label class="auth-checkbox-label" for="new-recovery-ack">{{ i18n.t('auth.recovery_saved') }}</label>
+          </div>
+
+          <button type="button" class="auth-submit-btn" [disabled]="!recoveryAcknowledged()" (click)="finish()">
+            <span>{{ i18n.t('auth.recovery_confirm') }}</span>
+          </button>
+        </div>
+      } @else {
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">{{ i18n.t('auth.recover_title') }}</h2>
+          <p class="auth-form-subtitle">{{ i18n.t('auth.recover_desc') }}</p>
+        </div>
+
+        <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+          <div class="auth-field-group">
+            <label class="auth-field-label" for="recovery-input">{{ i18n.t('auth.recovery_code') }}</label>
+            <input
+              class="auth-input"
+              id="recovery-input"
+              formControlName="recoveryCode"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+            />
+            @if (form.get('recoveryCode')?.invalid && form.get('recoveryCode')?.touched) {
+              <span class="auth-field-error">{{ i18n.t('auth.required') }}</span>
+            }
+          </div>
+
+          <div class="auth-field-group">
+            <label class="auth-field-label" for="new-password">{{ i18n.t('auth.new_password') }}</label>
+            <input
+              class="auth-input"
+              id="new-password"
+              type="password"
+              formControlName="newPassword"
+              autocomplete="new-password"
+              [placeholder]="i18n.t('auth.min_length')"
+            />
+            @if (form.get('newPassword')?.errors?.['minlength'] && form.get('newPassword')?.touched) {
+              <span class="auth-field-error">{{ i18n.t('auth.min_length') }}</span>
+            }
+            @if (form.get('newPassword')?.errors?.['pattern'] && form.get('newPassword')?.touched) {
+              <span class="auth-field-error">{{ i18n.t('auth.need_number') }}</span>
+            }
+          </div>
+
+          @if (error()) {
+            <div class="auth-error-banner">{{ error() }}</div>
+          }
+
+          <button type="submit" class="auth-submit-btn" [disabled]="loading()">
+            <span>{{ i18n.t('auth.recover_btn') }}</span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <p class="auth-footer-text">
+            <a routerLink="/login" class="auth-footer-link">{{ i18n.t('auth.back_to_login') }}</a>
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</main>

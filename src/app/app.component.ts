@@ -1,14 +1,22 @@
-import { Component, computed, HostListener, signal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  HostListener,
+  signal,
+  inject,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './shared/services/auth/auth.service';
 import { I18nService } from './shared/i18n/i18n.service';
-import type { TranslationKey } from './shared/i18n/locale.types';
 import { SidebarComponent } from './shell/sidebar/sidebar.component';
 import { ShellHeaderComponent } from './shell/header/header.component';
 import { CmdkComponent } from './shell/cmdk/cmdk.component';
+import { APP_NAVIGATION_BY_ID } from './shell/navigation.catalog';
 import { UpdateBannerComponent } from './shared/ui/organisms/update-banner/update-banner.component';
 import { UpdateService } from './shared/services/update/update.service';
 import { NotificationService } from './core/services/notification.service';
@@ -43,37 +51,13 @@ export class AppComponent {
   isAuthPage = computed(() => this.AUTH_ROUTES.has(this.activeView()));
 
   headerTitle = computed(() => {
-    const map: Record<string, TranslationKey> = {
-      dashboard: 'header.dashboard',
-      movements: 'header.movements',
-      accounts: 'header.accounts',
-      cards: 'header.cards',
-      installments: 'header.installments',
-      loans: 'header.loans',
-      reports: 'header.reports',
-      categories: 'header.categories',
-      calendar: 'header.calendar',
-      settings: 'header.settings',
-      admin: 'header.admin',
-    };
-    return this.i18n.t(map[this.activeView()] ?? 'app.title');
+    const item = APP_NAVIGATION_BY_ID.get(this.activeView());
+    return this.i18n.t(item?.titleKey ?? 'app.title');
   });
 
   headerSub = computed(() => {
-    const map: Record<string, TranslationKey> = {
-      dashboard: 'header_sub.dashboard',
-      movements: 'header_sub.movements',
-      accounts: 'header_sub.accounts',
-      cards: 'header_sub.cards',
-      installments: 'header_sub.installments',
-      loans: 'header_sub.loans',
-      reports: 'header_sub.reports',
-      categories: 'header_sub.categories',
-      calendar: 'header_sub.calendar',
-      settings: 'header_sub.settings',
-      admin: 'header_sub.admin',
-    };
-    return this.i18n.t(map[this.activeView()] ?? '');
+    const item = APP_NAVIGATION_BY_ID.get(this.activeView());
+    return item ? this.i18n.t(item.subtitleKey) : '';
   });
 
   constructor() {

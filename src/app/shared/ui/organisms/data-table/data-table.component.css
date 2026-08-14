@@ -41,3 +41,4 @@
   padding: 40px var(--pad-x);
   color: var(--fg-3);
 }
+.dt-tools{display:flex;justify-content:space-between;gap:var(--space-3);padding:var(--space-2)}.dt-tools details{position:relative}.dt-tools details label{display:block;padding:var(--space-1)}.dt-status{padding:var(--space-4);color:var(--fg-2)}.dt-status--error{color:var(--negative);background:var(--negative-soft)}

@@ -5,13 +5,15 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, InstallmentResponse, AccountResponse } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-installments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, KpiStripComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.css',
 })
@@ -20,6 +22,11 @@ export class InstallmentsComponent implements OnInit {
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);
+  private router = inject(Router);
+
+  createPurchase() {
+    this.router.navigate(['/cards']);
+  }
 
   installments = signal<InstallmentResponse[]>([]);
   accounts = signal<AccountResponse[]>([]);
@@ -84,13 +91,18 @@ export class InstallmentsComponent implements OnInit {
   }
 
   markPaid(inst: InstallmentResponse) {
-    const newCount = Math.min(inst.paidCount + 1, inst.installmentsCount);
+    const source = this.accounts().find((a) => a.type !== 'Credit' && a.isActive && a.currency === inst.currency);
+    if (!source) return;
     this.api
-      .updateInstallmentPaid(inst.id, newCount)
+      .payInstallment(inst.id, source.id, crypto.randomUUID())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
         this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));
       });
+  }
+
+  hasPaymentSource(inst: InstallmentResponse) {
+    return this.accounts().some((a) => a.type !== 'Credit' && a.isActive && a.currency === inst.currency);
   }
 
   deleteInst(id: string) {

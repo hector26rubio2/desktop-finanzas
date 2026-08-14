@@ -18,6 +18,7 @@ import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 
 type AccTpl = TemplateRef<{ $implicit: AccountResponse; row: AccountResponse }>;
 
@@ -45,6 +46,8 @@ export class AccountsComponent implements OnInit {
   accounts = signal<AccountResponse[]>([]);
   balances = signal<Record<string, AccountBalance>>({});
   loading = signal(true);
+  loadError = signal(false);
+  loadState = computed(() => resolveViewLoadState(this.loading(), this.loadError(), this.accounts().length));
   saving = signal(false);
   showModal = signal(false);
   showDeleteModal = signal(false);
@@ -160,26 +163,47 @@ export class AccountsComponent implements OnInit {
 
   private load() {
     this.loading.set(true);
+    this.loadError.set(false);
     this.api
       .getAccounts()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (list) => {
           this.accounts.set(list);
-          this.loading.set(false);
+          if (list.length === 0) {
+            this.balances.set({});
+            this.loading.set(false);
+            return;
+          }
           this.api
             .getAccountBalances(list.map((a) => a.id))
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((map) => this.balances.set(map));
+            .subscribe({
+              next: (map) => {
+                this.balances.set(map);
+                this.loading.set(false);
+              },
+              error: () => {
+                this.loadError.set(true);
+                this.loading.set(false);
+              },
+            });
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          this.loadError.set(true);
+          this.loading.set(false);
+        },
       });
+  }
+
+  retry() {
+    this.load();
   }
 
   balanceOf(a: AccountResponse): number | null {
     const b = this.balances()[a.id];
     if (!b) return null;
-    return a.type === 'Credit' ? (a.creditLimit ?? 0) - b.usedInCycle : b.balance;
+    return a.type === 'Credit' ? (a.creditLimit ?? 0) - (b.outstandingDebt ?? b.usedInCycle) : b.balance;
   }
 
   accountIcon(a: AccountResponse): string {

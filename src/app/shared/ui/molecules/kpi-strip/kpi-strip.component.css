@@ -5,16 +5,18 @@
 .strip {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 0;
+  width: 100%;
 }
 
 .item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 2px;
   min-width: 0;
+  flex: 1;
+  padding: 0 12px;
 }
 
 .strip--end .item {
@@ -43,8 +45,7 @@
 }
 
 .sep {
-  width: 1px;
+  flex: 0 0 1px;
   height: 32px;
   background: var(--line);
-  flex-shrink: 0;
 }

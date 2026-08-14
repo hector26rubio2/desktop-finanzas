@@ -15,7 +15,10 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService, LoanResponse, AccountResponse } from '../../shared/services/api.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { forkJoin } from 'rxjs';
+import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 
 interface AmortRow {
   n: number;
@@ -31,7 +34,7 @@ type AmortTpl = TemplateRef<{ $implicit: AmortRow; row: AmortRow }>;
   selector: 'app-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, KpiStripComponent],
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent],
   templateUrl: './loans.component.html',
   styleUrl: './loans.component.css',
 })
@@ -39,9 +42,15 @@ export class LoansComponent implements OnInit {
   loans = signal<LoanResponse[]>([]);
   accounts = signal<AccountResponse[]>([]);
   loading = signal(true);
+  loadError = signal(false);
+  loadState = computed(() => resolveViewLoadState(this.loading(), this.loadError(), this.loans().length));
   saving = signal(false);
   showForm = false;
   selectedId = signal<string | null>(null);
+  schedule = signal<AmortRow[]>([]);
+  showPayment = signal(false);
+  paymentSaving = signal(false);
+  private paymentIdempotencyKey = '';
 
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
@@ -99,22 +108,72 @@ export class LoansComponent implements OnInit {
     accountId: [''],
   });
 
-  ngOnInit() {
+  paymentForm = this.fb.group({
+    sourceAccountId: ['', Validators.required],
+    extraPrincipal: [0, Validators.min(0)],
+  });
+
+  openPayment(loan: LoanResponse) {
+    const source = this.accounts().find((a) => a.type !== 'Credit' && a.isActive && a.currency === loan.currency);
+    this.paymentForm.reset({ sourceAccountId: source?.id ?? '', extraPrincipal: 0 });
+    this.paymentIdempotencyKey = crypto.randomUUID();
+    this.showPayment.set(true);
+  }
+
+  closePayment() {
+    if (!this.paymentSaving()) this.showPayment.set(false);
+  }
+
+  savePayment(loan: LoanResponse) {
+    if (this.paymentSaving()) return;
+    this.paymentForm.markAllAsTouched();
+    if (this.paymentForm.invalid) return;
+    const value = this.paymentForm.getRawValue();
+    this.paymentSaving.set(true);
     this.api
-      .getLoans()
+      .payLoan(loan.id, value.sourceAccountId!, value.extraPrincipal ?? 0, this.paymentIdempotencyKey)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (list) => {
-          this.loans.set(list);
-          if (list.length) this.selectedId.set(list[0].id);
+        next: (updated) => {
+          this.loans.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+          this.paymentSaving.set(false);
+          this.showPayment.set(false);
+          this.selectLoan(updated.id);
+        },
+        error: () => this.paymentSaving.set(false),
+      });
+  }
+
+  ngOnInit() {
+    this.load();
+  }
+
+  retry() {
+    this.load();
+  }
+
+  private load() {
+    this.loading.set(true);
+    this.loadError.set(false);
+    forkJoin({ loans: this.api.getLoans(), accounts: this.api.getAccounts() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ loans, accounts }) => {
+          this.loans.set(loans);
+          this.accounts.set(accounts);
+          if (loans.length) {
+            this.selectLoan(loans[0].id);
+          } else {
+            this.selectedId.set(null);
+            this.schedule.set([]);
+          }
           this.loading.set(false);
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          this.loadError.set(true);
+          this.loading.set(false);
+        },
       });
-    this.api
-      .getAccounts()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((list) => this.accounts.set(list));
   }
 
   save() {
@@ -139,7 +198,7 @@ export class LoansComponent implements OnInit {
       .subscribe({
         next: (loan) => {
           this.loans.update((l) => [...l, loan]);
-          this.selectedId.set(loan.id);
+          this.selectLoan(loan.id);
           this.saving.set(false);
           this.showForm = false;
           this.form.reset({ currency: 'ARS', trmApplied: 1, loanType: 'French' });
@@ -162,68 +221,33 @@ export class LoansComponent implements OnInit {
     return Math.min(100, Math.round((loan.paidMonths / loan.termMonths) * 100));
   }
 
+  selectLoan(id: string) {
+    this.selectedId.set(id);
+    this.api
+      .getLoanSchedule(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rows) =>
+        this.schedule.set(
+          rows.map((row) => ({
+            n: row.number,
+            payment: row.payment,
+            interest: row.interest,
+            principal: row.principal,
+            balance: row.balance,
+          })),
+        ),
+      );
+  }
+
   monthlyPayment(loan: LoanResponse): number {
-    return this.buildAmort(loan)[0]?.payment ?? 0;
+    return this.selectedId() === loan.id ? (this.schedule()[0]?.payment ?? 0) : 0;
   }
 
   totalInterest(loan: LoanResponse): number {
-    return this.buildAmort(loan).reduce((s, r) => s + r.interest, 0);
+    return this.selectedId() === loan.id ? this.schedule().reduce((s, r) => s + r.interest, 0) : 0;
   }
 
   amortTable(): AmortRow[] {
-    const l = this.selected();
-    return l ? this.buildAmort(l) : [];
-  }
-
-  private buildAmort(loan: LoanResponse): AmortRow[] {
-    const { principal, interestRateAnnual, termMonths, loanType } = loan;
-    // interestRateAnnual es TEA en % (ej. 45 = 45%); tasa mensual efectiva equivalente
-    const im = Math.pow(1 + interestRateAnnual / 100, 1 / 12) - 1;
-    const rows: AmortRow[] = [];
-    let balance = principal;
-
-    if (loanType === 'French') {
-      const pmt =
-        im === 0
-          ? principal / termMonths
-          : (principal * im * Math.pow(1 + im, termMonths)) / (Math.pow(1 + im, termMonths) - 1);
-      for (let n = 1; n <= termMonths; n++) {
-        const interest = balance * im;
-        const p = pmt - interest;
-        balance -= p;
-        rows.push({
-          n,
-          payment: +pmt.toFixed(2),
-          interest: +interest.toFixed(2),
-          principal: +p.toFixed(2),
-          balance: Math.max(0, +balance.toFixed(2)),
-        });
-      }
-    } else if (loanType === 'German') {
-      const p = principal / termMonths;
-      for (let n = 1; n <= termMonths; n++) {
-        const interest = balance * im;
-        rows.push({
-          n,
-          payment: +(p + interest).toFixed(2),
-          interest: +interest.toFixed(2),
-          principal: +p.toFixed(2),
-          balance: Math.max(0, +(balance -= p).toFixed(2)),
-        });
-      }
-    } else {
-      const interest = balance * im;
-      for (let n = 1; n <= termMonths; n++) {
-        const isLast = n === termMonths;
-        rows.push({
-          n,
-          payment: isLast ? +(balance + interest).toFixed(2) : +interest.toFixed(2),
-          interest: +interest.toFixed(2),
-          principal: isLast ? +balance.toFixed(2) : 0,
-          balance: isLast ? 0 : balance,
-        });
-      }
-    }
-    return rows;
+    return this.schedule();
   }
 }

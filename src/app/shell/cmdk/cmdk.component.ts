@@ -14,24 +14,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { RoleService } from '../../shared/services/role.service';
 import { ThemeService } from '../../shared/services/theme.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { ApiService, AccountResponse, CategoryResponse } from '../../shared/services/api.service';
-import type { TranslationKey } from '../../shared/i18n/locale.types';
-
-interface NavItem {
-  id: string;
-  key: TranslationKey;
-  icon: string;
-  badge?: string;
-  dot?: boolean;
-  kbd?: string;
-}
-interface NavGroup {
-  key: TranslationKey;
-  items: NavItem[];
-}
+import { APP_NAVIGATION_ITEMS } from '../navigation.catalog';
 
 export interface CmdkResult {
   id: string;
@@ -41,33 +27,6 @@ export interface CmdkResult {
   kbd?: string;
   danger?: boolean;
 }
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    key: 'nav.vista_general',
-    items: [
-      { id: 'dashboard', key: 'nav.dashboard', icon: 'dashboard', kbd: 'g d' },
-      { id: 'movements', key: 'nav.movements', icon: 'list', kbd: 'g m' },
-      { id: 'calendar', key: 'nav.calendar', icon: 'calendar' },
-    ],
-  },
-  {
-    key: 'nav.accounts',
-    items: [
-      { id: 'accounts', key: 'nav.accounts', icon: 'account', kbd: 'g a' },
-      { id: 'cards', key: 'nav.cards', icon: 'card', kbd: 'g t' },
-      { id: 'loans', key: 'nav.loans', icon: 'loan' },
-    ],
-  },
-  {
-    key: 'nav.analisis',
-    items: [
-      { id: 'reports', key: 'nav.reports', icon: 'reports', kbd: 'g r' },
-      { id: 'categories', key: 'nav.categories', icon: 'category', kbd: 'g k' },
-    ],
-  },
-  { key: 'nav.app', items: [{ id: 'settings', key: 'nav.settings', icon: 'settings', kbd: 'g s' }] },
-];
 
 @Component({
   selector: 'app-cmdk',
@@ -90,7 +49,6 @@ export class CmdkComponent implements OnChanges {
   private dataLoaded = false;
 
   public auth = inject(AuthService);
-  public role = inject(RoleService);
   public theme = inject(ThemeService);
   public i18n = inject(I18nService);
   private api = inject(ApiService);
@@ -114,14 +72,12 @@ export class CmdkComponent implements OnChanges {
   }
 
   private navResults = computed<CmdkResult[]>(() => {
-    const base = NAV_GROUPS.flatMap((g) => g.items).map((i) => ({
+    return APP_NAVIGATION_ITEMS.map((i) => ({
       id: i.id,
       kind: 'nav' as const,
       label: this.i18n.t(i.key),
       kbd: i.kbd ?? '',
     }));
-    if (this.role.isAdmin()) base.push({ id: 'admin', kind: 'nav', label: this.i18n.t('nav.admin'), kbd: '' });
-    return base;
   });
 
   private actionResults = computed<CmdkResult[]>(() => [

@@ -18,8 +18,8 @@
         <path d="M1 10h22" />
         <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
       </svg>
-      <h1 class="auth-brand-title">{{ i18n.t('auth.brand_wealth_title') }}</h1>
-      <p class="auth-brand-subtitle">{{ i18n.t('auth.brand_wealth_desc') }}</p>
+      <h1 class="auth-brand-title">{{ i18n.t('auth.brand_local_title') }}</h1>
+      <p class="auth-brand-subtitle">{{ i18n.t('auth.brand_local_desc') }}</p>
 
       <div class="auth-brand-features">
         <div class="auth-brand-feature">
@@ -37,7 +37,7 @@
               <path d="M12 2l9 4v6c0 5.5-9 10-9 10s-9-4.5-9-10V6z" />
             </svg>
           </div>
-          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_security') }}</span>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_no_server') }}</span>
         </div>
         <div class="auth-brand-feature">
           <div class="auth-brand-feature-icon">
@@ -55,7 +55,7 @@
               <path d="M17 7h5v5" />
             </svg>
           </div>
-          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_analytics') }}</span>
+          <span class="auth-brand-feature-text">{{ i18n.t('auth.feature_offline') }}</span>
         </div>
       </div>
     </div>
@@ -94,56 +94,15 @@
       </div>
 
       <div class="auth-form-header">
-        <h2 class="auth-form-title">{{ i18n.t('auth.welcome_back') }}</h2>
-        <p class="auth-form-subtitle">{{ i18n.t('auth.welcome_back_desc') }}</p>
+        <h2 class="auth-form-title">{{ i18n.t('auth.unlock_title') }}</h2>
+        <p class="auth-form-subtitle">{{ i18n.t('auth.unlock_desc') }}</p>
       </div>
-
-      <!-- Google OAuth -->
-      @if (googleClientId) {
-        <div id="google-btn" class="flex justify-center mb-6"></div>
-        <div class="auth-divider">
-          <div class="auth-divider-line"></div>
-          <span class="auth-divider-text">{{ i18n.t('common.or') }}</span>
-          <div class="auth-divider-line"></div>
-        </div>
-      }
 
       <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
         <div class="auth-field-group">
-          <label class="auth-field-label" for="email">{{ i18n.t('auth.email') }}</label>
-          <div class="auth-input-wrapper">
-            <input
-              class="auth-input"
-              id="email"
-              type="email"
-              formControlName="email"
-              autocomplete="email"
-              [placeholder]="i18n.t('auth.email_placeholder')"
-            />
-            <svg
-              class="auth-input-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="M2 6l10 7 10-7" />
-            </svg>
-          </div>
-          @if (form.get('email')?.invalid && form.get('email')?.touched) {
-            <span class="auth-field-error">{{ i18n.t('auth.invalid_email') }}</span>
-          }
-        </div>
-
-        <div class="auth-field-group">
           <div class="auth-field-label-row">
             <label class="auth-field-label" for="password">{{ i18n.t('auth.password') }}</label>
-            <a routerLink="/forgot-password" class="auth-forgot-link">{{ i18n.t('auth.forgot_password') }}</a>
+            <a routerLink="/recover" class="auth-forgot-link">{{ i18n.t('auth.recover_link') }}</a>
           </div>
           <div class="auth-input-wrapper">
             <input
@@ -188,6 +147,9 @@
               }
             </button>
           </div>
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <span class="auth-field-error">{{ i18n.t('validation.required') }}</span>
+          }
         </div>
 
         <div class="auth-checkbox-row">
@@ -235,12 +197,14 @@
         </button>
       </form>
 
-      <div class="auth-footer">
-        <p class="auth-footer-text">
-          {{ i18n.t('auth.no_account') }}
-          <a routerLink="/register" class="auth-footer-link">{{ i18n.t('auth.create_one') }}</a>
-        </p>
-      </div>
+      @if (hasProfile() === false) {
+        <div class="auth-footer">
+          <p class="auth-footer-text">
+            {{ i18n.t('auth.no_profile') }}
+            <a routerLink="/register" class="auth-footer-link">{{ i18n.t('auth.setup_btn') }}</a>
+          </p>
+        </div>
+      }
     </div>
   </div>
 </main>

@@ -1,0 +1,39 @@
+<form class="dynamic-form" [formGroup]="form()" (ngSubmit)="submit()">
+  @for (field of visibleFields(); track field.key) {
+    <label class="dynamic-field"
+      ><span>{{ field.label }}</span>
+      @switch (field.type) {
+        @case ('select') {
+          <select [formControlName]="field.key">
+            @for (o of field.options ?? []; track o.value) {
+              <option [value]="o.value">{{ o.label }}</option>
+            }
+          </select>
+        }
+        @case ('checkbox') {
+          <input type="checkbox" [formControlName]="field.key" />
+        }
+        @default {
+          <input
+            [type]="field.type"
+            [formControlName]="field.key"
+            [placeholder]="field.placeholder ?? ''"
+            [min]="field.min ?? null"
+            [max]="field.max ?? null"
+            [step]="field.step ?? null"
+          />
+        }
+      }
+      @if (field.hint) {
+        <small>{{ field.hint }}</small>
+      }
+      @if (form().get(field.key)?.touched && form().get(field.key)?.invalid) {
+        <small class="dynamic-error" role="alert">Revisa este campo.</small>
+      }
+    </label>
+  }
+  <div class="dynamic-actions">
+    <button type="button" class="btn btn--ghost" (click)="cancelled.emit()">Cancelar</button
+    ><button class="btn btn--primary" [disabled]="busy()">{{ submitLabel() }}</button>
+  </div>
+</form>

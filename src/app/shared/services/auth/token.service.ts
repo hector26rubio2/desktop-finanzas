@@ -1,22 +1,22 @@
 import { Injectable, signal } from '@angular/core';
 import type { UserInfo } from '../../models/auth.model';
 
+/**
+ * Identidad de la sesión abierta. Ya no hay token de acceso: la autenticación es
+ * local y la sesión real vive en el proceso main. Aquí solo se guarda quién es
+ * el usuario, porque `ownerId` es lo que filtra cada consulta a SQLite.
+ */
 @Injectable({ providedIn: 'root' })
 export class TokenService {
-  private _accessToken: string | null = null;
   readonly currentUser = signal<UserInfo | null>(null);
 
-  get accessToken(): string | null {
-    return this._accessToken;
-  }
-
   get isAuthenticated(): boolean {
-    return this._accessToken !== null;
+    return this.currentUser() !== null;
   }
 
-  set(token: string, user: UserInfo): void {
-    this._accessToken = token;
-    // El backend no expone aún actualización de moneda base: se respeta la preferencia local
+  set(user: UserInfo): void {
+    // La preferencia local manda sobre la del perfil: es la que el usuario
+    // cambió por última vez desde Ajustes.
     const pref = localStorage.getItem('pref-base-currency');
     this.currentUser.set(pref ? { ...user, baseCurrency: pref } : user);
   }
@@ -28,7 +28,6 @@ export class TokenService {
   }
 
   clear(): void {
-    this._accessToken = null;
     this.currentUser.set(null);
   }
 }

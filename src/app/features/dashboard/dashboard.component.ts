@@ -16,17 +16,27 @@ import { AuthService } from '../../shared/services/auth/auth.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { DashboardService, type Granularity } from '../../shared/services/dashboard.service';
 import { sourceLabel } from '../../shared/utils/movement-labels';
+import { formatDateTime } from '../../shared/utils/date';
 import type { MovementResponse } from '../../shared/models/movement.model';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { LineChartComponent } from '@ui/organisms/line-chart/line-chart.component';
 import { PieChartComponent } from '@ui/organisms/pie-chart/pie-chart.component';
+import { FinancialInsightsComponent } from './components/financial-insights.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, DataTableComponent, KpiStripComponent, LineChartComponent, PieChartComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    DataTableComponent,
+    KpiStripComponent,
+    LineChartComponent,
+    PieChartComponent,
+    FinancialInsightsComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -37,34 +47,37 @@ export class DashboardComponent implements OnInit {
   sourceLabel = sourceLabel;
   public ds = inject(DashboardService);
 
-  baseCurrency = this.auth.currentUser()?.baseCurrency ?? 'ARS';
+  baseCurrency = this.auth.baseCurrency;
 
   kpiItems = computed<KpiStripItem[]>(() => {
     const fmt = (v: number) => formatNumber(v, 'en-US', '1.0-0');
     const items: KpiStripItem[] = [
       {
+        label: this.i18n.t('dashboard.net_worth'),
+        value: `${fmt(this.ds.netWorth())} ${this.baseCurrency()}`,
+        color: this.ds.netWorth() >= 0 ? 'var(--positive)' : 'var(--negative)',
+      },
+      {
         label: this.i18n.t('dashboard.balance_periodo'),
-        value: fmt(this.ds.totalIncome() - this.ds.totalExpense()),
-        sub: this.baseCurrency,
+        value: `${fmt(this.ds.totalIncome() - this.ds.totalExpense())} ${this.baseCurrency()}`,
         color: 'var(--accent)',
       },
       {
-        label: this.i18n.t('dashboard.ingresos') + ' · ' + this.ds.currentLabel(),
-        value: fmt(this.ds.totalIncome()),
+        label: `${this.i18n.t('dashboard.ingresos')} · ${this.ds.currentLabel()}`,
+        value: `${fmt(this.ds.totalIncome())} ${this.baseCurrency()}`,
         color: 'var(--positive)',
       },
       {
-        label: this.i18n.t('dashboard.gastos') + ' · ' + this.ds.currentLabel(),
-        value: fmt(this.ds.totalExpense()),
+        label: `${this.i18n.t('dashboard.gastos')} · ${this.ds.currentLabel()}`,
+        value: `${fmt(this.ds.totalExpense())} ${this.baseCurrency()}`,
         color: 'var(--negative)',
       },
-      { label: this.i18n.t('dashboard.transacciones'), value: '' + this.ds.transactionCount() },
+      { label: this.i18n.t('dashboard.transacciones'), value: `${this.ds.transactionCount()}` },
     ];
     if (this.ds.topLabel()) {
       items.push({
         label: this.i18n.t(this.topLabelKey()),
-        value: this.ds.topLabel(),
-        sub: fmt(this.ds.topAmount()) + ' ' + this.baseCurrency,
+        value: `${this.ds.topLabel()} (${fmt(this.ds.topAmount())} ${this.baseCurrency()})`,
       });
     }
     return items;
@@ -233,15 +246,8 @@ export class DashboardComponent implements OnInit {
   }
 
   fmtDateTime(dateStr: string): string {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const date = d.toLocaleDateString(
-      this.i18n.currentLocale() === 'pt-BR' ? 'pt-BR' : this.i18n.currentLocale() === 'en-US' ? 'en-US' : 'es-AR',
-      { day: 'numeric', month: 'short' },
-    );
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    return `${date} ${hours}:${mins}`;
+    const loc = this.i18n.currentLocale();
+    return formatDateTime(dateStr, loc === 'pt-BR' ? 'pt-BR' : loc === 'en-US' ? 'en-US' : 'es-AR');
   }
 
   catName(cat: { name: string; translations: CategoryTranslations | null }): string {

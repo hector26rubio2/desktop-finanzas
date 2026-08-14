@@ -64,6 +64,7 @@ export class LineChartComponent implements OnDestroy {
       responsive: true,
       maintainAspectRatio: false,
       animation: false as const,
+      layout: { padding: { left: 4, right: 8, top: 8, bottom: 4 } },
       interaction: { mode: 'index' as const, intersect: false },
       plugins: {
         legend: { display: false },

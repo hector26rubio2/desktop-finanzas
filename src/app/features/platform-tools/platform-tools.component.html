@@ -1,0 +1,147 @@
+<div class="content tools">
+  <header class="content__header">
+    <div>
+      <div class="eyebrow">Continuidad</div>
+      <h1>Datos y operación</h1>
+    </div>
+  </header>
+  <p role="status">{{ message() }}</p>
+  <section>
+    <h2>Capacidades</h2>
+    <div class="cap-grid">
+      @for (item of platform.capabilities() | keyvalue; track item.key) {
+        <span class="tag" [class.tag--pos]="item.value">{{ item.key }} · {{ item.value ? 'activa' : 'cerrada' }}</span>
+      }
+    </div>
+  </section>
+  <section>
+    <h2>Exportar / importar</h2>
+    <button class="btn btn--primary" (click)="export()">Exportar JSON</button
+    ><label class="btn btn--ghost"
+      >Seleccionar JSON o CSV<input
+        hidden
+        type="file"
+        [disabled]="importing()"
+        accept="application/json,text/csv,.json,.csv"
+        (change)="choose($event)"
+    /></label>
+    <p class="hint">
+      CSV: id,type,amount,currency,trmApplied,date,description,categoryId,accountId. La TRM es obligatoria y amountBase
+      se recalcula desde amount × trmApplied.
+    </p>
+    @if (preview(); as p) {
+      <p>
+        Formato {{ importFormat.toUpperCase() }} · válidos {{ p.valid }} · inválidos {{ p.invalid }} · nuevos
+        {{ p.newCount }} · ya aplicados {{ p.alreadyApplied }}
+      </p>
+      @for (issue of p.issues; track issue.index + '-' + issue.code) {
+        <div class="issue">{{ issue.index < 0 ? 'Archivo' : 'Fila ' + issue.index }}: {{ issue.message }}</div>
+      }
+      <button
+        class="btn btn--primary"
+        [disabled]="p.invalid > 0 || p.newCount === 0 || importing()"
+        (click)="validate(true)"
+      >
+        {{ importing() ? 'Aplicando lote…' : 'Aplicar movimientos nuevos' }}
+      </button>
+    }
+  </section>
+  <section class="audit-panel">
+    <div class="audit-panel__header">
+      <div>
+        <h2>Auditoría de integridad local</h2>
+        <p class="hint">
+          Escanea relaciones y operaciones en SQLite sin reparar, reescribir ni borrar datos. Los casos ambiguos se
+          incluyen en el reporte para revisión manual.
+        </p>
+      </div>
+      <div class="audit-panel__actions">
+        <button class="btn btn--primary" [disabled]="auditing()" (click)="runAudit()">
+          {{ auditing() ? 'Escaneando…' : 'Escanear datos locales' }}
+        </button>
+        <button class="btn btn--ghost" [disabled]="!auditReport() || auditing()" (click)="exportAudit()">
+          Exportar reporte JSON
+        </button>
+      </div>
+    </div>
+    @if (auditReport(); as report) {
+      <div class="audit-summary" aria-label="Resumen de la auditoría">
+        <div>
+          <span>Total</span>
+          <strong>{{ report.summary.total }}</strong>
+        </div>
+        <div class="audit-summary__critical">
+          <span>Críticos</span>
+          <strong>{{ report.summary.critical }}</strong>
+        </div>
+        <div class="audit-summary__error">
+          <span>Errores</span>
+          <strong>{{ report.summary.error }}</strong>
+        </div>
+        <div class="audit-summary__warning">
+          <span>Advertencias</span>
+          <strong>{{ report.summary.warning }}</strong>
+        </div>
+      </div>
+      <p class="audit-scanned">
+        Escaneados: {{ report.scanned.movements }} movimientos · {{ report.scanned.accounts }} cuentas ·
+        {{ report.scanned.categories }} categorías · {{ report.scanned.loans }} préstamos ·
+        {{ report.scanned.installmentPurchases }} planes de cuotas
+      </p>
+      @if (report.summary.total === 0) {
+        <div class="audit-clean">No se detectaron inconsistencias en las reglas auditadas.</div>
+      } @else {
+        <div class="audit-codes">
+          @for (item of report.summary.byCode; track item.code) {
+            <span class="audit-code" [attr.data-severity]="item.severity">
+              {{ item.code }} <strong>{{ item.count }}</strong>
+            </span>
+          }
+        </div>
+        <div class="audit-findings">
+          @for (
+            finding of report.findings.slice(0, 50);
+            track finding.code + ':' + finding.entityKind + ':' + finding.entityId
+          ) {
+            <article class="audit-finding" [attr.data-severity]="finding.severity">
+              <div class="audit-finding__title">
+                <span>{{ finding.severity }}</span>
+                <code>{{ finding.code }}</code>
+              </div>
+              <p>{{ finding.message }}</p>
+              <small>{{ finding.entityKind }} · {{ finding.entityId }}</small>
+              @if (finding.relatedIds.length > 0) {
+                <small>Referencias: {{ finding.relatedIds.join(', ') }}</small>
+              }
+            </article>
+          }
+        </div>
+        @if (report.findings.length > 50) {
+          <p class="hint">
+            Se muestran los primeros 50 hallazgos. El reporte JSON contiene los {{ report.findings.length }} completos.
+          </p>
+        }
+      }
+    }
+  </section>
+  <section>
+    <h2>Backup local cifrado</h2>
+    <input [(ngModel)]="backupPath" placeholder="Destino opcional" /><button
+      class="btn btn--primary"
+      (click)="backup()"
+    >
+      Crear backup</button
+    ><input [(ngModel)]="restorePath" placeholder="Ruta del backup" /><button
+      class="btn btn--ghost"
+      (click)="inspectRestore()"
+    >
+      Previsualizar restauración</button
+    ><button class="btn btn--danger" [disabled]="!restoreRevision" (click)="restore()">Confirmar restauración</button>
+  </section>
+  @if (metrics(); as m) {
+    <section>
+      <h2>Métricas operativas</h2>
+      <pre>{{ m | json }}</pre>
+    </section>
+  }
+</div>

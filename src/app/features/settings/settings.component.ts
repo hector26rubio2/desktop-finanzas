@@ -21,6 +21,7 @@ import { UpdateService } from '../../shared/services/update/update.service';
 import { DataTableComponent, ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { Locale, TranslationKey } from '../../shared/i18n/locale.types';
+import type { BaseCurrencyChangeResult } from '../../shared/services/base-currency-policy.service';
 
 type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
 
@@ -30,7 +31,6 @@ type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, DataTableComponent],
   templateUrl: './settings.component.html',
-  styleUrl: './settings.component.css',
 })
 export class SettingsComponent implements OnInit {
   locales = [
@@ -77,9 +77,29 @@ export class SettingsComponent implements OnInit {
     this.i18n.setLocale(id);
   }
 
-  selectCurrency(code: string) {
-    this.auth.setBaseCurrency(code);
+  currencyChangeStatus = signal<BaseCurrencyChangeResult['status'] | 'idle' | 'checking'>('idle');
+
+  async selectCurrency(code: string) {
+    if (this.currencyChangeStatus() === 'checking') return;
+    this.currencyChangeStatus.set('checking');
+    const result = await this.auth.setBaseCurrency(code);
+    this.currencyChangeStatus.set(result.status);
   }
+
+  currencyMessageKey = computed<TranslationKey | null>(() => {
+    switch (this.currencyChangeStatus()) {
+      case 'checking':
+        return 'settings.currency_change_checking';
+      case 'changed':
+        return 'settings.currency_change_success';
+      case 'blocked':
+        return 'settings.currency_change_blocked';
+      case 'unavailable':
+        return 'settings.currency_change_unavailable';
+      default:
+        return null;
+    }
+  });
 
   sectionLabel(s: { labelKey: TranslationKey }): string {
     return this.i18n.t(s.labelKey);
@@ -277,7 +297,7 @@ export class SettingsComponent implements OnInit {
   userName = () => this.auth.currentUser()?.name ?? this.i18n.t('auth.name');
   userEmail = () => this.auth.currentUser()?.email ?? '';
   userRole = () => this.auth.currentUser()?.role ?? 'User';
-  baseCurrency = () => this.auth.currentUser()?.baseCurrency ?? 'ARS';
+  baseCurrency = () => this.auth.baseCurrency();
   userInitials = () => {
     const n = this.auth.currentUser()?.name ?? 'U';
     return n

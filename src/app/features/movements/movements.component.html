@@ -5,261 +5,291 @@
       (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
     >
-      <form [formGroup]="movForm" (ngSubmit)="save()">
-        @if (!lockedToCreditCard()) {
-        <div class="mov-form-section">
-          <span class="acc-section-title">{{ i18n.t('transactions.type') }}</span>
-          <div class="mov-type-row">
-            <button
-              type="button"
-              class="mov-type-btn"
-              [class.mov-type-btn--active]="formType() === 'Expense'"
-              [class.mov-type-btn--expense]="formType() === 'Expense'"
-              (click)="setType('Expense')"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d="M12 4L4 12M4 4l8 8" />
-              </svg>
-              {{ i18n.t('transactions.expense') }}
-            </button>
-            <button
-              type="button"
-              class="mov-type-btn"
-              [class.mov-type-btn--active]="formType() === 'Income'"
-              [class.mov-type-btn--income]="formType() === 'Income'"
-              (click)="setType('Income')"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d="M8 1v14M1 8h14" />
-              </svg>
-              {{ i18n.t('transactions.income') }}
-            </button>
-          </div>
-        </div>
-
-        <div class="mov-form-section" style="margin-top: 12px">
-          <span class="acc-section-title">{{ i18n.t('transactions.origin') }}</span>
-          <div class="mov-origin-row">
-            @for (opt of originOptions(); track opt.value) {
-              <button
-                type="button"
-                class="mov-origin-btn"
-                [class.mov-origin-btn--active]="formSourceType() === opt.value"
-                (click)="setSource(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
-        </div>
-        } <!-- /lockedToCreditCard -->
-
-        @if (formSourceType() === 'Cash') {
-          <label class="form-label mov-form-field" style="margin-top: 8px">
-            {{ i18n.t('transactions.cash') }}
-            <select formControlName="accountId" (change)="onAccountChange()">
-              <option value="">{{ i18n.t('transactions.no_account') }}</option>
-              @for (a of cashAccounts(); track a.id) {
-                <option [value]="a.id">{{ a.name }} · {{ a.currency }}</option>
-              }
-            </select>
-          </label>
-          @if (selectedAccountBalance(); as bal) {
-            <div class="mov-card-info" style="margin-top: 2px">
-              <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
-                {{ i18n.t('transactions.available_balance') }}: {{ bal.balance | number: '1.2-2' }}
-                {{ selectedAccount()?.currency }}
-              </span>
-            </div>
-          }
-        }
-
-        @if (formSourceType() === 'OwnAccount') {
-          <label class="form-label mov-form-field" style="margin-top: 8px">
-            {{ i18n.t('transactions.account') }}
-            <select formControlName="accountId" (change)="onAccountChange()">
-              <option value="">{{ i18n.t('transactions.no_account') }}</option>
-              @for (a of debitAccounts(); track a.id) {
-                <option [value]="a.id">{{ a.name }} · {{ a.currency }}</option>
-              }
-            </select>
-          </label>
-          @if (selectedAccountBalance(); as bal) {
-            <div class="mov-card-info" style="margin-top: 2px">
-              <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
-                {{ i18n.t('transactions.available_balance') }}: {{ bal.balance | number: '1.2-2' }}
-                {{ selectedAccount()?.currency }}
-              </span>
-            </div>
-          }
-        }
-
-        @if (formSourceType() === 'CreditCard') {
-          <label class="form-label mov-form-field" style="margin-top: 8px">
-            {{ i18n.t('transactions.credit_card') }}
-            <select formControlName="accountId" (change)="onAccountChange()">
-              <option value="">{{ i18n.t('transactions.no_account') }}</option>
-              @for (a of creditAccounts(); track a.id) {
-                <option [value]="a.id">
-                  {{ a.name }}{{ a.lastFour ? ' •••• ' + a.lastFour : '' }} · {{ a.currency }}
-                </option>
-              }
-            </select>
-          </label>
-          @if (creditCardInfo(); as cc) {
-            <div class="mov-card-info">
-              @if (selectedAccountBalance(); as bal) {
-                <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
-                  {{ i18n.t('transactions.available_limit') }}:
-                  {{ (cc.creditLimit ?? 0) - bal.usedInCycle | number: '1.2-2' }} {{ cc.currency }}
-                </span>
-                <span class="mov-card-info-sep">·</span>
-              }
-              @if (cc.interestRate) {
-                <span class="mov-card-info-item" style="color: var(--fg-3)"> {{ cc.interestRate }}% </span>
-                <span class="mov-card-info-sep">·</span>
-              }
-              <span class="mov-card-info-item" style="color: var(--fg-3)">
-                {{ cc.currency }}
-              </span>
-            </div>
-          }
-          <div class="acc-form-row" style="margin-top: 4px">
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('transactions.installments') }}
-              <input type="number" formControlName="loanInstallments" min="1" max="36" step="1" placeholder="3" />
-              @if (movForm.get('loanInstallments')?.invalid && movForm.get('loanInstallments')?.touched) {
-                <span class="mov-balance-warn">1 – 36</span>
-              }
-            </label>
-            <label class="form-label" style="flex: 0 0 110px">
-              {{ i18n.t('transactions.interest_rate') }}
-              <div class="mov-input-suffix">
-                <input
-                  type="number"
-                  formControlName="loanInterestRate"
-                  min="0"
-                  step="0.1"
-                  [placeholder]="(creditCardInfo()?.interestRate ?? 0).toString()"
-                />
-                <span class="mov-suffix">%</span>
+      @if (useDynamicMovementForm) {
+        <app-dynamic-form
+          [form]="movForm"
+          [fields]="dynamicMovementFields()"
+          [busy]="saving()"
+          [submitLabel]="editingMovement() ? 'Guardar cambios' : 'Crear movimiento'"
+          (cancelled)="closeModal()"
+          (submitted)="save()"
+        />
+      } @else {
+        <form [formGroup]="movForm" (ngSubmit)="save()">
+          @if (!lockedToCreditCard()) {
+            <div class="mov-form-section">
+              <span class="acc-section-title">{{ i18n.t('transactions.type') }}</span>
+              <div class="mov-type-row">
+                <button
+                  type="button"
+                  class="mov-type-btn"
+                  [class.mov-type-btn--active]="formType() === 'Expense'"
+                  [class.mov-type-btn--expense]="formType() === 'Expense'"
+                  (click)="setType('Expense')"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M12 4L4 12M4 4l8 8" />
+                  </svg>
+                  {{ i18n.t('transactions.expense') }}
+                </button>
+                <button
+                  type="button"
+                  class="mov-type-btn"
+                  [class.mov-type-btn--active]="formType() === 'Income'"
+                  [class.mov-type-btn--income]="formType() === 'Income'"
+                  (click)="setType('Income')"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M8 1v14M1 8h14" />
+                  </svg>
+                  {{ i18n.t('transactions.income') }}
+                </button>
               </div>
-            </label>
-          </div>
-        }
+            </div>
 
-        @if (formSourceType() === 'Loan') {
-          <div class="mov-loan-hint" style="margin-top: 6px">{{ loanDirectionLabel() }}</div>
-          <label class="form-label mov-form-field" style="margin-top: 8px">
-            {{ i18n.t('transactions.lender') }}
-            <input formControlName="loanParty" [placeholder]="i18n.t('auth.name')" />
-          </label>
-          <div class="acc-form-row" style="margin-top: 8px">
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('transactions.installments') }}
-              <input type="number" formControlName="loanInstallments" min="1" step="1" [placeholder]="'36'" />
-            </label>
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('transactions.interest_rate') }}
-              <div class="mov-input-suffix">
-                <input type="number" formControlName="loanInterestRate" min="0" step="0.1" [placeholder]="'15'" />
-                <span class="mov-suffix">%</span>
+            <div class="mov-form-section" style="margin-top: 12px">
+              <span class="acc-section-title">{{ i18n.t('transactions.origin') }}</span>
+              <div class="mov-origin-row">
+                @for (opt of originOptions(); track opt.value) {
+                  <button
+                    type="button"
+                    class="mov-origin-btn"
+                    [class.mov-origin-btn--active]="formSourceType() === opt.value"
+                    (click)="setSource(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
               </div>
-            </label>
-          </div>
-        }
+            </div>
+          }
+          <!-- /lockedToCreditCard -->
 
-        <div style="height: 1px; background: var(--line); margin: 14px 0"></div>
-
-        <div class="acc-form-row">
-          <label class="form-label" style="flex: 1">
-            {{ i18n.t('transactions.amount') }}
-            <input type="number" formControlName="amount" min="0.01" step="0.01" />
-            @if (movForm.get('amount')?.errors?.['required'] && movForm.get('amount')?.touched) {
-              <span class="mov-balance-warn">{{ i18n.t('transactions.required_field') }}</span>
-            } @else if (movForm.get('amount')?.errors?.['min'] && movForm.get('amount')?.touched) {
-              <span class="mov-balance-warn">&gt; 0</span>
-            } @else if (exceedsBalance()) {
-              <span class="mov-balance-warn">{{ i18n.t('transactions.exceeds_balance') }}</span>
-            }
-          </label>
-          @if (canChangeCurrency()) {
-            <label class="form-label" style="flex: 0 0 100px">
-              {{ i18n.t('transactions.currency') }}
-              <select formControlName="currency">
-                <option>ARS</option>
-                <option>USD</option>
-                <option>EUR</option>
-                <option>COP</option>
+          @if (formSourceType() === 'Cash') {
+            <label class="form-label mov-form-field" style="margin-top: 8px">
+              {{ i18n.t('transactions.cash') }}
+              <select formControlName="accountId" (change)="onAccountChange()">
+                <option value="">{{ i18n.t('transactions.no_account') }}</option>
+                @for (a of cashAccounts(); track a.id) {
+                  <option [value]="a.id">{{ a.name }} · {{ a.currency }}</option>
+                }
               </select>
             </label>
-          } @else {
-            <label class="form-label" style="flex: 0 0 100px">
-              {{ i18n.t('transactions.currency') }}
-              <div class="mov-currency-fixed">{{ formCurrency() }}</div>
-            </label>
-          }
-          @if (showTrm()) {
-            <label class="form-label" style="flex: 0 0 120px">
-              {{ i18n.t('transactions.trm') }}
-              <input type="number" formControlName="trmApplied" min="0.000001" step="0.01" />
-            </label>
-          }
-        </div>
-
-        <label class="form-label mov-form-field" style="margin-top: 12px">
-          {{ i18n.t('transactions.date') }}
-          <input type="datetime-local" formControlName="date" />
-        </label>
-
-        <div style="height: 1px; background: var(--line); margin: 14px 0"></div>
-
-        <label class="form-label mov-form-field">
-          {{ i18n.t('transactions.category') }}
-          <select formControlName="categoryId">
-            <option value="">{{ i18n.t('transactions.no_category') }}</option>
-            @for (c of filteredCategories(); track c.id) {
-              <option [value]="c.id">{{ catName(c) }}</option>
+            @if (selectedAccountBalance(); as bal) {
+              <div class="mov-card-info" style="margin-top: 2px">
+                <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
+                  {{ i18n.t('transactions.available_balance') }}: {{ bal.balance | number: '1.2-2' }}
+                  {{ selectedAccount()?.currency }}
+                </span>
+              </div>
             }
-          </select>
-        </label>
+          }
 
-        <label class="form-label mov-form-field" style="margin-top: 8px">
-          {{ i18n.t('transactions.description') }}
-          <input
-            type="text"
-            formControlName="description"
-            [placeholder]="i18n.t('transactions.description_placeholder')"
-          />
-        </label>
+          @if (formSourceType() === 'OwnAccount') {
+            <label class="form-label mov-form-field" style="margin-top: 8px">
+              {{ i18n.t('transactions.account') }}
+              <select formControlName="accountId" (change)="onAccountChange()">
+                <option value="">{{ i18n.t('transactions.no_account') }}</option>
+                @for (a of debitAccounts(); track a.id) {
+                  <option [value]="a.id">{{ a.name }} · {{ a.currency }}</option>
+                }
+              </select>
+            </label>
+            @if (selectedAccountBalance(); as bal) {
+              <div class="mov-card-info" style="margin-top: 2px">
+                <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
+                  {{ i18n.t('transactions.available_balance') }}: {{ bal.balance | number: '1.2-2' }}
+                  {{ selectedAccount()?.currency }}
+                </span>
+              </div>
+            }
+          }
 
-        <div class="form-actions" style="margin-top: 16px">
-          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="movForm.invalid || saving()">
-            {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
-          </button>
-        </div>
-      </form>
+          @if (formSourceType() === 'CreditCard') {
+            <label class="form-label mov-form-field" style="margin-top: 8px">
+              {{ i18n.t('transactions.credit_card') }}
+              <select formControlName="accountId" (change)="onAccountChange()">
+                <option value="">{{ i18n.t('transactions.no_account') }}</option>
+                @for (a of creditAccounts(); track a.id) {
+                  <option [value]="a.id">
+                    {{ a.name }}{{ a.lastFour ? ' •••• ' + a.lastFour : '' }} · {{ a.currency }}
+                  </option>
+                }
+              </select>
+            </label>
+            @if (creditCardInfo(); as cc) {
+              <div class="mov-card-info">
+                @if (selectedAccountBalance(); as bal) {
+                  <span class="mov-card-info-item" style="color: var(--positive); font-weight: 600">
+                    {{ i18n.t('transactions.available_limit') }}:
+                    {{ (cc.creditLimit ?? 0) - (bal.outstandingDebt ?? bal.usedInCycle) | number: '1.2-2' }}
+                    {{ cc.currency }}
+                  </span>
+                  <span class="mov-card-info-sep">·</span>
+                }
+                @if (cc.interestRate) {
+                  <span class="mov-card-info-item" style="color: var(--fg-3)"> {{ cc.interestRate }}% </span>
+                  <span class="mov-card-info-sep">·</span>
+                }
+                <span class="mov-card-info-item" style="color: var(--fg-3)">
+                  {{ cc.currency }}
+                </span>
+              </div>
+            }
+            <div class="acc-form-row" style="margin-top: 4px">
+              <label class="form-label" style="flex: 1">
+                {{ i18n.t('transactions.installments') }}
+                <input type="number" formControlName="loanInstallments" min="1" max="36" step="1" placeholder="3" />
+                @if (movForm.get('loanInstallments')?.invalid && movForm.get('loanInstallments')?.touched) {
+                  <span class="mov-balance-warn">1 – 36</span>
+                }
+              </label>
+              <label class="form-label" style="flex: 0 0 110px">
+                {{ i18n.t('transactions.interest_rate') }}
+                <div class="mov-input-suffix">
+                  <input
+                    type="number"
+                    formControlName="loanInterestRate"
+                    min="0"
+                    step="0.1"
+                    [placeholder]="(creditCardInfo()?.interestRate ?? 0).toString()"
+                  />
+                  <span class="mov-suffix">%</span>
+                </div>
+              </label>
+            </div>
+          }
+
+          <div style="height: 1px; background: var(--line); margin: 14px 0"></div>
+
+          <div class="acc-form-row">
+            <label class="form-label" style="flex: 1">
+              {{ i18n.t('transactions.amount') }}
+              <input type="number" formControlName="amount" min="0.01" step="0.01" />
+              @if (movForm.get('amount')?.errors?.['required'] && movForm.get('amount')?.touched) {
+                <span class="mov-balance-warn">{{ i18n.t('transactions.required_field') }}</span>
+              } @else if (movForm.get('amount')?.errors?.['min'] && movForm.get('amount')?.touched) {
+                <span class="mov-balance-warn">&gt; 0</span>
+              } @else if (exceedsBalance()) {
+                <span class="mov-balance-warn">{{ i18n.t('transactions.exceeds_balance') }}</span>
+              }
+            </label>
+            @if (canChangeCurrency()) {
+              <label class="form-label" style="flex: 0 0 100px">
+                {{ i18n.t('transactions.currency') }}
+                <select formControlName="currency">
+                  <option>ARS</option>
+                  <option>USD</option>
+                  <option>EUR</option>
+                  <option>COP</option>
+                </select>
+              </label>
+            } @else {
+              <label class="form-label" style="flex: 0 0 100px">
+                {{ i18n.t('transactions.currency') }}
+                <div class="mov-currency-fixed">{{ formCurrency() }}</div>
+              </label>
+            }
+            @if (showTrm()) {
+              <label class="form-label" style="flex: 0 0 120px">
+                {{ i18n.t('transactions.trm') }}
+                <input type="number" formControlName="trmApplied" min="0.000001" step="0.01" />
+                <app-field-error [control]="movForm.get('trmApplied')" />
+              </label>
+            }
+          </div>
+
+          <label class="form-label mov-form-field" style="margin-top: 12px">
+            {{ i18n.t('transactions.date') }}
+            <input type="datetime-local" formControlName="date" />
+            <app-field-error [control]="movForm.get('date')" />
+          </label>
+
+          <div style="height: 1px; background: var(--line); margin: 14px 0"></div>
+
+          <label class="form-label mov-form-field">
+            {{ i18n.t('transactions.category') }}
+            <select formControlName="categoryId">
+              <option value="">{{ i18n.t('transactions.no_category') }}</option>
+              @for (c of filteredCategories(); track c.id) {
+                <option [value]="c.id">{{ catName(c) }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-label mov-form-field" style="margin-top: 8px">
+            {{ i18n.t('transactions.description') }}
+            <input
+              type="text"
+              formControlName="description"
+              [placeholder]="i18n.t('transactions.description_placeholder')"
+            />
+          </label>
+
+          @if (!editingMovement()) {
+            <div style="height: 1px; background: var(--line); margin: 14px 0"></div>
+            <label class="mov-recurring-check" style="display: flex; align-items: center; gap: 8px; cursor: pointer">
+              <input type="checkbox" formControlName="isRecurring" />
+              <span>{{ i18n.t('transactions.make_recurring') }}</span>
+            </label>
+
+            @if (movForm.value.isRecurring) {
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px">
+                <label class="form-label">
+                  {{ i18n.t('recurring.frequency') }}
+                  <select formControlName="recFrequency">
+                    <option value="Daily">{{ i18n.t('recurring.freq_daily') }}</option>
+                    <option value="Weekly">{{ i18n.t('recurring.freq_weekly') }}</option>
+                    <option value="Monthly">{{ i18n.t('recurring.freq_monthly') }}</option>
+                    <option value="Yearly">{{ i18n.t('recurring.freq_yearly') }}</option>
+                  </select>
+                </label>
+                <label class="form-label">
+                  {{ i18n.t('recurring.interval') }}
+                  <input type="number" formControlName="recInterval" min="1" step="1" />
+                </label>
+                @if (movForm.value.recFrequency === 'Monthly') {
+                  <label class="form-label">
+                    {{ i18n.t('recurring.day_of_month') }}
+                    <input type="number" formControlName="recDayOfMonth" min="1" max="31" step="1" />
+                  </label>
+                }
+                <label class="form-label">
+                  {{ i18n.t('recurring.end_date') }}
+                  <input type="date" formControlName="recEndDate" />
+                </label>
+              </div>
+            }
+          }
+
+          <div class="form-actions" style="margin-top: 16px">
+            <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
+            <button type="submit" class="btn btn--primary" [disabled]="movForm.invalid || saving()">
+              {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
+            </button>
+          </div>
+        </form>
+      }
     </app-modal>
   }
 
@@ -273,6 +303,76 @@
       (confirmed)="confirmDelete()"
       (cancelled)="cancelDelete()"
     />
+  }
+
+  @if (showTransferModal()) {
+    <app-modal
+      [title]="i18n.t('transactions.transfer_title')"
+      (closeModal)="closeTransfer()"
+      (overlayClick)="closeTransfer()"
+    >
+      <form [formGroup]="transferForm" (ngSubmit)="saveTransfer()">
+        <div class="acc-form-row">
+          <label class="form-label" style="flex: 1">
+            {{ i18n.t('transactions.transfer_from') }}
+            <select formControlName="sourceAccountId" (change)="onTransferSourceChange()">
+              <option value="">{{ i18n.t('transactions.no_account') }}</option>
+              @for (account of transferAccounts(); track account.id) {
+                <option [value]="account.id">{{ account.name }} · {{ account.currency }}</option>
+              }
+            </select>
+          </label>
+          <label class="form-label" style="flex: 1">
+            {{ i18n.t('transactions.transfer_to') }}
+            <select formControlName="destinationAccountId">
+              <option value="">{{ i18n.t('transactions.no_account') }}</option>
+              @for (account of transferDestinationAccounts(); track account.id) {
+                <option [value]="account.id">{{ account.name }} · {{ account.currency }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="acc-form-row" style="margin-top: 12px">
+          <label class="form-label" style="flex: 1">
+            {{ i18n.t('transactions.amount') }}
+            <input type="number" formControlName="amount" min="0.01" step="0.01" />
+          </label>
+          <label class="form-label" style="flex: 0 0 100px">
+            {{ i18n.t('transactions.currency') }}
+            <div class="mov-currency-fixed">{{ transferForm.controls.currency.value }}</div>
+          </label>
+          @if (transferForm.controls.currency.value !== baseCurrency()) {
+            <label class="form-label" style="flex: 0 0 120px">
+              {{ i18n.t('transactions.trm') }}
+              <input type="number" formControlName="trmApplied" min="0.000001" step="0.01" />
+            </label>
+          }
+        </div>
+
+        <label class="form-label mov-form-field" style="margin-top: 12px">
+          {{ i18n.t('transactions.date') }}
+          <input type="datetime-local" formControlName="date" />
+        </label>
+        <label class="form-label mov-form-field" style="margin-top: 8px">
+          {{ i18n.t('transactions.description') }}
+          <input type="text" formControlName="description" />
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer">
+          <input type="checkbox" formControlName="isSaving" />
+          <span>{{ i18n.t('transactions.transfer_is_saving') }}</span>
+        </label>
+
+        <div class="form-actions" style="margin-top: 16px">
+          <button type="button" class="btn btn--ghost" (click)="closeTransfer()">
+            {{ i18n.t('common.cancel') }}
+          </button>
+          <button type="submit" class="btn btn--primary" [disabled]="transferForm.invalid || saving()">
+            {{ saving() ? i18n.t('common.saving') : i18n.t('transactions.transfer_action') }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
   }
 
   <app-movement-detail-modal
@@ -340,13 +440,9 @@
         </select>
       </div>
       <div class="mov-toolbar-right">
-        @if (activeInstallmentsCount() > 0) {
-          <a class="mov-cuotas-chip" routerLink="/installments" [title]="i18n.t('installments.title')">
-            <span class="mov-cuotas-chip-label">{{ i18n.t('installments.cuotas_este_mes') }}</span>
-            <span class="mono mov-cuotas-chip-val">{{ cuotasMes() | number: '1.0-0' }}</span>
-            <span class="tag tag--accent">{{ activeInstallmentsCount() }}</span>
-          </a>
-        }
+        <button class="btn btn--ghost" style="font-size: var(--fs-xs)" (click)="openTransfer()">
+          {{ i18n.t('transactions.transfer_action') }}
+        </button>
         <button class="btn btn--primary" style="font-size: var(--fs-xs)" (click)="openCreate()">
           <svg
             width="12"
@@ -438,6 +534,7 @@
       [data]="filteredItems()"
       [trackBy]="trackById"
       [rowClickable]="true"
+      [searchable]="true"
       (rowClick)="openDetail($event)"
       [emptyMessage]="i18n.t('common.no_results')"
       [page]="currentPage()"

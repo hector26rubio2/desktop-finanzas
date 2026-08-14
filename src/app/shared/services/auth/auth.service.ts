@@ -1,24 +1,31 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthApiService } from '../api/auth-api.service';
-import type { AuthResponse } from '../../models/auth.model';
-import { from, switchMap, EMPTY } from 'rxjs';
+import { LocalAuthService } from './local-auth.service';
+import type { LocalAuthSession, LocalAuthStatus } from '../../models/auth.model';
+import { switchMap } from 'rxjs';
 import { TokenService } from './token.service';
 import { SessionService } from './session.service';
+import { RecurringTransactionsApiService } from '../api/recurring-transactions-api.service';
+import { BaseCurrencyPolicyService } from '../base-currency-policy.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private api = inject(AuthApiService);
+  private local = inject(LocalAuthService);
   private router = inject(Router);
   private token = inject(TokenService);
   private session = inject(SessionService);
+  private recurring = inject(RecurringTransactionsApiService);
+  private baseCurrencyPolicy = inject(BaseCurrencyPolicyService);
+
+  /** Resuelve cuando la reapertura al arrancar terminó, con o sin sesión. */
+  private readonly restored: Promise<void>;
 
   constructor() {
-    this.tryRestoreSession();
+    this.restored = this.tryRestoreSession();
   }
 
-  get accessToken(): string | null {
-    return this.token.accessToken;
+  whenReady(): Promise<void> {
+    return this.restored;
   }
 
   get isAuthenticated(): boolean {
@@ -29,89 +36,95 @@ export class AuthService {
     return this.token.currentUser;
   }
 
+  /** Moneda base del usuario; fuente única para toda la app. */
+  readonly baseCurrency = computed(() => this.token.currentUser()?.baseCurrency ?? 'COP');
+
   get hasStoredToken(): boolean {
     return this.session.hasStoredToken;
   }
 
+  /** ¿Hay perfil en esta máquina? Decide entre pantalla de alta y de ingreso. */
+  status(): Promise<LocalAuthStatus> {
+    return this.local.status();
+  }
+
   setBaseCurrency(code: string) {
-    this.token.updateBaseCurrency(code);
+    return this.baseCurrencyPolicy.change(code);
   }
 
-  login(email: string, password: string, remember = false) {
-    return this.api.login(email, password).pipe(
-      switchMap(async (r) => {
-        await this.handleAuth(r, remember);
-        return r;
+  login(password: string, remember = false) {
+    return this.local.login(password, remember).pipe(
+      switchMap(async (session) => {
+        await this.handleAuth(session, remember);
+        return session;
       }),
     );
   }
 
-  loginWithGoogle(idToken: string) {
-    return this.api.loginWithGoogle(idToken).pipe(
-      switchMap(async (r) => {
-        await this.handleAuth(r);
-        return r;
-      }),
-    );
-  }
-
+  /** Alta en el primer arranque. El código de recuperación se muestra una sola vez. */
   register(name: string, email: string, password: string, baseCurrency: string) {
-    return this.api.register(name, email, password, baseCurrency);
+    return this.local.register(name, email, password, baseCurrency).pipe(
+      switchMap(async (enrollment) => {
+        await this.handleAuth(enrollment, false);
+        return enrollment;
+      }),
+    );
   }
 
-  forgotPassword(email: string) {
-    return this.api.forgotPassword(email);
+  /** Única vuelta atrás tras olvidar la contraseña: el código emitido en el alta. */
+  recover(recoveryCode: string, newPassword: string) {
+    return this.local.recover(recoveryCode, newPassword).pipe(
+      switchMap(async (enrollment) => {
+        await this.handleAuth(enrollment, false);
+        return enrollment;
+      }),
+    );
   }
 
-  resetPassword(token: string, password: string) {
-    return this.api.resetPassword(token, password);
-  }
-
-  verifyEmail(token: string) {
-    return this.api.verifyEmail(token);
-  }
-
-  resendVerification(email: string) {
-    return this.api.resendVerification(email);
+  changePassword(currentPassword: string, newPassword: string) {
+    return this.local.changePassword(currentPassword, newPassword);
   }
 
   async logout() {
-    const rt = await this.session.getRefreshToken();
     this.token.clear();
     this.session.clear();
+    await this.local.logout();
     this.router.navigate(['/login']);
-    if (rt) this.api.logout(rt).subscribe({ error: () => {} });
   }
 
-  refreshAccessToken() {
-    return from(this.session.getRefreshToken()).pipe(
-      switchMap((rt) => {
-        if (!rt) return EMPTY;
-        return this.api.refresh(rt).pipe(
-          switchMap(async (r) => {
-            await this.handleAuth(r, false);
-            return r;
-          }),
-        );
-      }),
-    );
+  private async handleAuth(session: LocalAuthSession, remember: boolean) {
+    this.token.set(session.user);
+    if (remember && session.resumeToken) await this.session.saveResumeToken(session.resumeToken, true);
+    else this.session.clear();
+    await this.materializeRecurring();
   }
 
-  private async handleAuth(r: AuthResponse, remember = false) {
-    this.token.set(r.accessToken, r.user);
-    await this.session.saveRefreshToken(r.refreshToken, remember);
-  }
-
-  private tryRestoreSession() {
+  /**
+   * Reapertura al arrancar. No toca la red: si el usuario pidió mantener la
+   * sesión, el main valida el token de reanudación contra el perfil local.
+   */
+  private async tryRestoreSession(): Promise<void> {
     if (!this.session.hasStoredToken) return;
-    from(this.session.getRefreshToken()).subscribe({
-      next: (rt) => {
-        if (!rt) return;
-        this.api.refresh(rt).subscribe({
-          next: (r) => this.token.set(r.accessToken, r.user),
-          error: () => this.session.clear(),
-        });
-      },
-    });
+    const resumeToken = await this.session.getResumeToken();
+    if (!resumeToken) return;
+    const session = await this.local.resume(resumeToken).catch(() => null);
+    if (!session) {
+      // El token ya no vale (contraseña cambiada, perfil recreado, cierre de sesión
+      // en otra ventana). Se cae a la pantalla de desbloqueo, no a un estado a medias.
+      this.session.clear();
+      return;
+    }
+    this.token.set(session.user);
+    await this.materializeRecurring();
+  }
+
+  private async materializeRecurring(): Promise<void> {
+    try {
+      await new Promise<void>((resolve) => {
+        this.recurring.materializeDue().subscribe({ next: () => resolve(), error: () => resolve() });
+      });
+    } catch {
+      // Authentication must remain available even if one local template is invalid.
+    }
   }
 }

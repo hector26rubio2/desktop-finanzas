@@ -14,6 +14,8 @@ export interface LoanResponse {
   isActive: boolean;
   paidMonths: number;
   remainingMonths: number;
+  paidPrincipal: number;
+  outstandingPrincipal: number;
   createdAt: string;
 }
 
@@ -28,4 +30,12 @@ export interface LoanRequest {
   startDate: string;
   loanType?: 'French' | 'German' | 'American';
   accountId?: string;
+}
+
+export interface LoanAmortizationRow {
+  number: number;
+  payment: number;
+  interest: number;
+  principal: number;
+  balance: number;
 }

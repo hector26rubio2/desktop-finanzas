@@ -34,6 +34,16 @@ async function localDecrypt(ciphertext: string): Promise<string> {
   return new TextDecoder().decode(decrypted);
 }
 
+interface ElectronSecureApi {
+  secureEncrypt?: (plain: string) => Promise<string | null>;
+  secureDecrypt?: (b64: string) => Promise<string | null>;
+}
+
+function electronApi(): ElectronSecureApi | null {
+  const api = (window as unknown as Record<string, unknown>)['electronAPI'];
+  return api && typeof api === 'object' ? (api as ElectronSecureApi) : null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private _hasStoredToken = false;
@@ -46,11 +56,20 @@ export class SessionService {
     return this._hasStoredToken;
   }
 
-  async getRefreshToken(): Promise<string | null> {
+  /** Token de reanudación emitido por el perfil local, no un refresh token de servidor. */
+  async getResumeToken(): Promise<string | null> {
     const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw) as { v: number; d: string };
+      // v4 = cifrado por el SO (Electron safeStorage); v3 = cifrado web (fallback).
+      if (parsed.v === 4 && typeof parsed.d === 'string') {
+        const api = electronApi();
+        const dec = api?.secureDecrypt ? await api.secureDecrypt(parsed.d) : null;
+        if (dec !== null) return dec;
+        this.clear();
+        return null;
+      }
       if (parsed.v === 3 && typeof parsed.d === 'string') {
         return await localDecrypt(parsed.d);
       }
@@ -62,11 +81,23 @@ export class SessionService {
     }
   }
 
-  async saveRefreshToken(token: string, remember: boolean): Promise<void> {
-    const encrypted = await localEncrypt(token);
-    const payload = JSON.stringify({ v: 3, d: encrypted });
+  async saveResumeToken(token: string, remember: boolean): Promise<void> {
     const storage = remember ? localStorage : sessionStorage;
-    storage.setItem(STORAGE_KEY, payload);
+
+    // Preferir cifrado del SO (DPAPI/Keychain) si Electron lo expone.
+    const api = electronApi();
+    if (api?.secureEncrypt) {
+      const enc = await api.secureEncrypt(token);
+      if (enc) {
+        storage.setItem(STORAGE_KEY, JSON.stringify({ v: 4, d: enc }));
+        this._hasStoredToken = true;
+        return;
+      }
+    }
+
+    // Fallback: cifrado web (AES-GCM) para navegador/dev.
+    const encrypted = await localEncrypt(token);
+    storage.setItem(STORAGE_KEY, JSON.stringify({ v: 3, d: encrypted }));
     this._hasStoredToken = true;
   }
 

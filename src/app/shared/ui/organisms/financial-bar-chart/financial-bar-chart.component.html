@@ -1,0 +1,16 @@
+<div class="financial-bars" role="img" [attr.aria-label]="accessibleSummary()">
+  @for (item of data(); track item.key) {
+    <button type="button" class="financial-bar" (click)="selected.emit(item)">
+      <span>{{ item.label }}</span
+      ><span class="track"
+        ><i [style.width.%]="(abs(item.value) / max()) * 100" [style.background]="item.color || 'var(--accent)'"></i
+      ></span>
+      <strong>{{ item.value }} {{ currency() }}</strong>
+      @if (item.detail) {
+        <small>{{ item.detail }}</small>
+      }
+    </button>
+  } @empty {
+    <p>[sin datos]</p>
+  }
+</div>

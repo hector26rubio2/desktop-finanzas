@@ -29,5 +29,13 @@ export interface AccountRequest {
 
 export interface AccountBalance {
   balance: number;
+  balanceBase?: number;
+  outstandingDebt?: number;
+  outstandingDebtBase?: number;
+  cycleSpend?: number;
+  cycleSpendBase?: number;
+  /** @deprecated Compatibility alias for outstandingDebt. */
   usedInCycle: number;
+  /** @deprecated Compatibility alias for outstandingDebtBase. */
+  usedInCycleBase?: number;
 }

@@ -11,6 +11,9 @@ files:
   - dist/browser/**/*
   - "!dist/browser/stats.html"
 
+asarUnpack:
+  - node_modules/better-sqlite3/**
+
 extraResources:
   - from: .env.production
     to: .env.production

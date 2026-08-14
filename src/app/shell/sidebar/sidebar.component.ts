@@ -11,51 +11,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../shared/services/auth/auth.service';
-import { RoleService } from '../../shared/services/role.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
-import type { TranslationKey } from '../../shared/i18n/locale.types';
 import { ICONS } from '../../shared/icons';
 import { UserMenuComponent } from '../user-menu/user-menu.component';
-
-interface NavItem {
-  id: string;
-  key: TranslationKey;
-  icon: string;
-  badge?: string;
-  dot?: boolean;
-  kbd?: string;
-}
-interface NavGroup {
-  key: TranslationKey;
-  items: NavItem[];
-}
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    key: 'nav.vista_general',
-    items: [
-      { id: 'dashboard', key: 'nav.dashboard', icon: 'dashboard', kbd: 'g d' },
-      { id: 'movements', key: 'nav.movements', icon: 'list', kbd: 'g m' },
-      { id: 'calendar', key: 'nav.calendar', icon: 'calendar' },
-    ],
-  },
-  {
-    key: 'nav.accounts',
-    items: [
-      { id: 'accounts', key: 'nav.accounts', icon: 'account', kbd: 'g a' },
-      { id: 'cards', key: 'nav.cards', icon: 'card', kbd: 'g t' },
-      { id: 'loans', key: 'nav.loans', icon: 'loan' },
-    ],
-  },
-  {
-    key: 'nav.analisis',
-    items: [
-      { id: 'reports', key: 'nav.reports', icon: 'reports', kbd: 'g r' },
-      { id: 'categories', key: 'nav.categories', icon: 'category', kbd: 'g k' },
-    ],
-  },
-  { key: 'nav.app', items: [{ id: 'settings', key: 'nav.settings', icon: 'settings', kbd: 'g s' }] },
-];
+import { APP_NAVIGATION_GROUPS } from '../navigation.catalog';
 
 @Component({
   selector: 'app-sidebar',
@@ -77,7 +36,6 @@ export class SidebarComponent {
   @Output() openCmdk = new EventEmitter<void>();
 
   public auth = inject(AuthService);
-  public role = inject(RoleService);
   public i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
 
@@ -105,7 +63,7 @@ export class SidebarComponent {
   });
 
   navGroups = computed(() =>
-    NAV_GROUPS.map((g) => ({
+    APP_NAVIGATION_GROUPS.map((g) => ({
       label: this.i18n.t(g.key),
       items: g.items.map((i) => ({ ...i, label: this.i18n.t(i.key) })),
     })),

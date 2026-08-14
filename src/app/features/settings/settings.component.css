@@ -370,6 +370,14 @@
   line-height: 1.5;
 }
 
+.pref-hint--error {
+  color: var(--negative);
+}
+
+.pref-hint--success {
+  color: var(--positive);
+}
+
 .lang-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -438,6 +446,11 @@
 .currency-chip--active {
   border-color: var(--accent) !important;
   background: var(--accent-soft);
+}
+
+.currency-chip:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .currency-chip__symbol {

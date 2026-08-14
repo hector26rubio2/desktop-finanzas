@@ -6,6 +6,16 @@ export interface AmortizationRow {
   balance: number;
 }
 
+export function roundMoney(value: number): number {
+  const sign = value < 0 ? -1 : 1;
+  return (sign * Math.round((Math.abs(value) + Number.EPSILON) * 100)) / 100;
+}
+
+export function toBase(amount: number, rate: number): number {
+  if (amount <= 0 || rate <= 0) throw new RangeError('amount_and_rate_must_be_positive');
+  return roundMoney(amount * rate);
+}
+
 export function buildAmortization(
   principal: number,
   annualRate: number,
@@ -15,38 +25,32 @@ export function buildAmortization(
 ): AmortizationRow[] {
   const monthlyRate = annualRate / 100 / 12;
   const rows: AmortizationRow[] = [];
-  let balance = principal;
-
-  if (type === 'French') {
-    const payment =
-      (principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) / (Math.pow(1 + monthlyRate, termMonths) - 1);
-    for (let m = 1; m <= termMonths; m++) {
-      const interest = balance * monthlyRate;
-      const principalPortion = payment - interest;
-      balance = Math.max(0, balance - principalPortion);
-      rows.push({ month: m, payment, interest, principal: principalPortion, balance });
-    }
-  } else if (type === 'German') {
-    const principalPortion = principal / termMonths;
-    for (let m = 1; m <= termMonths; m++) {
-      const interest = balance * monthlyRate;
-      const payment = principalPortion + interest;
-      balance = Math.max(0, balance - principalPortion);
-      rows.push({ month: m, payment, interest, principal: principalPortion, balance });
-    }
-  } else {
-    const interestOnly = principal * monthlyRate;
-    for (let m = 1; m <= termMonths; m++) {
-      const principalPortion = m === termMonths ? principal : 0;
-      const payment = interestOnly + principalPortion;
-      rows.push({
-        month: m,
-        payment,
-        interest: interestOnly,
-        principal: principalPortion,
-        balance: m === termMonths ? 0 : principal,
-      });
-    }
+  if (principal <= 0 || annualRate < 0 || termMonths <= 0) throw new RangeError('invalid_loan_terms');
+  let balance = roundMoney(principal);
+  const frenchPayment =
+    type === 'French'
+      ? roundMoney(
+          monthlyRate === 0
+            ? balance / termMonths
+            : (balance * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+                (Math.pow(1 + monthlyRate, termMonths) - 1),
+        )
+      : 0;
+  const germanPrincipal = type === 'German' ? roundMoney(balance / termMonths) : 0;
+  for (let m = 1; m <= termMonths; m++) {
+    const interest = roundMoney(balance * monthlyRate);
+    let principalPortion =
+      m === termMonths
+        ? balance
+        : type === 'French'
+          ? Math.min(balance, roundMoney(frenchPayment - interest))
+          : type === 'German'
+            ? Math.min(balance, germanPrincipal)
+            : 0;
+    principalPortion = roundMoney(principalPortion);
+    const payment = roundMoney(principalPortion + interest);
+    balance = roundMoney(balance - principalPortion);
+    rows.push({ month: m, payment, interest, principal: principalPortion, balance });
   }
 
   return rows;

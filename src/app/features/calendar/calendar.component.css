@@ -10,7 +10,10 @@
   transform: translateX(2px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
-
+.row-flex__item {
+  display: flex;
+  margin: auto;
+}
 .cal-more {
   font-size: 9px;
   color: var(--fg-3);

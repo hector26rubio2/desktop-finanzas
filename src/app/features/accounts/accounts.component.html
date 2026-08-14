@@ -104,11 +104,16 @@
     />
   }
 
-  @if (loading()) {
+  @if (loadState() === 'loading') {
     <div class="empty-state" role="status" aria-live="polite">
       <p>{{ i18n.t('accounts.cargando') }}</p>
     </div>
-  } @else if (accounts().length === 0) {
+  } @else if (loadState() === 'error') {
+    <div class="empty-state" role="alert" aria-live="assertive">
+      <p>{{ i18n.t('common.load_error') }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">{{ i18n.t('common.retry') }}</button>
+    </div>
+  } @else if (loadState() === 'empty') {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('accounts.sin_cuentas') }}</div>
       <p>{{ i18n.t('accounts.sin_cuentas_desc') }}</p>

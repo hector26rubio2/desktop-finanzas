@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
@@ -26,6 +26,7 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
@@ -33,6 +34,8 @@ import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
 import type { InstallmentResponse } from '../../shared/models/installment.model';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
+import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.component';
+import { isGenericMovementSource, movementFormFields } from './movement-form.schema';
 
 type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
 
@@ -42,20 +45,22 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    RouterLink,
     ReactiveFormsModule,
     FormsModule,
     FmtDatePipe,
     CatIconComponent,
     ModalComponent,
+    FieldErrorComponent,
     ConfirmDialogComponent,
     MovementDetailModalComponent,
     DataTableComponent,
+    DynamicFormComponent,
   ],
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.css',
 })
 export class MovementsComponent implements OnInit {
+  readonly useDynamicMovementForm = true;
   page = signal<PagedResult<MovementResponse> | null>(null);
   summary = signal<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
   categories = signal<CategoryResponse[]>([]);
@@ -66,6 +71,7 @@ export class MovementsComponent implements OnInit {
   pageSize = signal(20);
   saving = signal(false);
   showModal = signal(false);
+  showTransferModal = signal(false);
   showDeleteModal = signal(false);
   showDetailModal = signal(false);
   selectedMovement = signal<MovementResponse | null>(null);
@@ -78,10 +84,15 @@ export class MovementsComponent implements OnInit {
   formSourceType = signal('Cash');
   formType = signal<'Income' | 'Expense'>('Expense');
   lockedToCreditCard = signal(false);
+  transferIdempotencyKey = signal('');
+  transferSourceId = signal('');
 
   filterCcy = '';
   filterCat = '';
   filterAcc = '';
+  drillType: 'Income' | 'Expense' | undefined;
+  drillPortfolioEntityId: string | undefined;
+  drillPortfolioType: string | undefined;
   searchQuery = signal('');
 
   public i18n = inject(I18nService);
@@ -94,7 +105,7 @@ export class MovementsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  baseCurrency = computed(() => this.auth.currentUser()?.baseCurrency ?? 'ARS');
+  baseCurrency = this.auth.baseCurrency;
 
   dateCell = viewChild<MovTpl>('dateCell');
   conceptCell = viewChild<MovTpl>('conceptCell');
@@ -107,12 +118,29 @@ export class MovementsComponent implements OnInit {
   trackById = (m: MovementResponse) => m.id;
 
   cols = computed<ColumnDef<MovementResponse>[]>(() => [
-    { key: 'date', header: this.i18n.t('transactions.table_fecha'), width: '110px', cellTpl: this.dateCell() },
-    { key: 'description', header: this.i18n.t('transactions.table_concepto'), cellTpl: this.conceptCell() },
+    {
+      key: 'date',
+      header: this.i18n.t('transactions.table_fecha'),
+      width: '110px',
+      sortable: true,
+      cellTpl: this.dateCell(),
+    },
+    {
+      key: 'description',
+      header: this.i18n.t('transactions.table_concepto'),
+      sortable: true,
+      cellTpl: this.conceptCell(),
+    },
     { key: 'categoryName', header: this.i18n.t('transactions.table_categoria'), cellTpl: this.categoryCell() },
     { key: 'sourceType', header: this.i18n.t('transactions.source'), width: '100px', cellTpl: this.sourceCell() },
     { key: 'type', header: this.i18n.t('transactions.table_tipo'), width: '70px', cellTpl: this.typeCell() },
-    { key: 'amount', header: this.i18n.t('transactions.table_monto'), numeric: true, cellTpl: this.amountCell() },
+    {
+      key: 'amount',
+      header: this.i18n.t('transactions.table_monto'),
+      numeric: true,
+      sortable: true,
+      cellTpl: this.amountCell(),
+    },
     { key: 'id', header: '', width: '36px', cellTpl: this.actionsCell() },
   ]);
 
@@ -125,6 +153,12 @@ export class MovementsComponent implements OnInit {
   debitAccounts = computed(() => this.accounts().filter((a) => a.type === 'Debit'));
   creditAccounts = computed(() => this.accounts().filter((a) => a.type === 'Credit'));
   cashAccounts = computed(() => this.accounts().filter((a) => a.type === 'Cash'));
+  transferAccounts = computed(() => this.accounts().filter((a) => a.type === 'Cash' || a.type === 'Debit'));
+  transferDestinationAccounts = computed(() => {
+    const sourceId = this.transferSourceId();
+    const source = this.accounts().find((a) => a.id === sourceId);
+    return this.transferAccounts().filter((a) => a.id !== sourceId && (!source || a.currency === source.currency));
+  });
 
   filteredCategories = computed(() => {
     const type = this.formType();
@@ -160,19 +194,13 @@ export class MovementsComponent implements OnInit {
     return acc;
   });
 
-  loanDirectionLabel = computed(() => {
-    const type = this.formType();
-    if (type === 'Income') return this.i18n.t('transactions.loan_received');
-    return this.i18n.t('transactions.loan_given');
-  });
-
   exceedsBalance = computed(() => {
     const acc = this.selectedAccount();
     const bal = this.selectedAccountBalance();
     const amount = this.movForm.value.amount;
     if (!acc || !bal || !amount) return false;
     if (acc.type === 'Credit') {
-      const available = (acc.creditLimit ?? 0) - bal.usedInCycle;
+      const available = (acc.creditLimit ?? 0) - (bal.outstandingDebt ?? bal.usedInCycle);
       return amount > available;
     }
     return amount > bal.balance;
@@ -184,21 +212,18 @@ export class MovementsComponent implements OnInit {
       return [
         { value: 'Cash', label: this.i18n.t('transactions.cash') },
         { value: 'OwnAccount', label: this.i18n.t('transactions.own_account') },
-        { value: 'Loan', label: this.i18n.t('transactions.loan') },
       ];
     }
     return [
       { value: 'Cash', label: this.i18n.t('transactions.cash') },
       { value: 'OwnAccount', label: this.i18n.t('transactions.own_account') },
       { value: 'CreditCard', label: this.i18n.t('transactions.credit_card') },
-      { value: 'Loan', label: this.i18n.t('transactions.loan') },
     ];
   });
 
   movForm = this.fb.group({
     type: ['Expense' as 'Income' | 'Expense', Validators.required],
     sourceType: ['Cash' as string],
-    loanParty: [''],
     loanInstallments: [null as number | null, [Validators.min(1), Validators.max(36)]],
     loanInterestRate: [null as number | null],
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
@@ -208,6 +233,30 @@ export class MovementsComponent implements OnInit {
     description: [''],
     categoryId: [''],
     accountId: [''],
+    // Recurrencia: si isRecurring=true, al guardar se crea una plantilla recurrente.
+    isRecurring: [false],
+    recFrequency: ['Monthly' as 'Daily' | 'Weekly' | 'Monthly' | 'Yearly'],
+    recInterval: [1, [Validators.min(1)]],
+    recDayOfMonth: [null as number | null],
+    recEndDate: [''],
+  });
+  dynamicMovementFields = computed(() =>
+    movementFormFields({
+      baseCurrency: this.baseCurrency(),
+      categories: this.filteredCategories().map((c) => ({ value: c.id, label: c.name })),
+      accounts: this.accounts().map((a) => ({ value: a.id, label: a.name })),
+    }),
+  );
+
+  transferForm = this.fb.group({
+    sourceAccountId: ['', Validators.required],
+    destinationAccountId: ['', Validators.required],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    currency: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
+    trmApplied: [1, [Validators.required, Validators.min(0.000001)]],
+    date: [new Date().toISOString().slice(0, 16), Validators.required],
+    description: [''],
+    isSaving: [false],
   });
 
   filteredItems = computed(() => {
@@ -225,17 +274,6 @@ export class MovementsComponent implements OnInit {
     );
   });
 
-  /** Cuotas mensuales comprometidas (compras activas en cuotas) */
-  cuotasMes = computed(() =>
-    this.installments()
-      .filter((i) => i.isActive && i.paidCount < i.installmentsCount)
-      .reduce((s, i) => s + i.monthlyAmount * (i.trmApplied || 1), 0),
-  );
-
-  activeInstallmentsCount = computed(
-    () => this.installments().filter((i) => i.isActive && i.paidCount < i.installmentsCount).length,
-  );
-
   currentInstallment(m: MovementResponse): number {
     const start = parseDate(m.date);
     const now = new Date();
@@ -244,15 +282,33 @@ export class MovementsComponent implements OnInit {
   }
 
   ngOnInit() {
+    const drill = this.route.snapshot.queryParamMap;
+    const drillYear = drill.get('year'),
+      drillMonth = drill.get('month'),
+      drillType = drill.get('type');
+    if (drillYear && drillMonth) this.currentMonth.set(`${drillYear}-${drillMonth.padStart(2, '0')}`);
+    this.filterCat = drill.get('categoryId') ?? '';
+    if (drillType === 'Income' || drillType === 'Expense') this.drillType = drillType;
+    this.drillPortfolioEntityId = drill.get('portfolioEntityId') ?? undefined;
+    this.drillPortfolioType = drill.get('portfolioType') ?? undefined;
     this.api
       .getInstallments()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (list) => this.installments.set(list), error: () => {} });
     this.movForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((v) => {
       this.formAccountId.set(v.accountId ?? '');
-      this.formCurrency.set(v.currency ?? 'ARS');
       this.formSourceType.set(v.sourceType ?? 'Cash');
       this.formType.set(v.type ?? 'Expense');
+      const account = v.accountId ? this.accounts().find((item) => item.id === v.accountId) : null;
+      if (account && v.currency !== account.currency) {
+        this.movForm.patchValue({ currency: account.currency }, { emitEvent: false });
+        this.formCurrency.set(account.currency);
+      } else {
+        this.formCurrency.set(v.currency ?? 'ARS');
+      }
+      if (account?.type === 'Credit' && v.sourceType === 'CreditCard' && v.loanInterestRate == null) {
+        this.movForm.patchValue({ loanInterestRate: account.interestRate ?? 0 }, { emitEvent: false });
+      }
     });
     this.loadPage(1);
     this.api
@@ -286,14 +342,11 @@ export class MovementsComponent implements OnInit {
   }
 
   openCreditCardPreset(accountId: string | null) {
-    const acc = accountId
-      ? this.accounts().find((a) => a.id === accountId)
-      : this.creditAccounts()[0];
+    const acc = accountId ? this.accounts().find((a) => a.id === accountId) : this.creditAccounts()[0];
     this.editingMovement.set(null);
     this.movForm.reset({
       type: 'Expense',
       sourceType: 'CreditCard',
-      loanParty: '',
       loanInstallments: null,
       loanInterestRate: acc?.interestRate ?? null,
       amount: null,
@@ -323,13 +376,13 @@ export class MovementsComponent implements OnInit {
   }
 
   setSource(source: string) {
+    if (!isGenericMovementSource(source)) return;
     const patches: Record<string, unknown> = {
       sourceType: source,
       accountId: '',
       loanInstallments: null,
       loanInterestRate: null,
     };
-    if (source !== 'Loan') patches['loanParty'] = '';
     this.movForm.patchValue(patches);
     this.formSourceType.set(source);
     this.formAccountId.set('');
@@ -371,10 +424,20 @@ export class MovementsComponent implements OnInit {
 
   loadPage(p: number) {
     this.currentPage.set(p);
-    const filters: { currency?: string; categoryId?: string; accountId?: string } = {};
+    const filters: {
+      currency?: string;
+      categoryId?: string;
+      accountId?: string;
+      type?: 'Income' | 'Expense';
+      portfolioEntityId?: string;
+      portfolioType?: string;
+    } = {};
     if (this.filterCcy) filters.currency = this.filterCcy;
     if (this.filterCat) filters.categoryId = this.filterCat;
     if (this.filterAcc) filters.accountId = this.filterAcc;
+    if (this.drillType) filters.type = this.drillType;
+    if (this.drillPortfolioEntityId) filters.portfolioEntityId = this.drillPortfolioEntityId;
+    if (this.drillPortfolioType) filters.portfolioType = this.drillPortfolioType;
     this.api
       .getMovements(this.currentMonth(), p, this.pageSize(), filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -413,7 +476,6 @@ export class MovementsComponent implements OnInit {
     this.movForm.reset({
       type: m.type,
       sourceType: m.sourceType ?? 'Cash',
-      loanParty: m.loanParty ?? '',
       loanInstallments: m.loanInstallments,
       loanInterestRate: m.loanInterestRate,
       amount: m.amount,
@@ -445,7 +507,6 @@ export class MovementsComponent implements OnInit {
     this.movForm.reset({
       type: 'Expense',
       sourceType,
-      loanParty: '',
       loanInstallments: null,
       loanInterestRate: null,
       amount: null,
@@ -463,6 +524,78 @@ export class MovementsComponent implements OnInit {
     this.showModal.set(true);
   }
 
+  openTransfer() {
+    const source = this.transferAccounts().find((a) => a.isDefault) ?? this.transferAccounts()[0];
+    this.transferForm.reset({
+      sourceAccountId: source?.id ?? '',
+      destinationAccountId: '',
+      amount: null,
+      currency: source?.currency ?? this.baseCurrency(),
+      trmApplied: 1,
+      date: new Date().toISOString().slice(0, 16),
+      description: '',
+      isSaving: false,
+    });
+    this.transferIdempotencyKey.set(globalThis.crypto.randomUUID());
+    this.transferSourceId.set(source?.id ?? '');
+    this.showTransferModal.set(true);
+  }
+
+  onTransferSourceChange() {
+    const source = this.accounts().find((a) => a.id === this.transferForm.controls.sourceAccountId.value);
+    this.transferSourceId.set(source?.id ?? '');
+    this.transferForm.patchValue({
+      destinationAccountId: '',
+      currency: source?.currency ?? this.baseCurrency(),
+      trmApplied: 1,
+    });
+  }
+
+  closeTransfer() {
+    if (this.saving()) return;
+    this.showTransferModal.set(false);
+  }
+
+  saveTransfer() {
+    this.transferForm.markAllAsTouched();
+    if (this.transferForm.invalid) return;
+    const value = this.transferForm.getRawValue();
+    if (value.sourceAccountId === value.destinationAccountId) return;
+
+    this.saving.set(true);
+    this.api
+      .createTransfer(
+        {
+          sourceAccountId: value.sourceAccountId!,
+          destinationAccountId: value.destinationAccountId!,
+          amount: value.amount!,
+          currency: value.currency!,
+          trmApplied: value.trmApplied!,
+          date: value.date!,
+          description: value.description || undefined,
+          isSaving: value.isSaving ?? false,
+        },
+        this.transferIdempotencyKey(),
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.showTransferModal.set(false);
+          this.loadPage(this.currentPage());
+          const ids = this.accounts().map((account) => account.id);
+          this.api
+            .getAccountBalances(ids)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (balances) => this.accountBalances.set(balances),
+              error: () => undefined,
+            });
+        },
+        error: () => this.saving.set(false),
+      });
+  }
+
   closeModal() {
     this.showModal.set(false);
     this.editingMovement.set(null);
@@ -472,18 +605,13 @@ export class MovementsComponent implements OnInit {
   save() {
     this.movForm.markAllAsTouched();
     if (this.movForm.invalid) return;
-    this.saving.set(true);
     const v = this.movForm.value;
-
-    let subType: string | undefined;
-    if (v.sourceType === 'Loan' && v.type === 'Income') subType = 'LoanReceived';
-    if (v.sourceType === 'Loan' && v.type === 'Expense') subType = 'LoanGiven';
+    if (!isGenericMovementSource(v.sourceType)) return;
+    this.saving.set(true);
 
     const req = {
       type: v.type!,
-      subType,
-      sourceType: v.sourceType || undefined,
-      loanParty: v.loanParty || undefined,
+      sourceType: v.sourceType,
       loanInstallments: v.loanInstallments || undefined,
       loanInterestRate: v.loanInterestRate || undefined,
       amount: v.amount!,
@@ -495,28 +623,40 @@ export class MovementsComponent implements OnInit {
       accountId: v.accountId || undefined,
     };
     const editing = this.editingMovement();
+
+    // Movimiento recurrente: crear plantilla en vez de un movimiento puntual.
+    if (!editing && v.isRecurring) {
+      this.api
+        .createRecurring({
+          type: v.type!,
+          amount: v.amount!,
+          currency: v.currency!,
+          trmApplied: v.trmApplied ?? 1,
+          categoryId: v.categoryId || undefined,
+          accountId: v.accountId || undefined,
+          description: v.description || undefined,
+          frequency: v.recFrequency!,
+          interval: v.recInterval ?? 1,
+          dayOfMonth: v.recFrequency === 'Monthly' ? (v.recDayOfMonth ?? undefined) : undefined,
+          startDate: v.date ? v.date.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          endDate: v.recEndDate || undefined,
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.showModal.set(false);
+            this.editingMovement.set(null);
+            this.loadPage(this.currentPage());
+          },
+          error: () => this.saving.set(false),
+        });
+      return;
+    }
+
     const op = editing ? this.api.updateMovement(editing.id, req) : this.api.createMovement(req);
     op.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        // Si es compra nueva con tarjeta y cuotas > 1, crear InstallmentPurchase
-        const cuotas = v.loanInstallments;
-        const accountId = v.accountId;
-        if (!editing && v.sourceType === 'CreditCard' && cuotas && cuotas > 1 && accountId) {
-          const dateStr = v.date ? v.date.slice(0, 10) : new Date().toISOString().slice(0, 10);
-          this.api
-            .createInstallment({
-              description: v.description || 'Compra en cuotas',
-              accountId,
-              totalAmount: (v.amount ?? 0) * cuotas,
-              currency: v.currency!,
-              trmApplied: v.trmApplied ?? 1,
-              installmentsCount: cuotas,
-              paidCount: 0,
-              startDate: dateStr,
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({ next: () => {}, error: () => {} });
-        }
         this.saving.set(false);
         this.showModal.set(false);
         this.editingMovement.set(null);

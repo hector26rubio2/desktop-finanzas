@@ -1,44 +1,52 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, from, of, switchMap } from 'rxjs';
+import { LocalDataRepository } from '../local/local-data.repository';
 import type { AccountResponse, AccountRequest, AccountBalance } from '../../models/account.model';
 
 @Injectable({ providedIn: 'root' })
 export class AccountsApiService {
-  private http = inject(HttpClient);
-  private base = environment.apiUrl;
+  private local = inject(LocalDataRepository);
 
   getAccounts(): Observable<AccountResponse[]> {
-    return this.http.get<AccountResponse[]>(`${this.base}/accounts`);
+    return from(this.local.list<AccountResponse>('account'));
   }
 
   createAccount(req: AccountRequest): Observable<AccountResponse> {
-    return this.http.post<AccountResponse>(`${this.base}/accounts`, req);
+    return from(this.local.put('account', this.localAccount(req), 'create'));
   }
 
   updateAccount(id: string, req: AccountRequest): Observable<AccountResponse> {
-    return this.http.put<AccountResponse>(`${this.base}/accounts/${id}`, req);
+    return from(this.local.put('account', this.localAccount(req, id), 'update'));
   }
 
   deleteAccount(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/accounts/${id}`);
+    return from(this.local.remove('account', id));
   }
 
   getAccountBalance(id: string): Observable<AccountBalance> {
-    return this.http.get<AccountBalance>(`${this.base}/accounts/${id}/balance`);
+    return from(this.local.accountBalances<Record<string, AccountBalance>>([id])).pipe(
+      switchMap((result) => of(result[id] ?? { balance: 0, usedInCycle: 0 })),
+    );
   }
 
   getAccountBalances(ids: string[]): Observable<Record<string, AccountBalance>> {
-    if (ids.length === 0)
-      return new Observable<Record<string, AccountBalance>>((s) => {
-        s.next({});
-        s.complete();
-      });
-    let params = new HttpParams();
-    for (const id of ids) {
-      params = params.append('ids', id);
-    }
-    return this.http.get<Record<string, AccountBalance>>(`${this.base}/accounts/balances`, { params });
+    if (ids.length === 0) return of({} as Record<string, AccountBalance>);
+    return from(this.local.accountBalances<Record<string, AccountBalance>>(ids));
+  }
+
+  private localAccount(req: AccountRequest, id: string = crypto.randomUUID()): AccountResponse {
+    return {
+      id,
+      ...req,
+      bank: req.bank ?? null,
+      lastFour: req.lastFour ?? null,
+      creditLimit: req.creditLimit ?? null,
+      billingDay: req.billingDay ?? null,
+      paymentDay: req.paymentDay ?? null,
+      interestRate: req.interestRate ?? null,
+      isDefault: req.isDefault ?? false,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
   }
 }

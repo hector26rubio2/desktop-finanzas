@@ -31,7 +31,7 @@ export class LoggerService {
     consoleFn(`[${level}] ${message}`, data ?? '');
     try {
       this.api?.log?.(level, message, data);
-    } catch (_) {}
+    } catch {}
   }
 
   debug(message: string, data?: unknown): void {

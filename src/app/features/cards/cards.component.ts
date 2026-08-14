@@ -26,12 +26,14 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
 import type { InstallmentResponse } from '../../shared/models/installment.model';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 
 interface CardWithBalance extends AccountResponse {
   balance: AccountBalance;
@@ -52,6 +54,7 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
     FmtDatePipe,
     MovementDetailModalComponent,
     ModalComponent,
+    FieldErrorComponent,
     DataTableComponent,
     KpiStripComponent,
   ],
@@ -61,6 +64,8 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
 export class CardsComponent implements OnInit {
   cards = signal<CardWithBalance[]>([]);
   loading = signal(true);
+  loadError = signal(false);
+  loadState = computed(() => resolveViewLoadState(this.loading(), this.loadError(), this.cards().length));
   filterCcy = signal('');
   filterBank = signal('');
   searchQuery = signal('');
@@ -72,6 +77,10 @@ export class CardsComponent implements OnInit {
   pageSize = signal(10);
   today = new Date();
   installments = signal<InstallmentResponse[]>([]);
+  fundingAccounts = signal<AccountResponse[]>([]);
+  showPaymentModal = signal(false);
+  paymentSaving = signal(false);
+  paymentIdempotencyKey = signal('');
 
   showInstModal = signal(false);
   instSaving = signal(false);
@@ -90,6 +99,67 @@ export class CardsComponent implements OnInit {
     installmentsCount: [null as number | null, [Validators.required, Validators.min(2), Validators.max(120)]],
     startDate: [new Date().toISOString().slice(0, 10), Validators.required],
   });
+
+  paymentForm = this.fb.group({
+    sourceAccountId: ['', Validators.required],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    date: [new Date().toISOString().slice(0, 10), Validators.required],
+    description: ['Pago de tarjeta'],
+  });
+
+  openPaymentModal() {
+    const card = this.selectedCard();
+    if (!card) return;
+    const sources = this.fundingAccounts().filter((a) => a.currency === card.currency);
+    this.paymentForm.reset({
+      sourceAccountId: sources[0]?.id ?? '',
+      amount: this.outstandingDebt(card) || null,
+      date: new Date().toISOString().slice(0, 10),
+      description: `Pago ${card.name}`,
+    });
+    this.paymentIdempotencyKey.set(crypto.randomUUID());
+    this.showPaymentModal.set(true);
+  }
+
+  closePaymentModal() {
+    if (!this.paymentSaving()) this.showPaymentModal.set(false);
+  }
+
+  savePayment() {
+    this.paymentForm.markAllAsTouched();
+    const card = this.selectedCard();
+    if (this.paymentForm.invalid || !card) return;
+    const value = this.paymentForm.getRawValue();
+    this.paymentSaving.set(true);
+    this.api
+      .createCreditCardPayment(
+        {
+          sourceAccountId: value.sourceAccountId!,
+          creditAccountId: card.id,
+          amount: value.amount!,
+          currency: card.currency,
+          trmApplied: 1,
+          date: value.date!,
+          description: value.description || undefined,
+        },
+        this.paymentIdempotencyKey(),
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.paymentSaving.set(false);
+          this.showPaymentModal.set(false);
+          this.loadMovements(card.id);
+          this.api
+            .getAccountBalance(card.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((balance) =>
+              this.cards.update((list) => list.map((item) => (item.id === card.id ? { ...item, balance } : item))),
+            );
+        },
+        error: () => this.paymentSaving.set(false),
+      });
+  }
 
   dateCell = viewChild<MovTpl>('dateCell');
   conceptCell = viewChild<MovTpl>('conceptCell');
@@ -136,6 +206,11 @@ export class CardsComponent implements OnInit {
     return this.cards().find((c) => c.id === id) ?? null;
   });
 
+  paymentFundingAccounts = computed(() => {
+    const currency = this.selectedCard()?.currency;
+    return this.fundingAccounts().filter((account) => !currency || account.currency === currency);
+  });
+
   totalPages = computed(() => {
     const p = this.cardMovements();
     if (!p) return 1;
@@ -156,7 +231,7 @@ export class CardsComponent implements OnInit {
     );
   });
 
-  totalUsed = computed(() => this.filteredCards().reduce((s, c) => s + c.balance.usedInCycle, 0));
+  totalUsed = computed(() => this.filteredCards().reduce((s, c) => s + this.outstandingDebt(c), 0));
 
   summaryItems = computed<KpiStripItem[]>(() => {
     const fmt = (v: number) => formatNumber(v, 'en-US', '1.0-0');
@@ -182,8 +257,10 @@ export class CardsComponent implements OnInit {
     return items.filter((m) => m.type === 'Expense');
   });
 
+  // amountBase ya viene convertido a moneda base por el backend (Amount*TrmApplied):
+  // evita mezclar monedas y el 'ARS' hardcodeado.
   selectedTotalExpenses = computed(() =>
-    this.selectedExpenses().reduce((s, m) => s + (m.currency === 'ARS' ? m.amount : m.amount * m.trmApplied), 0),
+    this.selectedExpenses().reduce((s, m) => s + (m.amountBase ?? m.amount * m.trmApplied), 0),
   );
 
   selectedTotalInterest = computed(() => {
@@ -246,46 +323,32 @@ export class CardsComponent implements OnInit {
     const dateStr = v.startDate!;
     const description = v.description!;
 
-    const interestRate = card.interestRate ?? 0;
-    const monthlyBase = totalAmount / cuotas;
-    const monthlyWithInterest = monthlyBase * (1 + interestRate / 100);
-
     // Crear movimiento Expense con CreditCard
     const movReq = {
       type: 'Expense' as const,
       sourceType: 'CreditCard',
-      amount: monthlyWithInterest,
+      amount: totalAmount,
       currency: card.currency,
       trmApplied: 1,
       date: dateStr + 'T00:00',
       description,
       accountId: card.id,
       loanInstallments: cuotas,
-      loanInterestRate: interestRate || undefined,
+      loanInterestRate: card.interestRate || undefined,
     };
-    // Crear InstallmentPurchase
-    const instReq = {
-      description,
-      accountId: card.id,
-      totalAmount,
-      currency: card.currency,
-      trmApplied: 1,
-      installmentsCount: cuotas,
-      paidCount: 0,
-      startDate: dateStr,
-    };
-
-    forkJoin([
-      this.api.createMovement(movReq),
-      this.api.createInstallment(instReq),
-    ])
+    // El backend crea y enlaza el plan de cuotas dentro de la misma transacción.
+    this.api
+      .createMovement(movReq)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ([, inst]) => {
-          this.installments.update((l) => [...l, inst]);
+        next: () => {
           this.instSaving.set(false);
           this.showInstModal.set(false);
           this.loadMovements(card.id);
+          this.api
+            .getInstallments()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((list) => this.installments.set(list));
         },
         error: () => this.instSaving.set(false),
       });
@@ -301,9 +364,10 @@ export class CardsComponent implements OnInit {
   }
 
   markInstallmentPaid(inst: InstallmentResponse) {
-    const newCount = Math.min(inst.paidCount + 1, inst.installmentsCount);
+    const source = this.fundingAccounts().find((a) => a.currency === inst.currency);
+    if (!source) return;
     this.api
-      .updateInstallmentPaid(inst.id, newCount)
+      .payInstallment(inst.id, source.id, crypto.randomUUID())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
         this.installments.update((list) => list.map((i) => (i.id === updated.id ? updated : i)));
@@ -317,17 +381,27 @@ export class CardsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api
-      .getInstallments()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (list) => this.installments.set(list), error: () => {} });
-    this.api
-      .getAccounts()
+    this.load();
+  }
+
+  retry() {
+    this.load();
+  }
+
+  private load() {
+    this.loading.set(true);
+    this.loadError.set(false);
+    this.cardMovements.set(null);
+    forkJoin({ installments: this.api.getInstallments(), accounts: this.api.getAccounts() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (accounts) => {
+        next: ({ installments, accounts }) => {
+          this.installments.set(installments);
+          this.fundingAccounts.set(accounts.filter((a) => a.type !== 'Credit' && a.isActive));
           const creditCards = accounts.filter((a) => a.type === 'Credit' && a.isActive);
           if (creditCards.length === 0) {
+            this.cards.set([]);
+            this.selectedId.set(null);
             this.loading.set(false);
             return;
           }
@@ -337,6 +411,12 @@ export class CardsComponent implements OnInit {
               next: (balances) => {
                 const combined = creditCards.map((c, i) => ({ ...c, balance: balances[i] }));
                 this.cards.set(combined);
+                const currencies = [...new Set(combined.map((card) => card.currency))].sort();
+                if (currencies.length > 1 && !currencies.includes(this.filterCcy())) {
+                  this.filterCcy.set(currencies[0]);
+                } else if (currencies.length <= 1) {
+                  this.filterCcy.set('');
+                }
                 if (combined.length) {
                   this.selectedId.set(combined[0].id);
                   this.loadMovements(combined[0].id);
@@ -344,12 +424,15 @@ export class CardsComponent implements OnInit {
                 this.loading.set(false);
               },
               error: () => {
-                this.cards.set(creditCards.map((c) => ({ ...c, balance: { balance: 0, usedInCycle: 0 } })));
+                this.loadError.set(true);
                 this.loading.set(false);
               },
             });
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          this.loadError.set(true);
+          this.loading.set(false);
+        },
       });
   }
 
@@ -365,6 +448,7 @@ export class CardsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (r) => this.cardMovements.set(r),
+        error: () => this.loadError.set(true),
       });
   }
 
@@ -384,12 +468,20 @@ export class CardsComponent implements OnInit {
   rowCount = computed(() => this.cardMovements()?.total ?? 0);
 
   available(card: CardWithBalance): number {
-    return Math.max(0, (card.creditLimit ?? 0) - card.balance.usedInCycle);
+    return Math.max(0, (card.creditLimit ?? 0) - this.outstandingDebt(card));
   }
 
   usePct(card: CardWithBalance): number {
     if (!card.creditLimit) return 0;
-    return Math.min(100, Math.round((card.balance.usedInCycle / card.creditLimit) * 100));
+    return Math.min(100, Math.round((this.outstandingDebt(card) / card.creditLimit) * 100));
+  }
+
+  outstandingDebt(card: CardWithBalance): number {
+    return card.balance.outstandingDebt ?? card.balance.usedInCycle;
+  }
+
+  cycleSpend(card: CardWithBalance): number {
+    return card.balance.cycleSpend ?? this.outstandingDebt(card);
   }
 
   cyclePct(card: CardWithBalance): number {
@@ -419,7 +511,7 @@ export class CardsComponent implements OnInit {
   openDetail(m: MovementResponse) {
     this.selectedMovement.set(m);
     const inst = m.installmentPurchaseId
-      ? this.installments().find((i) => i.id === m.installmentPurchaseId) ?? null
+      ? (this.installments().find((i) => i.id === m.installmentPurchaseId) ?? null)
       : null;
     this.selectedInstallment.set(inst);
   }

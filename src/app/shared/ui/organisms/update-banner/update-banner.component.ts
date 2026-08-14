@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UpdateService } from '../../../services/update/update.service';
 
 @Component({
   selector: 'app-update-banner',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (update.status() === 'available') {
       <div class="update-banner" role="alert">

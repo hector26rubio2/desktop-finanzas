@@ -82,6 +82,48 @@
     </div>
   </div>
 
+  <section class="power-filters" aria-label="Filtros globales del dashboard">
+    <div class="power-filters__title">
+      <span>Filtros globales</span><small>Filtran flujo, categorías y movimientos</small>
+    </div>
+    <select
+      [ngModel]="ds.accountFilterId()"
+      (ngModelChange)="ds.setAccountFilterId($event)"
+      aria-label="Filtrar por cuenta"
+    >
+      <option value="">Todas las cuentas</option>
+      @for (account of ds.accountOptions(); track account.id) {
+        <option [value]="account.id">{{ account.name }}</option>
+      }
+    </select>
+    <select
+      [ngModel]="ds.currencyFilter()"
+      (ngModelChange)="ds.setCurrencyFilter($event)"
+      aria-label="Filtrar por moneda"
+    >
+      <option value="">Todas las monedas</option>
+      @for (currency of ds.currencyOptions(); track currency) {
+        <option [value]="currency">{{ currency }}</option>
+      }
+    </select>
+    <select
+      [ngModel]="ds.categoryFilterId()"
+      (ngModelChange)="ds.setCategoryFilterId($event)"
+      aria-label="Filtrar por categoría"
+    >
+      <option value="">Todas las categorías</option>
+      @for (category of ds.categories(); track category.id) {
+        <option [value]="category.id">{{ catName(category) }}</option>
+      }
+    </select>
+    <select [ngModel]="ds.typeFilter()" (ngModelChange)="ds.setTypeFilter($event)" aria-label="Filtrar por tipo">
+      <option value="all">Ingresos y gastos</option>
+      <option value="Income">Solo ingresos</option>
+      <option value="Expense">Solo gastos</option>
+    </select>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="ds.resetFilters()">Restablecer</button>
+  </section>
+
   @if (ds.loading()) {
     <div class="skeleton-kpis" role="status" aria-live="polite">
       <div class="skeleton skeleton--card h-78"></div>
@@ -131,48 +173,50 @@
         </div>
       </div>
       <div class="card">
-        <div class="card__h">
-          <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span
-          ><span class="eyebrow">{{ ds.currentLabel() }}</span>
-        </div>
-        <div class="filter-tags">
-          <button
-            class="filter-tag"
-            [class.filter-tag--active]="ds.typeFilter() === 'all'"
-            (click)="ds.setTypeFilter('all')"
-          >
-            {{ i18n.t('common.all') }}
-          </button>
-          <button
-            class="filter-tag filter-tag--pos-outline"
-            [class.filter-tag--pos]="ds.typeFilter() === 'Income'"
-            (click)="ds.setTypeFilter('Income')"
-          >
-            {{ i18n.t('transactions.income') }}
-          </button>
-          <button
-            class="filter-tag filter-tag--neg-outline"
-            [class.filter-tag--neg]="ds.typeFilter() === 'Expense'"
-            (click)="ds.setTypeFilter('Expense')"
-          >
-            {{ i18n.t('transactions.expense') }}
-          </button>
-          <span class="filter-tag-sep"></span>
-          <select
-            class="filter-tag-select"
-            [ngModel]="ds.categoryFilterId()"
-            (ngModelChange)="ds.setCategoryFilterId($event)"
-          >
-            <option value="">{{ i18n.t('transactions.filtro_categoria') }}</option>
-            @for (c of ds.categories(); track c.id) {
-              <option [value]="c.id">{{ c.icon }} · {{ catName(c) }}</option>
-            }
-          </select>
+        <div class="card__h card__h--col">
+          <div class="card__h-row">
+            <span class="card__title">{{ i18n.t('dashboard.gastos_categoria') }}</span>
+            <span class="eyebrow">{{ ds.currentLabel() }}</span>
+          </div>
+          <div class="filter-tags">
+            <button
+              class="filter-tag"
+              [class.filter-tag--active]="ds.typeFilter() === 'all'"
+              (click)="ds.setTypeFilter('all')"
+            >
+              {{ i18n.t('common.all') }}
+            </button>
+            <button
+              class="filter-tag filter-tag--pos-outline"
+              [class.filter-tag--pos]="ds.typeFilter() === 'Income'"
+              (click)="ds.setTypeFilter('Income')"
+            >
+              {{ i18n.t('transactions.income') }}
+            </button>
+            <button
+              class="filter-tag filter-tag--neg-outline"
+              [class.filter-tag--neg]="ds.typeFilter() === 'Expense'"
+              (click)="ds.setTypeFilter('Expense')"
+            >
+              {{ i18n.t('transactions.expense') }}
+            </button>
+            <span class="filter-tag-sep"></span>
+            <select
+              class="filter-tag-select"
+              [ngModel]="ds.categoryFilterId()"
+              (ngModelChange)="ds.setCategoryFilterId($event)"
+            >
+              <option value="">{{ i18n.t('transactions.filtro_categoria') }}</option>
+              @for (c of ds.categories(); track c.id) {
+                <option [value]="c.id">{{ c.icon }} · {{ catName(c) }}</option>
+              }
+            </select>
+          </div>
         </div>
         <div class="card__body card__body--center">
           <div class="donut-wrap">
             @if (ds.categoryExpenses().length > 0) {
-              <app-pie-chart [categories]="ds.categoryExpenses()" [currency]="baseCurrency" legendPosition="bottom" />
+              <app-pie-chart [categories]="ds.categoryExpenses()" [currency]="baseCurrency()" legendPosition="bottom" />
             } @else {
               <div class="empty-state p-40 donut-empty">
                 <p>{{ i18n.t('dashboard.sin_datos') }}</p>
@@ -205,13 +249,16 @@
           {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }} {{ m.currency }}
         </span>
       </ng-template>
-      <app-data-table
-        [columns]="recentCols()"
-        [data]="ds.recentMovements()"
-        [trackBy]="trackById"
-        [totalPages]="0"
-        [emptyMessage]="i18n.t('dashboard.sin_movimientos')"
-      />
+      <div class="recent-table-wrap">
+        <app-data-table
+          [columns]="recentCols()"
+          [data]="ds.recentMovements()"
+          [trackBy]="trackById"
+          [totalPages]="0"
+          [emptyMessage]="i18n.t('dashboard.sin_movimientos')"
+        />
+      </div>
     </div>
+    <app-financial-insights />
   }
 </div>

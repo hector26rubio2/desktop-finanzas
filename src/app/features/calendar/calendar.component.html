@@ -2,43 +2,43 @@
   <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
 
   <div class="row-flex">
-    <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
-        <path d="M10 3L5 8l5 5" />
-      </svg>
-    </button>
-    <h3 class="serif" style="font-size: 24px; font-weight: 400; min-width: 240px; text-align: center">
-      {{ monthName() }} {{ year() }}
-    </h3>
-    <button class="btn btn--ghost btn--icon" (click)="nextMonth()">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
-        <path d="M6 3l5 5-5 5" />
-      </svg>
-    </button>
-    <div style="margin-left: auto">
+    <div class="row-flex__item">
+      <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M10 3L5 8l5 5" />
+        </svg>
+      </button>
+      <h3 class="serif" style="font-size: 24px; font-weight: 400; min-width: 240px; text-align: center">
+        {{ monthName() }} {{ year() }}
+      </h3>
+      <button class="btn btn--ghost btn--icon" (click)="nextMonth()">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M6 3l5 5-5 5" />
+        </svg>
+      </button>
+    </div>
+    <div style="margin: auto">
       <button class="btn btn--ghost" style="font-size: var(--fs-xs)" (click)="goToToday()">
         {{ i18n.t('calendar.hoy') }}
       </button>
     </div>
   </div>
-
-  <app-kpi-strip [items]="kpiItems()" />
 
   <div class="card" style="padding: 0; overflow: hidden">
     <div style="display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line)">
@@ -121,78 +121,5 @@
         </div>
       }
     </div>
-  </div>
-
-  <div class="card" style="padding: 0; overflow: hidden">
-    <div class="card__h">
-      <span class="card__title">{{ i18n.t('calendar.proximos_dias') }}</span>
-    </div>
-    @if (page() === null) {
-      <div style="padding: 24px; text-align: center; color: var(--fg-3)" role="status" aria-live="polite">
-        {{ i18n.t('common.loading') }}
-      </div>
-    } @else {
-      <ng-template #dateCell let-m>
-        <span class="mono" style="font-size: var(--fs-md); color: var(--fg-0); letter-spacing: -0.02em">
-          {{ m.date | fmtDate }}
-        </span>
-      </ng-template>
-      <ng-template #conceptCell let-m>
-        <div style="color: var(--fg-0)">
-          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px">
-            {{ m.description ?? '—' }}
-          </div>
-          @if (m.subType) {
-            <div class="mov-row-sub">{{ subTypeLabel(m.subType, i18n) }}</div>
-          }
-        </div>
-      </ng-template>
-      <ng-template #categoryCell let-m>
-        <span class="cat-cell">
-          @if (m.categoryColor) {
-            <span class="cat-icon-badge" [style.background]="m.categoryColor">
-              <app-cat-icon [icon]="m.categoryIcon ?? ''" [size]="10"></app-cat-icon>
-            </span>
-          } @else {
-            <span class="cat-icon-badge cat-icon-badge--empty">—</span>
-          }
-          <span class="cat-cell-name">{{ m.categoryName ?? '—' }}</span>
-        </span>
-      </ng-template>
-      <ng-template #sourceCell let-m>
-        <span class="source-tag">{{ sourceLabel(m.sourceType, i18n) }}</span>
-      </ng-template>
-      <ng-template #typeCell let-m>
-        <span class="tag" [class]="m.type === 'Income' ? 'tag--pos' : 'tag--neg'">
-          {{ m.type === 'Income' ? i18n.t('transactions.ingreso_tag') : i18n.t('transactions.gasto_tag') }}
-        </span>
-      </ng-template>
-      <ng-template #amountCell let-m>
-        <span
-          class="mono"
-          style="white-space: nowrap"
-          [style.color]="m.type === 'Income' ? 'var(--positive)' : 'var(--fg-0)'"
-        >
-          {{ m.type === 'Income' ? '+' : '−' }}{{ m.amount | number: '1.2-2' }}
-          {{ m.currency }}
-        </span>
-      </ng-template>
-      <app-data-table
-        [columns]="cols()"
-        [data]="pendingItems()"
-        [trackBy]="trackById"
-        [rowClickable]="true"
-        (rowClick)="openDetail($event)"
-        [emptyMessage]="i18n.t('common.no_results')"
-        [page]="currentPage()"
-        [totalPages]="totalPages()"
-        [totalItems]="rowCount()"
-        [itemLabel]="i18n.t('header.movements').toLowerCase()"
-        [pageSizes]="[10, 20, 50]"
-        [pageSizeValue]="pageSize()"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)"
-      />
-    }
   </div>
 </div>

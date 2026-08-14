@@ -19,6 +19,16 @@ export interface MovementResponse {
   accountId: string | null;
   accountName: string | null;
   installmentPurchaseId: string | null;
+  loanId?: string | null;
+  principalComponent?: number | null;
+  interestComponent?: number | null;
+  installmentNumber?: number | null;
+  recurringTransactionId?: string | null;
+  portfolioEntityId?: string | null;
+  portfolioType?: string | null;
+  investmentTransactionType?: 'Contribution' | 'Withdrawal' | 'Buy' | 'Sell' | 'Fee' | null;
+  operationId: string | null;
+  operationType: 'Transfer' | 'CreditPurchase' | 'CreditInterest' | 'CreditPayment' | 'LoanDisbursement' | 'LoanPayment' | 'Saving' | null;
   createdAt: string;
 }
 
@@ -42,7 +52,43 @@ export interface MovementSummary {
   totalIncome: number;
   totalExpense: number;
   balance: number;
+  savings: number;
+  savingsRate: number;
   comparedToPreviousMonth: { incomeDelta: number; expenseDelta: number };
+}
+
+export interface TransferRequest {
+  sourceAccountId: string;
+  destinationAccountId: string;
+  amount: number;
+  currency: string;
+  trmApplied: number;
+  date: string;
+  description?: string;
+  isSaving: boolean;
+}
+
+export interface TransferResponse {
+  operationId: string;
+  sourceMovementId: string;
+  destinationMovementId: string;
+  sourceAccountId: string;
+  destinationAccountId: string;
+  amount: number;
+  currency: string;
+  amountBase: number;
+  date: string;
+  isSaving: boolean;
+}
+
+export interface CreditCardPaymentRequest {
+  sourceAccountId: string;
+  creditAccountId: string;
+  amount: number;
+  currency: string;
+  trmApplied: number;
+  date: string;
+  description?: string;
 }
 
 export interface PagedResult<T> {
