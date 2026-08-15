@@ -78,6 +78,9 @@
     <div class="empty-state">
       <div class="serif">{{ i18n.t('installments.sin_compras') }}</div>
       <p>{{ i18n.t('installments.sin_compras_desc') }}</p>
+      <button type="button" class="btn btn--primary" (click)="createPurchase()">
+        {{ i18n.t('installments.nueva_compra') }}
+      </button>
     </div>
   } @else {
     <app-kpi-strip [items]="kpiItems()" />
@@ -97,7 +100,13 @@
               <span class="tag tag--accent" style="font-size: var(--fs-2xs)"
                 >{{ inst.paidCount }}/{{ inst.installmentsCount }}</span
               >
-              <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="deleteInst(inst.id)">
+              <button
+                type="button"
+                class="btn btn--ghost btn--icon"
+                style="color: var(--negative)"
+                [attr.aria-label]="i18n.t('installments.delete_title') + ': ' + inst.description"
+                (click)="askDelete(inst)"
+              >
                 <svg
                   width="11"
                   height="11"
@@ -148,5 +157,22 @@
         </div>
       }
     </div>
+  }
+
+  @if (deleting(); as inst) {
+    <app-confirm-dialog
+      [visible]="true"
+      [title]="i18n.t('installments.delete_title')"
+      [message]="
+        i18n.t('installments.delete_confirm') +
+        '<br /><strong style=color:var(--fg-0)>' +
+        inst.description +
+        '</strong>'
+      "
+      [confirmLabel]="i18n.t('common.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
   }
 </div>

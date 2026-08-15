@@ -385,6 +385,10 @@ const en: Record<TranslationKey, string> = {
   'recurring.delete_title': 'Delete recurring template',
   'recurring.delete_confirm': 'This deletes the template. Movements already generated stay.',
   'recurring.deleted': 'Recurring template deleted',
+  'installments.delete_title': 'Delete installment purchase',
+  'installments.delete_confirm':
+    'This deletes the installment plan. Payments already recorded stay. It cannot be undone.',
+  'installments.deleted': 'Installment purchase deleted',
 
   'reports.tab_general': 'Overview',
   'reports.tab_categorias': 'Categories',

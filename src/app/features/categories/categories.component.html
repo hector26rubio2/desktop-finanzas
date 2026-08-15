@@ -141,6 +141,7 @@
     <div class="empty-state">
       <div class="serif">{{ i18n.t('categories.sin_categorias') }}</div>
       <p>{{ i18n.t('categories.sin_categorias_desc') }}</p>
+      <button type="button" class="btn btn--primary" (click)="openCreate()">{{ i18n.t('categories.nueva') }}</button>
     </div>
   } @else {
     <ng-template #iconCell let-c>

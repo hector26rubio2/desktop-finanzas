@@ -19,6 +19,7 @@ import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/dat
 import { forkJoin } from 'rxjs';
 import { FinancialApiService } from '../../shared/services/api/financial-api.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
+import { monthlyDebtService } from '../../shared/utils/commitments';
 
 interface MonthStat {
   month: string;
@@ -237,20 +238,7 @@ export class ReportsComponent implements OnInit {
     forkJoin([this.api.getInstallments(), this.api.getLoans()])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([insts, loans]) => {
-        const instMonthly = insts
-          .filter((i) => i.isActive && i.paidCount < i.installmentsCount)
-          .reduce((s, i) => s + i.monthlyAmount * (i.trmApplied || 1), 0);
-        const loanMonthly = loans
-          .filter((l) => l.isActive && l.paidMonths < l.termMonths)
-          .reduce((s, l) => {
-            const im = Math.pow(1 + l.interestRateAnnual / 100, 1 / 12) - 1;
-            const pmt =
-              im === 0
-                ? l.principal / l.termMonths
-                : (l.principal * im * Math.pow(1 + im, l.termMonths)) / (Math.pow(1 + im, l.termMonths) - 1);
-            return s + pmt * (l.trmApplied || 1);
-          }, 0);
-        this.commitments.set(instMonthly + loanMonthly);
+        this.commitments.set(monthlyDebtService(insts, loans));
       });
   }
 

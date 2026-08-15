@@ -385,6 +385,10 @@ const pt: Record<TranslationKey, string> = {
   'recurring.delete_title': 'Excluir recorrente',
   'recurring.delete_confirm': 'Isso apaga o modelo. Os movimentos já gerados permanecem.',
   'recurring.deleted': 'Recorrente excluída',
+  'installments.delete_title': 'Excluir compra parcelada',
+  'installments.delete_confirm':
+    'Isso apaga o plano de parcelas. Os pagamentos já registrados permanecem. Não dá para desfazer.',
+  'installments.deleted': 'Compra parcelada excluída',
 
   'reports.tab_general': 'Visão geral',
   'reports.tab_categorias': 'Categorias',

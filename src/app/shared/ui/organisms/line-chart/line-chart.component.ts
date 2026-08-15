@@ -1,6 +1,7 @@
 import { Component, OnDestroy, effect, input, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { Chart, ChartOptions } from 'chart.js';
 import '@core/chart.setup';
+import { formatAmount } from '../../../utils/money';
 export interface DataPoint {
   label: string;
   income: number;
@@ -79,7 +80,7 @@ export class LineChartComponent implements OnDestroy {
           bodyFont: { family: 'Geist Mono', size: 11 },
           callbacks: {
             label: (ctx: { dataset: { label?: string }; parsed: { y: number | null } }) =>
-              `${ctx.dataset.label}: ${new Intl.NumberFormat('es').format(Math.round(ctx.parsed.y ?? 0))}`,
+              `${ctx.dataset.label}: ${formatAmount(Math.round(ctx.parsed.y ?? 0))}`,
           },
         },
       },
@@ -100,7 +101,7 @@ export class LineChartComponent implements OnDestroy {
           ticks: {
             color: textColor,
             font: { family: 'Geist Mono', size: 10 },
-            callback: (v: string | number) => new Intl.NumberFormat('es', { notation: 'compact' }).format(Number(v)),
+            callback: (v: string | number) => formatAmount(Number(v), { compact: true }),
           },
           grid: { color: gridColor, drawTicks: false },
           border: { color: gridColor },

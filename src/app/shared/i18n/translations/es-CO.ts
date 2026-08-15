@@ -385,6 +385,9 @@ const es: Record<TranslationKey, string> = {
   'recurring.delete_title': 'Eliminar recurrente',
   'recurring.delete_confirm': 'Se borrará la plantilla. Los movimientos ya generados se quedan.',
   'recurring.deleted': 'Recurrente eliminada',
+  'installments.delete_title': 'Eliminar compra a cuotas',
+  'installments.delete_confirm': 'Se borrará el plan de cuotas. Los pagos ya registrados se quedan. No se puede deshacer.',
+  'installments.deleted': 'Compra a cuotas eliminada',
 
   'reports.tab_general': 'Vista general',
   'reports.tab_categorias': 'Categorías',

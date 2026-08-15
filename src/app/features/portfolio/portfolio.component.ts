@@ -10,6 +10,7 @@ import {
   type InspectorSection,
 } from '../../shared/ui/organisms/inspector-panel/inspector-panel.component';
 import { ModalComponent } from '../../shared/ui/organisms/modal/modal.component';
+import { formatAmount, formatMoney } from '../../shared/utils/money';
 @Component({
   selector: 'app-portfolio',
   standalone: true,
@@ -42,7 +43,7 @@ export class PortfolioComponent {
       header: 'Valor base',
       numeric: true,
       sortable: true,
-      format: (v) => (v == null ? 'Sin valoración' : Number(v).toLocaleString()),
+      format: (v) => (v == null ? 'Sin valoración' : formatAmount(Number(v))),
     },
   ];
   items = computed(() => this.data()?.items.filter((x) => this.filter() === 'All' || x.kind === this.filter()) ?? []);
@@ -78,7 +79,7 @@ export class PortfolioComponent {
               {
                 label: 'Valor base',
                 value:
-                  x.valueBase == null ? 'Sin datos' : `${x.valueBase.toLocaleString()} ${this.data()?.baseCurrency}`,
+                  x.valueBase == null ? 'Sin datos' : formatMoney(x.valueBase, this.data()?.baseCurrency ?? '').trim(),
               },
               { label: 'Fecha', value: x.valuationDate ?? 'Sin datos' },
               { label: 'Fuente', value: x.valuationSource ?? 'Sin datos' },

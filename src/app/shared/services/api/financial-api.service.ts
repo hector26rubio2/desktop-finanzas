@@ -20,7 +20,8 @@ import type {
   PortfolioValuationDocument,
   PortfolioValuationSource,
 } from '../../models/portfolio.model';
-import { buildAmortization, roundMoney } from '../../utils/amortization';
+import { roundMoney } from '../../utils/amortization';
+import { monthlyInstallmentCommitment, monthlyLoanCommitment } from '../../utils/commitments';
 import { financialFlowContribution } from '../../utils/financial-classification';
 import { LocalDataRepository } from '../local/local-data.repository';
 import { TokenService } from '../auth/token.service';
@@ -186,18 +187,9 @@ export class FinancialApiService {
     );
     const creditLimit = eligibleCards.reduce((s, x) => s + Number(x.creditLimit || 0), 0);
     const installments = await this.local.list<InstallmentResponse>('installmentpurchase');
-    const monthlyInstallments = installments
-      .filter((x) => x.isActive)
-      .reduce((s, x) => s + Number(x.monthlyAmount || 0) * Number(x.trmApplied || 1), 0);
+    const monthlyInstallments = monthlyInstallmentCommitment(installments);
     const loans = await this.local.list<LoanResponse>('loan');
-    const monthlyLoans = loans
-      .filter((x) => x.isActive && x.remainingMonths > 0 && x.outstandingPrincipal > 0)
-      .reduce((s, x) => {
-        const payment =
-          buildAmortization(x.outstandingPrincipal, x.interestRateAnnual, x.remainingMonths, x.startDate, x.loanType)[0]
-            ?.payment ?? 0;
-        return s + payment * Number(x.trmApplied || 1);
-      }, 0);
+    const monthlyLoans = monthlyLoanCommitment(loans);
     const last3Expense = [-1, -2, -3].map((n) => this.totals(this.period(all, this.shift(ym, n))).expense);
     const average3 = last3Expense.reduce((a, b) => a + b, 0) / 3;
     const monthlyDebtService = monthlyInstallments + monthlyLoans;

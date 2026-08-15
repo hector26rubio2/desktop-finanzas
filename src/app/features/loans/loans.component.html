@@ -92,6 +92,7 @@
     <div class="empty-state" role="status">
       <div class="serif">{{ i18n.t('loans.sin_prestamos') }}</div>
       <p>{{ i18n.t('loans.sin_prestamos_desc') }}</p>
+      <button type="button" class="btn btn--primary" (click)="showForm = true">{{ i18n.t('loans.nuevo') }}</button>
     </div>
   } @else {
     <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--gutter); align-items: start">

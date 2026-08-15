@@ -355,15 +355,6 @@ export class CardsComponent implements OnInit {
       });
   }
 
-  deleteInst(id: string) {
-    this.api
-      .deleteInstallment(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.installments.update((l) => l.filter((i) => i.id !== id));
-      });
-  }
-
   markInstallmentPaid(inst: InstallmentResponse) {
     const source = this.fundingAccounts().find((a) => a.currency === inst.currency);
     if (!source) return;

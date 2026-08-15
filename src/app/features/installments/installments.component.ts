@@ -8,13 +8,22 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-installments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ModalComponent,
+    FieldErrorComponent,
+    KpiStripComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.css',
 })
@@ -24,6 +33,7 @@ export class InstallmentsComponent implements OnInit {
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
+  private notif = inject(NotificationService);
 
   createPurchase() {
     this.router.navigate(['/cards']);
@@ -34,6 +44,7 @@ export class InstallmentsComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   showForm = signal(false);
+  deleting = signal<InstallmentResponse | null>(null);
 
   form = this.fb.group({
     description: ['', Validators.required],
@@ -108,12 +119,31 @@ export class InstallmentsComponent implements OnInit {
     return this.accounts().some((a) => a.type !== 'Credit' && a.isActive && a.currency === inst.currency);
   }
 
-  deleteInst(id: string) {
+  /**
+   * Borrar un plan de cuotas es irreversible y antes bastaba un clic. Se
+   * pregunta primero, igual que en préstamos y recurrentes.
+   */
+  askDelete(inst: InstallmentResponse) {
+    this.deleting.set(inst);
+  }
+
+  cancelDelete() {
+    this.deleting.set(null);
+  }
+
+  confirmDelete() {
+    const inst = this.deleting();
+    if (!inst) return;
+    this.deleting.set(null);
     this.api
-      .deleteInstallment(id)
+      .deleteInstallment(inst.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.installments.update((list) => list.filter((i) => i.id !== id));
+      .subscribe({
+        next: () => {
+          this.installments.update((list) => list.filter((i) => i.id !== inst.id));
+          this.notif.announce(this.i18n.t('installments.deleted'));
+        },
+        error: () => this.notif.announce(this.i18n.t('common.load_error')),
       });
   }
 

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, effect, input, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { Chart, ChartOptions, Plugin } from 'chart.js';
 import '@core/chart.setup';
+import { formatAmount } from '../../../utils/money';
 
 export interface CategoryExpense {
   name: string;
@@ -112,7 +113,7 @@ export class PieChartComponent implements OnDestroy {
         ctx.fillText(this.totalLabel(), cx, cy - 14);
         ctx.fillStyle = fg0;
         ctx.font = '600 18px "Geist Mono"';
-        ctx.fillText(new Intl.NumberFormat('es').format(Math.round(total)), cx, cy + 4);
+        ctx.fillText(formatAmount(Math.round(total)), cx, cy + 4);
         ctx.fillStyle = fg1;
         ctx.font = '400 9px "Geist Mono"';
         ctx.fillText(ccy, cx, cy + 20);
