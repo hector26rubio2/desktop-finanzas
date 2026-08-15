@@ -19,6 +19,7 @@ import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dia
 import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 type AccTpl = TemplateRef<{ $implicit: AccountResponse; row: AccountResponse }>;
 
@@ -33,6 +34,7 @@ type AccTpl = TemplateRef<{ $implicit: AccountResponse; row: AccountResponse }>;
     ConfirmDialogComponent,
     CatIconComponent,
     DataTableComponent,
+    SkeletonComponent,
   ],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',

@@ -20,6 +20,7 @@ import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import type { CategoryTranslations } from '../../shared/models/category.model';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 type CatTpl = TemplateRef<{ $implicit: CategoryResponse; row: CategoryResponse }>;
 
@@ -35,6 +36,7 @@ type CatTpl = TemplateRef<{ $implicit: CategoryResponse; row: CategoryResponse }
     ModalComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    SkeletonComponent,
   ],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.css',

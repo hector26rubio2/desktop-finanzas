@@ -383,9 +383,7 @@
   />
 
   @if (page() === null) {
-    <div class="empty-state" role="status" aria-live="polite">
-      <p>{{ i18n.t('transactions.cargando') }}</p>
-    </div>
+    <app-skeleton variant="table" [count]="10" [label]="i18n.t('transactions.cargando')" />
   } @else {
     <div class="mov-toolbar">
       <div class="mov-toolbar-left">

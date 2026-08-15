@@ -1,0 +1,136 @@
+<div class="creator-panel">
+  <div class="eyebrow" style="margin-bottom: 4px">{{ i18n.t('settings.crear_tema') }}</div>
+  <p class="creator-hint">{{ i18n.t('settings.crear_tema_hint') }}</p>
+
+  <!-- Controles arriba -->
+  <div class="creator-controls">
+    <div class="creator-top">
+      <label class="creator-name">
+        <span class="creator-label">{{ i18n.t('settings.nombre_tema') }}</span>
+        <input
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          [placeholder]="i18n.t('settings.nombre_tema_placeholder')"
+        />
+      </label>
+      <div class="seg-ctrl" style="width: fit-content; align-self: end">
+        <button
+          type="button"
+          class="seg-ctrl__btn"
+          [class.seg-ctrl__btn--active]="!isDark()"
+          (click)="isDark.set(false)"
+        >
+          {{ i18n.t('settings.tema_claro_btn') }}
+        </button>
+        <button type="button" class="seg-ctrl__btn" [class.seg-ctrl__btn--active]="isDark()" (click)="isDark.set(true)">
+          {{ i18n.t('settings.tema_oscuro_btn') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="swatch-grid">
+      <label class="swatch-field">
+        <span class="swatch-field__well" [style.background]="accent()">
+          <input type="color" [ngModel]="accent()" (ngModelChange)="accent.set($event)" />
+        </span>
+        <span class="creator-label">{{ i18n.t('settings.accento') }} 1</span>
+        <span class="mono swatch-field__hex">{{ accent() }}</span>
+      </label>
+      <label class="swatch-field">
+        <span class="swatch-field__well" [style.background]="accent2()">
+          <input type="color" [ngModel]="accent2()" (ngModelChange)="accent2.set($event)" />
+        </span>
+        <span class="creator-label">{{ i18n.t('settings.accento') }} 2</span>
+        <span class="mono swatch-field__hex">{{ accent2() }}</span>
+      </label>
+      <label class="swatch-field">
+        <span class="swatch-field__well" [style.background]="accent3()">
+          <input type="color" [ngModel]="accent3()" (ngModelChange)="accent3.set($event)" />
+        </span>
+        <span class="creator-label">{{ i18n.t('settings.accento') }} 3</span>
+        <span class="mono swatch-field__hex">{{ accent3() }}</span>
+      </label>
+      <label class="swatch-field">
+        <span class="swatch-field__well" [style.background]="bg()">
+          <input type="color" [ngModel]="bg()" (ngModelChange)="bg.set($event)" />
+        </span>
+        <span class="creator-label">{{ i18n.t('settings.fondo_base') }}</span>
+        <span class="mono swatch-field__hex">{{ bg() }}</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Maqueta abajo, con los colores del borrador: no afecta al sistema hasta guardar -->
+  <div class="creator-mockup-wrap">
+    <div class="eyebrow" style="margin-bottom: 8px">{{ i18n.t('settings.vista_previa_tema') }}</div>
+    <div class="mockup" [style.background]="bg()" [style.border-color]="line()" aria-hidden="true">
+      <div class="mockup__titlebar" [style.background]="surface()" [style.border-color]="line()">
+        <span [style.background]="fg()"></span>
+        <span [style.background]="fg()"></span>
+        <span [style.background]="fg()"></span>
+      </div>
+      <div class="mockup__body">
+        <div class="mockup__sidebar" [style.background]="surface()" [style.border-color]="line()">
+          <span class="mockup__navitem mockup__navitem--active" [style.background]="accent()"></span>
+          <span class="mockup__navitem" [style.background]="fg()"></span>
+          <span class="mockup__navitem" [style.background]="fg()"></span>
+          <span class="mockup__navitem" [style.background]="fg()"></span>
+        </div>
+        <div class="mockup__main">
+          <div class="mockup__stats">
+            <div class="mockup__stat" [style.background]="surface()" [style.border-color]="line()">
+              <span class="mockup__stat-label" [style.color]="fg()">{{ i18n.t('settings.preview_balance') }}</span>
+              <span class="mono mockup__stat-value" [style.color]="accent()">$ 1.850.000</span>
+            </div>
+            <div class="mockup__stat" [style.background]="surface()" [style.border-color]="line()">
+              <span class="mockup__stat-label" [style.color]="fg()">{{ i18n.t('settings.preview_resumen') }}</span>
+              <span class="mono mockup__stat-value" [style.color]="accent3()">+ $ 320.000</span>
+            </div>
+          </div>
+          <div class="mockup__chart">
+            <span style="height: 60%" [style.background]="accent()"></span>
+            <span style="height: 38%" [style.background]="accent2()"></span>
+            <span style="height: 80%" [style.background]="accent3()"></span>
+            <span style="height: 30%" [style.background]="accent()"></span>
+            <span style="height: 52%" [style.background]="accent2()"></span>
+            <span style="height: 68%" [style.background]="accent()"></span>
+          </div>
+          <div class="mockup__row">
+            <span class="draft-chip" [style.background]="accent()" [style.color]="bg()">{{
+              i18n.t('settings.preview_ingreso')
+            }}</span>
+            <span class="draft-chip" [style.background]="accent2()" [style.color]="bg()">{{
+              i18n.t('settings.preview_gasto')
+            }}</span>
+            <span class="draft-chip" [style.background]="accent3()" [style.color]="bg()">{{
+              i18n.t('settings.preview_cuota')
+            }}</span>
+            <span style="flex: 1"></span>
+            <span class="draft-btn" [style.background]="accent()" [style.color]="bg()">{{
+              i18n.t('settings.preview_nuevo')
+            }}</span>
+            <span class="draft-btn draft-btn--ghost" [style.color]="fg()" [style.border-color]="line()">{{
+              i18n.t('settings.preview_filtros')
+            }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="btn btn--primary creator-save" [disabled]="!canSave()" (click)="save()">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M2 8.5l4 4L14 4" />
+    </svg>
+    {{ i18n.t('settings.guardar_aplicar') }}
+  </button>
+</div>

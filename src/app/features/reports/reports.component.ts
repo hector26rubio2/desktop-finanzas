@@ -20,6 +20,7 @@ import { forkJoin } from 'rxjs';
 import { FinancialApiService } from '../../shared/services/api/financial-api.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { monthlyDebtService } from '../../shared/utils/commitments';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 interface MonthStat {
   month: string;
@@ -50,7 +51,7 @@ type Tpl<T> = TemplateRef<{ $implicit: T; row: T }>;
   selector: 'app-reports',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, PieChartComponent, KpiStripComponent, DataTableComponent],
+  imports: [CommonModule, PieChartComponent, KpiStripComponent, DataTableComponent, SkeletonComponent],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css',
 })

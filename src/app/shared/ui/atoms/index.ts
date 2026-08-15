@@ -7,3 +7,4 @@ export { IconPickerComponent } from './icon-picker/icon-picker.component';
 export { FieldErrorComponent } from './field-error/field-error.component';
 export { SearchInputComponent } from './search-input/search-input.component';
 export { TypeFilterComponent, type FilterOption } from './type-filter/type-filter.component';
+export { SkeletonComponent, type SkeletonVariant } from './skeleton/skeleton.component';

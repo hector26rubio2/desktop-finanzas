@@ -80,9 +80,7 @@
   }
 
   @if (loadState() === 'loading') {
-    <div class="empty-state" role="status">
-      <p>{{ i18n.t('loans.cargando') }}</p>
-    </div>
+    <app-skeleton variant="cards" [count]="4" [label]="i18n.t('loans.cargando')" />
   } @else if (loadState() === 'error') {
     <div class="empty-state" role="alert" aria-live="assertive">
       <p>{{ i18n.t('common.load_error') }}</p>

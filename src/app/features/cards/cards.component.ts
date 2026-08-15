@@ -35,6 +35,7 @@ import { installmentPaymentKey } from '../../shared/services/api/installments-ap
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 interface CardWithBalance extends AccountResponse {
   balance: AccountBalance;
@@ -58,6 +59,7 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
     FieldErrorComponent,
     DataTableComponent,
     KpiStripComponent,
+    SkeletonComponent,
   ],
   templateUrl: './cards.component.html',
   styleUrl: './cards.component.css',

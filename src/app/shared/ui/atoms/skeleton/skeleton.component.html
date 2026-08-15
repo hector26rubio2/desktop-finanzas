@@ -1,0 +1,45 @@
+<div
+  class="skel"
+  [attr.role]="announces() ? 'status' : null"
+  [attr.aria-live]="announces() ? 'polite' : null"
+  [attr.aria-label]="announces() ? label() : null"
+  [attr.aria-hidden]="announces() ? null : 'true'"
+>
+  @switch (variant()) {
+    @case ('kpis') {
+      <div class="skel__kpis">
+        @for (piece of pieces(); track piece) {
+          <div class="skel__bar skel__bar--card skel__bar--kpi"></div>
+        }
+      </div>
+    }
+    @case ('table') {
+      <div class="skel__table">
+        <div class="skel__bar skel__bar--head"></div>
+        @for (piece of pieces(); track piece) {
+          <div class="skel__bar skel__bar--row"></div>
+        }
+      </div>
+    }
+    @case ('cards') {
+      <div class="skel__cards">
+        @for (piece of pieces(); track piece) {
+          <div class="skel__bar skel__bar--card skel__bar--tile"></div>
+        }
+      </div>
+    }
+    @case ('chart') {
+      <div class="skel__chart">
+        <div class="skel__bar skel__bar--card skel__bar--plot"></div>
+        <div class="skel__bar skel__bar--card skel__bar--legend"></div>
+      </div>
+    }
+    @default {
+      <div class="skel__stack">
+        @for (piece of pieces(); track piece) {
+          <div class="skel__bar skel__bar--card" [style.height.px]="height()"></div>
+        }
+      </div>
+    }
+  }
+</div>

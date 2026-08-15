@@ -71,9 +71,7 @@
   }
 
   @if (loading()) {
-    <div class="empty-state">
-      <p>{{ i18n.t('installments.cargando') }}</p>
-    </div>
+    <app-skeleton variant="cards" [count]="4" [label]="i18n.t('installments.cargando')" />
   } @else if (installments().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('installments.sin_compras') }}</div>

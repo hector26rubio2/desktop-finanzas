@@ -22,6 +22,7 @@ import { DataTableComponent, ColumnDef } from '@ui/organisms/data-table/data-tab
 import { I18nService } from '../../shared/i18n/i18n.service';
 import type { Locale, TranslationKey } from '../../shared/i18n/locale.types';
 import type { BaseCurrencyChangeResult } from '../../shared/services/base-currency-policy.service';
+import { ThemeCreatorComponent } from './theme-creator/theme-creator.component';
 
 type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
 
@@ -29,7 +30,7 @@ type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
   selector: 'app-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, DataTableComponent],
+  imports: [CommonModule, FormsModule, DataTableComponent, ThemeCreatorComponent],
   templateUrl: './settings.component.html',
   // Esta hoja se cargaba desde el array global de `angular.json`, la única
   // feature sin encapsular: cualquier `.card__h` o `.btn` que redefiniera aquí
@@ -116,30 +117,8 @@ export class SettingsComponent implements OnInit {
     accent: `oklch(${p.isDark ? 72 : 48}% 0.10 ${p.baseHue})`,
   }));
 
-  newThemeName = '';
-  newThemeAccent = '#7c5fb3';
-  newThemeAccent2 = '#b68b4a';
-  newThemeAccent3 = '#4fa083';
-  newThemeBg = '#f8f8f6';
-  newThemeIsDark = false;
-
   activeCustomName() {
     return localStorage.getItem('active-custom-theme') ?? '';
-  }
-
-  // Texto y líneas con contraste sobre el fondo elegido en el creador de temas
-  creatorFg(): string {
-    return this.isHexDark(this.newThemeBg) ? '#f4f4f2' : '#1d1b18';
-  }
-
-  creatorLine(): string {
-    return this.isHexDark(this.newThemeBg) ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.14)';
-  }
-
-  // Superficie elevada derivada del fondo elegido (solo para la maqueta del borrador)
-  creatorSurface(): string {
-    const toward = this.isHexDark(this.newThemeBg) ? '#ffffff' : '#000000';
-    return `color-mix(in srgb, ${this.newThemeBg} 93%, ${toward})`;
   }
 
   fontOptions = FONT_OPTIONS;
@@ -211,13 +190,6 @@ export class SettingsComponent implements OnInit {
     return Math.max(1, Math.ceil(this.fontOptions.length / this.fontPageSize()));
   }
 
-  private isHexDark(hex: string): boolean {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 140;
-  }
-
   triadicFrom(hex: string, offset: number): string {
     const r = parseInt(hex.slice(1, 3), 16) / 255;
     const g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -255,19 +227,6 @@ export class SettingsComponent implements OnInit {
         )
         .join('')
     );
-  }
-
-  saveCustomTheme() {
-    if (!this.newThemeName.trim()) return;
-    this.theme.saveCustomTheme({
-      name: this.newThemeName.trim(),
-      isDark: this.newThemeIsDark,
-      accent: this.newThemeAccent,
-      accent2: this.newThemeAccent2,
-      accent3: this.newThemeAccent3,
-      bg: this.newThemeBg,
-    });
-    this.newThemeName = '';
   }
 
   currencies = [

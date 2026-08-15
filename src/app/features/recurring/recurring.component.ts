@@ -18,12 +18,13 @@ import { forkJoin } from 'rxjs';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-recurring',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent, SkeletonComponent],
   templateUrl: './recurring.component.html',
   styleUrl: './recurring.component.css',
 })

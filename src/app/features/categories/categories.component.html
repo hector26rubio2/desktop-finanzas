@@ -134,9 +134,7 @@
   }
 
   @if (loading()) {
-    <div class="empty-state">
-      <p>{{ i18n.t('categories.cargando') }}</p>
-    </div>
+    <app-skeleton variant="table" [count]="8" [label]="i18n.t('categories.cargando')" />
   } @else if (categories().length === 0) {
     <div class="empty-state">
       <div class="serif">{{ i18n.t('categories.sin_categorias') }}</div>

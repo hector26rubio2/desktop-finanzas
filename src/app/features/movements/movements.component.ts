@@ -38,6 +38,7 @@ import type { InstallmentResponse } from '../../shared/models/installment.model'
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.component';
 import { isGenericMovementSource, movementFormFields } from './movement-form.schema';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
 
@@ -65,6 +66,7 @@ const MONTH_PAGE_SIZE = 10_000;
     DataTableComponent,
     DynamicFormComponent,
     KpiStripComponent,
+    SkeletonComponent,
   ],
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.css',

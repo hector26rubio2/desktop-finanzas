@@ -125,17 +125,9 @@
   </section>
 
   @if (ds.loading()) {
-    <div class="skeleton-kpis" role="status" aria-live="polite">
-      <div class="skeleton skeleton--card h-78"></div>
-      <div class="skeleton skeleton--card h-78"></div>
-      <div class="skeleton skeleton--card h-78"></div>
-      <div class="skeleton skeleton--card h-78"></div>
-    </div>
-    <div class="chart-skel-grid">
-      <div class="skeleton skeleton--card h-280"></div>
-      <div class="skeleton skeleton--card h-280"></div>
-    </div>
-    <div class="skeleton skeleton--card h-200"></div>
+    <app-skeleton variant="kpis" [count]="4" [label]="i18n.t('common.loading')" />
+    <app-skeleton variant="chart" />
+    <app-skeleton [count]="1" [height]="200" />
   } @else if (ds.error(); as err) {
     <div class="error-card" role="alert">
       <p>{{ err }}</p>

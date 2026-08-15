@@ -1,0 +1,88 @@
+.skel {
+  display: block;
+}
+
+.skel__bar {
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-0) 50%, var(--bg-2) 75%);
+  background-size: 800px 100%;
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+}
+
+.skel__bar--card {
+  border: 1px solid var(--line-1);
+}
+
+.skel__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--gutter);
+}
+
+.skel__bar--kpi {
+  height: 78px;
+}
+
+.skel__table {
+  display: grid;
+  gap: 6px;
+}
+
+.skel__bar--head {
+  height: 34px;
+}
+
+.skel__bar--row {
+  height: 44px;
+}
+
+.skel__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--gutter);
+}
+
+.skel__bar--tile {
+  height: 160px;
+}
+
+.skel__chart {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--gutter);
+}
+
+.skel__bar--plot,
+.skel__bar--legend {
+  height: 280px;
+}
+
+.skel__stack {
+  display: grid;
+  gap: var(--gutter);
+}
+
+@keyframes skel-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/*
+  Sin animación el bloque sigue siendo visible y el lector sigue anunciando:
+  se pierde el brillo, no la información.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .skel__bar {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .skel__chart {
+    grid-template-columns: 1fr;
+  }
+}

@@ -11,6 +11,7 @@ import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kp
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { Router } from '@angular/router';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-installments',
@@ -23,6 +24,7 @@ import { Router } from '@angular/router';
     FieldErrorComponent,
     KpiStripComponent,
     ConfirmDialogComponent,
+    SkeletonComponent,
   ],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.css',

@@ -21,6 +21,7 @@ import { forkJoin } from 'rxjs';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 interface AmortRow {
   n: number;
@@ -36,7 +37,7 @@ type AmortTpl = TemplateRef<{ $implicit: AmortRow; row: AmortRow }>;
   selector: 'app-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent, SkeletonComponent],
   templateUrl: './loans.component.html',
   styleUrl: './loans.component.css',
 })

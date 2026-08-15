@@ -23,6 +23,7 @@ import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kp
 import { LineChartComponent } from '@ui/organisms/line-chart/line-chart.component';
 import { PieChartComponent } from '@ui/organisms/pie-chart/pie-chart.component';
 import { FinancialInsightsComponent } from './components/financial-insights.component';
+import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +37,7 @@ import { FinancialInsightsComponent } from './components/financial-insights.comp
     LineChartComponent,
     PieChartComponent,
     FinancialInsightsComponent,
+    SkeletonComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
