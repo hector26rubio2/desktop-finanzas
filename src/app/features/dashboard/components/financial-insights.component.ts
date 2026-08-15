@@ -54,9 +54,10 @@ export class FinancialInsightsComponent {
   isVisible(id: WidgetId) {
     return this.widgets().includes(id);
   }
-  money = (value: number, currency = this.kpis() ? '' : '') =>
-    `${formatNumber(value, 'es-CO', '1.0-2')}${currency ? ` ${currency}` : ''}`;
-  percent = (value: number | null) => (value == null ? '[sin datos]' : `${formatNumber(value, 'es-CO', '1.0-2')} %`);
+  money = (value: number, currency = '') =>
+    `${formatNumber(Number.isFinite(value) ? value : 0, 'es-CO', '1.0-2')}${currency ? ` ${currency}` : ''}`;
+  percent = (value: number | null) =>
+    value == null || !Number.isFinite(value) ? '[sin datos]' : `${formatNumber(value, 'es-CO', '1.0-2')} %`;
   maxComposition = computed(() => Math.max(1, ...(this.portfolio()?.composition.map((x) => x.valueBase) ?? [1])));
   maxEvolution = computed(() =>
     Math.max(1, ...(this.portfolio()?.evolution.flatMap((x) => [x.assets, x.liabilities]) ?? [1])),
