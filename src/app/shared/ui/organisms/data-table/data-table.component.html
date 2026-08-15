@@ -53,7 +53,7 @@
       @for (item of sortedData(); track trackByFn($index, item)) {
         <tr
           class="dt-row"
-          [ngClass]="rowClass()?.(item)"
+          [ngClass]="$safeNavigationMigration(rowClass()?.(item))"
           [class.dt-row--clickable]="rowClickable()"
           [attr.role]="rowClickable() ? 'button' : null"
           [attr.tabindex]="rowClickable() ? 0 : null"

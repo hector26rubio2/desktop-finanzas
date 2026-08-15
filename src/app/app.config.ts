@@ -1,6 +1,6 @@
 import { ApplicationConfig, ErrorHandler, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { routes } from './app.routes';
 import { localOnlyHttpGuardInterceptor } from './core/interceptors/local-only-http-guard.interceptor';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
@@ -12,7 +12,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     // No queda destino HTTP: los datos son locales y la autenticación va por IPC.
     // El guard se mantiene montado como alarma si alguien reintroduce una llamada.
-    provideHttpClient(withInterceptors([localOnlyHttpGuardInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([localOnlyHttpGuardInterceptor])),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     ...provideAppConfig(),
   ],
