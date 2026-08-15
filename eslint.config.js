@@ -1,13 +1,10 @@
 const tsParser = require('@typescript-eslint/parser');
 const tsPlugin = require('@typescript-eslint/eslint-plugin');
-// En angular-eslint 22 los presets dejaron de vivir en `@angular-eslint/eslint-plugin`
-// —ese paquete ya solo exporta `rules`— y pasaron al paquete paraguas
-// `angular-eslint`, que expone `configs` y los plugins ya construidos.
+
 const angular = require('angular-eslint');
 const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
 
-/** Reúne las reglas de una lista de configuraciones planas en un solo objeto. */
 const rulesOf = (configs) => Object.assign({}, ...configs.map((config) => config.rules ?? {}));
 
 module.exports = [

@@ -1,7 +1,3 @@
-/* ============================================================
-   APP SHELL
-   ============================================================ */
-
 .app-shell {
   display: grid;
   grid-template-rows: auto 1fr;
@@ -55,10 +51,6 @@
   padding: 1px 4px;
   color: var(--fg-3);
 }
-
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
 
 .sidebar {
   grid-column: 1;
@@ -318,10 +310,6 @@
   text-overflow: ellipsis;
 }
 
-/* ============================================================
-   SIDEBAR — COLLAPSED STATE
-   ============================================================ */
-
 .sidebar-collapsed .sidebar {
   width: 48px;
   overflow: visible;
@@ -385,10 +373,6 @@
   justify-content: center;
 }
 
-/* ============================================================
-   MAIN CONTENT
-   ============================================================ */
-
 .content {
   grid-column: 2;
   grid-row: 2;
@@ -436,11 +420,6 @@
   overflow-x: hidden;
   padding: 4px 0;
 }
-
-/* ============================================================
-/* ============================================================
-   USER MENU (sidebar foot dropdown)
-   ============================================================ */
 
 .user-menu-wrap {
   position: relative;
@@ -625,7 +604,6 @@
   flex: 1;
 }
 
-/* ── Accesibilidad: anillo de foco consistente para teclado ── */
 button:focus-visible,
 a:focus-visible,
 [tabindex]:focus-visible,

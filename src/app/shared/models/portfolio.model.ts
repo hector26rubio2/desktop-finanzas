@@ -10,7 +10,6 @@ export type PortfolioEntityType =
 export type PortfolioValuationSource = 'MovementLedger' | 'ContractBalance' | 'MarketPrice' | 'Manual';
 export type InvestmentTransactionType = 'Contribution' | 'Withdrawal' | 'Buy' | 'Sell' | 'Fee';
 
-/** Local aggregate. Numeric enum values are accepted for old API snapshots. */
 export interface PortfolioEntityDocument {
   id: string;
   userId?: string;

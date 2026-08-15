@@ -84,8 +84,6 @@ export class CalendarComponent implements OnInit {
       });
   });
 
-  // Sumaba `amount`, en la moneda de cada movimiento: mezclaba pesos con dólares
-  // y el compromiso del mes salía mal sin que nada lo delatara.
   totalCommitted = computed(() => sumBaseAmount(this.eventsThisMonth().map((event) => event.movement)));
 
   kpiItems = computed<KpiStripItem[]>(() => [
@@ -99,7 +97,7 @@ export class CalendarComponent implements OnInit {
   ]);
 
   nextEvent = computed(() => {
-    // Solo tiene sentido "próximo pago" mirando desde hoy: meses pasados no tienen próximos
+
     const viewing = this.currentDate();
     const now = this.today;
     const viewingPast =

@@ -17,7 +17,7 @@ function createLogger(app) {
         stream = fs.createWriteStream(path.join(directory, 'main.log'), { flags: 'a' });
       }
       stream.write(line);
-    } catch (_) { /* logging must never crash the app */ }
+    } catch (_) {  }
   }
   return {
     info: (message, ...args) => write('[main]', message, args),

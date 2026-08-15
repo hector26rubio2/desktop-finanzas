@@ -83,7 +83,6 @@
   } @else {
     <app-kpi-strip [items]="kpiItems()" />
 
-    <!-- Installment cards -->
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--gutter)">
       @for (inst of installments(); track inst.id) {
         <div class="card inst-card" style="padding: 16px">
@@ -120,12 +119,10 @@
             </div>
           </div>
 
-          <!-- Progress bar -->
           <div class="progress" style="margin-bottom: 8px">
             <div class="progress__fill" [style.width]="pct(inst) + '%'"></div>
           </div>
 
-          <!-- Dot calendar -->
           <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px">
             @for (i of range(inst.installmentsCount); track i) {
               <div

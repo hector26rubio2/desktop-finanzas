@@ -5,11 +5,10 @@ export interface KpiStripItem {
   label: string;
   value: string;
   sub?: string;
-  /** CSS color para el valor (ej. var(--negative)) */
+
   color?: string;
 }
 
-/** Franja compacta de KPIs estilo header de Tarjetas: label mono uppercase + valor mono, separadores verticales. */
 @Component({
   selector: 'app-kpi-strip',
   standalone: true,
@@ -20,6 +19,6 @@ export interface KpiStripItem {
 })
 export class KpiStripComponent {
   items = input<KpiStripItem[]>([]);
-  /** Alineación del texto de cada item: 'start' (default) o 'end' (como en Tarjetas) */
+
   align = input<'start' | 'end'>('start');
 }

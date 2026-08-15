@@ -77,7 +77,7 @@ export class InstallmentsComponent implements OnInit {
   }
 
   save() {
-    // Un doble clic creaba dos compras a cuotas con sus dos movimientos.
+
     if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
@@ -121,10 +121,6 @@ export class InstallmentsComponent implements OnInit {
     return this.accounts().some((a) => a.type !== 'Credit' && a.isActive && a.currency === inst.currency);
   }
 
-  /**
-   * Borrar un plan de cuotas es irreversible y antes bastaba un clic. Se
-   * pregunta primero, igual que en préstamos y recurrentes.
-   */
   askDelete(inst: InstallmentResponse) {
     this.deleting.set(inst);
   }

@@ -9,10 +9,6 @@ const { registerSecurityIpc } = require('./services/security');
 const { setupUpdater } = require('./services/updater');
 const { createWindow } = require('./services/window');
 
-// La aplicación no lee ninguna variable de entorno propia. Aquí se cargaba un
-// `.env` con la clave del cifrado de tráfico, el client id de Google y la URL
-// del API: las tres desaparecieron con el servidor. Cargar un fichero de
-// secretos que nadie consulta solo sirve para que alguien vuelva a meter uno.
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
 const logger = createLogger(app);
@@ -28,7 +24,7 @@ app.on('second-instance', () => { const window = BrowserWindow.getAllWindows()[0
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
-  database = new LocalDatabase({ app, safeStorage, logger, syncEnabled: false });
+  database = new LocalDatabase({ app, logger });
   database.open();
   registerLocalDataIpc({ ipcMain, database, app });
   registerAuthIpc({ ipcMain, store: new LocalAuthStore({ app, safeStorage, logger }), database });

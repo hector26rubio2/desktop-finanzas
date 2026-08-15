@@ -12,8 +12,7 @@ export const routes: Routes = [
     loadComponent: () => import('@auth/register').then((m) => m.RegisterComponent),
   },
   {
-    // Sin servidor no hay correo de verificación ni enlace de restablecimiento:
-    // la única vuelta atrás es el código emitido al crear el perfil.
+
     path: 'recover',
     loadComponent: () => import('@auth/recover').then((m) => m.RecoverComponent),
   },

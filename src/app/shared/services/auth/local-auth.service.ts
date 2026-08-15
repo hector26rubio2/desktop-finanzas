@@ -18,10 +18,6 @@ function bridge(): AuthBridge | null {
   return electron?.auth ?? null;
 }
 
-/**
- * Autenticación contra el perfil local. Sustituye al `AuthApiService` que hablaba
- * con `/auth/*`: no hay red, el perfil y la sesión viven en el proceso main.
- */
 @Injectable({ providedIn: 'root' })
 export class LocalAuthService {
   get available(): boolean {
@@ -30,8 +26,7 @@ export class LocalAuthService {
 
   status(): Promise<LocalAuthStatus> {
     const api = bridge();
-    // Fuera de Electron no hay perfil que abrir; se responde el estado vacío en
-    // vez de reventar, para que el `dev server` del navegador siga arrancando.
+
     if (!api) return Promise.resolve({ hasProfile: false, suggestedName: '', unlocked: false, lockedUntil: 0, orphanOwners: [] });
     return api.status();
   }

@@ -13,14 +13,13 @@ const movement = (value: Partial<MovementResponse>): MovementResponse => ({
 });
 
 describe('sumBaseAmount', () => {
-  // El fallo que motivó esta función: el calendario sumaba `amount`, que está en
-  // la moneda de cada movimiento. 10 USD a TRM 4000 más 5.000 COP daban 5.010.
+
   it('adds in base currency instead of mixing currencies', () => {
     const dolares = movement({ amount: 10, currency: 'USD', trmApplied: 4000, amountBase: 40_000 });
     const pesos = movement({ amount: 5_000, currency: 'COP', trmApplied: 1, amountBase: 5_000 });
 
     expect(sumBaseAmount([dolares, pesos])).toBe(45_000);
-    // La suma ingenua que había antes:
+
     expect(dolares.amount + pesos.amount).toBe(5_010);
   });
 
@@ -29,14 +28,11 @@ describe('sumBaseAmount', () => {
     expect(sumBaseAmount([])).toBe(0);
   });
 
-  // Los importes son `number` de JavaScript, o sea IEEE-754: 0.1 + 0.2 !== 0.3.
-  // Esta prueba fija hasta dónde llega el error acumulado y obliga a redondear
-  // al final del agregado, no en cada paso.
   it('keeps a thousand cent-sized amounts exact to the cent', () => {
     const centimos = Array.from({ length: 1000 }, () => movement({ amount: 0.1, amountBase: 0.1 }));
 
     const bruto = sumBaseAmount(centimos);
-    expect(bruto).not.toBe(100); // la suma cruda ya arrastra el error
+    expect(bruto).not.toBe(100);
     expect(roundMoney(bruto)).toBe(100);
   });
 

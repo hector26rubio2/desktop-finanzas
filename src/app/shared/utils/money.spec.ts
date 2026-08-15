@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatMoney, formatAmount } from './money';
 
-// Locale fijo en-US en las aserciones exactas para evitar variabilidad de ICU.
 describe('formatMoney', () => {
   it('formatea sin decimales por defecto e incluye el código de moneda', () => {
     expect(formatMoney(1234567, 'COP', { locale: 'en-US' })).toBe('1,234,567 COP');

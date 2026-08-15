@@ -338,11 +338,7 @@ describe('FinancialApiService local analytics', () => {
 });
 
 describe('credit-card debt agrees between the snapshot and the historical series', () => {
-  // Son dos caminos distintos hacia la misma cifra: el snapshot pide el saldo al
-  // proceso main (regla `debtSign`: solo movimientos de tarjeta y pagos), y la
-  // serie histórica reduce TODOS los movimientos de la cuenta por su `type`.
-  // Con datos bien formados deben coincidir; si divergen, una de las dos miente
-  // y el usuario ve una deuda distinta según la pantalla que abra.
+
   let service: FinancialApiService;
   let documents: Record<string, unknown[]>;
   let balances: Record<string, AccountBalance>;
@@ -359,7 +355,7 @@ describe('credit-card debt agrees between the snapshot and the historical series
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-07-31T12:00:00Z'));
-    // Compra a crédito de 300 y pago de 100 → deuda viva 200.
+
     documents = {
       movement: [
         { ...movement('compra', 'Expense', 300, '2026-07-05'), accountId: 'card', sourceType: 'CreditCard', operationType: 'CreditPurchase' },
@@ -369,7 +365,7 @@ describe('credit-card debt agrees between the snapshot and the historical series
       loan: [],
       installmentpurchase: [],
     };
-    // Lo que devolvería `database.js` con la regla debtSign: 300 - 100.
+
     balances = { card: { balance: -200, balanceBase: -200, usedInCycle: 300, usedInCycleBase: 300, outstandingDebt: 200, outstandingDebtBase: 200 } as AccountBalance };
     TestBed.configureTestingModule({
       providers: [
@@ -390,7 +386,7 @@ describe('credit-card debt agrees between the snapshot and the historical series
     expect(snapshot.creditCardDebt).toBe(200);
     expect(currentMonth.liabilities).toBe(200);
     expect(snapshot.creditCardDebt).toBe(currentMonth.liabilities);
-    // Y ninguno de los dos convierte la deuda en patrimonio positivo.
+
     expect(snapshot.netWorth).toBe(-200);
   });
 });

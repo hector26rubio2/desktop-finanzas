@@ -91,7 +91,7 @@ export class CmdkComponent implements OnChanges {
     const match = (s: string) => !q || s.toLowerCase().includes(q);
     const nav = this.navResults().filter((r) => match(r.label));
     const actions = this.actionResults().filter((r) => match(r.label));
-    // Cuentas y categorías solo aparecen al escribir, para no inflar la lista base
+
     const accounts: CmdkResult[] = !q
       ? []
       : this.accounts()

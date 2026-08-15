@@ -1,7 +1,3 @@
-/* ============================================================
-   Shared Auth Page Styles
-   ============================================================ */
-
 .auth-main {
   display: flex;
   height: 100vh;
@@ -9,7 +5,6 @@
   font-family: var(--font-family);
 }
 
-/* --- Brand Panel --- */
 .auth-brand-panel {
   display: none;
 }
@@ -117,7 +112,6 @@
   opacity: 0.9;
 }
 
-/* --- Form Panel --- */
 .auth-form-panel {
   width: 100%;
   display: flex;
@@ -140,7 +134,6 @@
   max-width: 420px;
 }
 
-/* --- Top Bar (theme + language controls) --- */
 .auth-top-bar {
   position: absolute;
   top: 1.5rem;
@@ -150,7 +143,6 @@
   gap: 0.5rem;
 }
 
-/* --- Form Header --- */
 .auth-form-header {
   margin-bottom: 2rem;
 }
@@ -171,7 +163,6 @@
   margin: 0;
 }
 
-/* --- Field Group --- */
 .auth-field-group {
   margin-bottom: 1.25rem;
 }
@@ -208,7 +199,6 @@
   text-decoration: underline;
 }
 
-/* --- Divider --- */
 .auth-divider {
   display: flex;
   align-items: center;
@@ -236,7 +226,6 @@
   letter-spacing: 0.05em;
 }
 
-/* --- Mobile Brand --- */
 .auth-mobile-brand {
   display: flex;
   align-items: center;
@@ -264,7 +253,6 @@
   color: var(--fg-0);
 }
 
-/* --- Input Wrapper --- */
 .auth-input-wrapper {
   position: relative;
 }
@@ -353,7 +341,6 @@ select.auth-input {
   margin-left: 0.25rem;
 }
 
-/* Código de recuperación: se muestra una sola vez, hay que poder copiarlo a mano. */
 .auth-recovery-code {
   display: block;
   font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
@@ -364,7 +351,6 @@ select.auth-input {
   word-break: break-all;
 }
 
-/* --- Checkbox --- */
 .auth-checkbox-row {
   display: flex;
   align-items: center;
@@ -388,7 +374,6 @@ select.auth-input {
   color: var(--fg-2);
 }
 
-/* --- Error / Success banners --- */
 .auth-error-banner {
   font-size: 13px;
   line-height: 1.4;
@@ -407,7 +392,6 @@ select.auth-input {
   color: var(--positive);
 }
 
-/* --- Submit Button --- */
 .auth-submit-btn {
   width: 100%;
   height: 48px;
@@ -458,7 +442,6 @@ a.auth-submit-btn {
   transform: translateX(3px);
 }
 
-/* --- Spinner --- */
 .auth-spinner {
   animation: auth-spin 0.8s linear infinite;
 }
@@ -469,7 +452,6 @@ a.auth-submit-btn {
   }
 }
 
-/* --- Footer --- */
 .auth-footer {
   margin-top: 2rem;
   text-align: center;
@@ -493,7 +475,6 @@ a.auth-submit-btn {
   text-decoration: underline;
 }
 
-/* --- Status Cards --- */
 .auth-status-card {
   text-align: center;
   padding: 1rem 0;

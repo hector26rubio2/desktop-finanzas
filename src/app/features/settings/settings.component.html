@@ -1,5 +1,5 @@
 <div class="settings-layout">
-  <!-- Sections sidebar -->
+
   <nav class="settings-nav">
     @for (s of sections; track s.id) {
       <button
@@ -27,7 +27,6 @@
     </button>
   </nav>
 
-  <!-- Section content -->
   <div class="settings-content">
     @if (activeSection() === 'ajustes') {
       <div class="section-wrap">
@@ -67,7 +66,6 @@
               </div>
             </div>
 
-            <!-- Datos de cuenta -->
             <div class="account-fields">
               <label>
                 {{ i18n.t('auth.name') }}
@@ -83,7 +81,6 @@
             </div>
           </div>
 
-          <!-- Preferencias: idioma + moneda unificados -->
           <div class="pref-panel">
             <div class="eyebrow" style="margin-bottom: 14px">{{ i18n.t('settings.preferencias') }}</div>
 
@@ -154,7 +151,7 @@
 
         <div class="appearance-grid">
           <div class="appearance-col">
-            <!-- Preset themes -->
+
             <div class="appearance-block">
               <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.tema') }}</div>
               <div class="preset-list" #presetListRef>
@@ -203,7 +200,6 @@
               }
             </div>
 
-            <!-- Custom saved themes -->
             @if (theme.customThemes().length > 0) {
               <div class="appearance-block">
                 <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.temas_guardados') }}</div>
@@ -252,7 +248,7 @@
         </div>
 
         <div class="appearance-row">
-          <!-- Columna 1: densidad y esquinas apiladas -->
+
           <div class="appearance-stack">
             <div class="appearance-block">
               <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.densidad') }}</div>
@@ -302,7 +298,6 @@
             </div>
           </div>
 
-          <!-- Columna 2-3: tipografía con paginación -->
           <div class="appearance-block appearance-block--wide">
             <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.tipografia') }}</div>
             <div class="font-grid" #fontGridRef>

@@ -8,7 +8,7 @@ export interface ColumnDef<T> {
   width?: string;
   numeric?: boolean;
   sortable?: boolean;
-  /** Formatea el valor crudo para mostrar (ej. separador de miles) */
+
   format?: (value: unknown, row: T) => string;
   cellTpl?: TemplateRef<{ $implicit: T; row: T }>;
 }
@@ -30,9 +30,9 @@ export class DataTableComponent<T> {
   errorMessage = input('');
   searchable = input(false);
   searchPlaceholder = input('Buscar');
-  /** Si true, las filas son clickeables y accesibles por teclado */
+
   rowClickable = input(false);
-  /** Clase CSS extra por fila (ej. dt-row--muted para cuotas pagadas) */
+
   rowClass = input<((item: T) => string | null) | undefined>();
 
   page = input(1);

@@ -92,22 +92,17 @@
   min-height: 0;
 }
 
-/* Hover unificado para las tarjetas-botón de Configuración (idioma, temas, accesos) */
 .settings-content button.card:hover,
 .settings-content button:not(.seg-ctrl__btn):not(.btn):hover {
   border-color: var(--accent) !important;
   transition: border-color 0.15s;
 }
 
-/* ── Generales de sección ─────────────────────────────────── */
-
-/* Fluido: ocupa todo el ancho disponible al maximizar la ventana */
 .section-wrap {
   max-width: none;
   width: 100%;
 }
 
-/* Perfil: identidad a la izquierda, preferencias a la derecha */
 .profile-grid {
   display: grid;
   grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
@@ -119,17 +114,15 @@
   min-width: 0;
 }
 
-/* Apariencia: temas a la izquierda, creador a la derecha; controles abajo en fila */
 .appearance-grid {
   display: grid;
-  /* minmax(0,…): las columnas pueden encoger, nunca desbordan el contenedor */
+
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 24px;
   align-items: stretch;
   margin-bottom: 24px;
 }
 
-/* La columna de temas estira su alto al del creador; pager queda abajo */
 .appearance-col {
   min-width: 0;
   display: flex;
@@ -156,7 +149,6 @@
   margin-bottom: 0;
 }
 
-/* Densidad+Esquinas apiladas = 1/3; Tipografía = 2/3 (necesita más espacio) */
 .appearance-row {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
@@ -181,7 +173,6 @@
   overflow: hidden;
 }
 
-/* El seg-ctrl se ciñe al ancho de su tarjeta: nunca se sale */
 .appearance-row .seg-ctrl {
   display: flex;
   width: 100%;
@@ -203,8 +194,6 @@
     grid-template-columns: 1fr;
   }
 }
-
-/* ── Pager compacto (temas / fuentes) ─────────────────────── */
 
 .pager {
   display: flex;
@@ -248,7 +237,6 @@
   text-align: center;
 }
 
-/* Ventana angosta (Electron redimensionable): apilar columnas */
 @media (max-width: 1060px) {
   .profile-grid,
   .appearance-grid {
@@ -268,8 +256,6 @@
   line-height: 1.6;
   margin-bottom: 20px;
 }
-
-/* ── Hub de ajustes ───────────────────────────────────────── */
 
 .hub-grid {
   display: grid;
@@ -304,8 +290,6 @@
   height: 16px;
   border-radius: 4px;
 }
-
-/* ── Perfil ───────────────────────────────────────────────── */
 
 .profile-header {
   display: flex;
@@ -480,13 +464,10 @@
   gap: 14px;
 }
 
-/* ── Apariencia ───────────────────────────────────────────── */
-
 .appearance-block {
   margin-bottom: 24px;
 }
 
-/* Lista compacta: escala bien con muchos temas */
 .preset-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -575,8 +556,6 @@
   font-size: var(--fs-md);
   color: var(--fg-0);
 }
-
-/* ── Tipografía ───────────────────────────────────────────── */
 
 .font-grid {
   display: grid;

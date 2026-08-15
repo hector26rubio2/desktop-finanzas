@@ -1,10 +1,6 @@
-/* ============================================================
-   THEMES ΓÇö Triadic (purple 270┬░ ┬╖ gold 30┬░ ┬╖ teal 150┬░)
-   ============================================================ */
-
 :root {
   --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--fs-lg:18px;
-  /* ΓöÇΓöÇ Primary: Purple ΓöÇΓöÇ */
+
   --color-primary-50: oklch(97% 0.012 280);
   --color-primary-100: oklch(92% 0.025 280);
   --color-primary-200: oklch(83% 0.05 280);
@@ -17,7 +13,6 @@
   --color-primary-900: oklch(15% 0.055 280);
   --color-primary-950: oklch(10% 0.04 280);
 
-  /* ΓöÇΓöÇ Secondary: Amber / Gold (+120┬░) ΓöÇΓöÇ */
   --color-secondary-50: oklch(97% 0.01 75);
   --color-secondary-100: oklch(91% 0.025 75);
   --color-secondary-200: oklch(82% 0.045 75);
@@ -30,7 +25,6 @@
   --color-secondary-900: oklch(14% 0.035 75);
   --color-secondary-950: oklch(9% 0.022 75);
 
-  /* ΓöÇΓöÇ Tertiary: Teal (+240┬░) ΓöÇΓöÇ */
   --color-tertiary-50: oklch(97% 0.01 165);
   --color-tertiary-100: oklch(91% 0.02 165);
   --color-tertiary-200: oklch(82% 0.04 165);
@@ -43,7 +37,6 @@
   --color-tertiary-900: oklch(15% 0.035 165);
   --color-tertiary-950: oklch(9% 0.02 165);
 
-  /* ΓöÇΓöÇ Neutral: Warm gray ΓöÇΓöÇ */
   --color-neutral-50: oklch(98% 0.003 30);
   --color-neutral-100: oklch(93% 0.004 30);
   --color-neutral-200: oklch(85% 0.005 30);
@@ -56,7 +49,6 @@
   --color-neutral-900: oklch(11% 0.005 30);
   --color-neutral-950: oklch(7% 0.004 30);
 
-  /* ΓöÇΓöÇ Semantic ΓöÇΓöÇ */
   --color-success: oklch(48% 0.12 155);
   --color-success-soft: oklch(92% 0.05 155);
   --color-warning: oklch(56% 0.14 80);
@@ -66,7 +58,6 @@
   --color-info: oklch(46% 0.14 245);
   --color-info-soft: oklch(92% 0.04 245);
 
-  /* ΓöÇΓöÇ Text on surfaces (luminance-driven) ΓöÇΓöÇ */
   --color-text-on-primary: var(--color-neutral-50);
   --color-text-on-secondary: var(--color-neutral-50);
   --color-text-on-tertiary: var(--color-neutral-50);
@@ -75,7 +66,6 @@
   --color-text-on-danger: var(--color-neutral-50);
   --color-text-on-info: var(--color-neutral-50);
 
-  /* ΓöÇΓöÇ Role tokens (mode-aware ΓÇö consume these in components) ΓöÇΓöÇ */
   --color-primary: var(--color-primary-500);
   --color-secondary: var(--color-secondary-500);
   --color-tertiary: var(--color-tertiary-500);
@@ -101,7 +91,6 @@
     0 1px 3px color-mix(in srgb, var(--color-neutral-900) 12%, transparent);
   --color-shadow-2: 0 10px 30px color-mix(in srgb, var(--color-neutral-900) 14%, transparent);
 
-  /* ΓöÇΓöÇ Backward-compat aliases (resolve through role tokens per mode) ΓöÇΓöÇ */
   --bg-0: var(--color-page-bg);
   --bg-1: var(--color-surface);
   --bg-2: var(--color-surface-elevated);
@@ -135,16 +124,11 @@
   --shadow-1: var(--color-shadow-1);
   --shadow-2: var(--color-shadow-2);
 
-  /* Font family (set by ThemeService via --font-family) */
   --font-family: 'Geist', system-ui, sans-serif;
   --font-mono: 'Geist Mono', monospace;
 
   color-scheme: light;
 }
-
-/* ============================================================
-   EASING TOKENS & DERIVED ACCENT VARS
-   ============================================================ */
 
 :root {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -156,10 +140,6 @@
   --duration-slow: 350ms;
 }
 
-/* ============================================================
-   TYPE SCALE (tamaños fijos, no escalan con density)
-   ============================================================ */
-
 :root {
   --fs-3xs: 9px;
   --fs-2xs: 10px;
@@ -168,17 +148,9 @@
   --fs-md: 13px;
 }
 
-/* ============================================================
-   TAP TARGETS (tamaño mínimo interactivo, fijo, no escala con density)
-   ============================================================ */
-
 :root {
   --tap-target-sm: 28px;
 }
-
-/* ============================================================
-   DENSITY
-   ============================================================ */
 
 :root,
 [data-density='comfy'] {
@@ -214,10 +186,6 @@
   --gutter: 20px;
 }
 
-/* ============================================================
-   SHAPE
-   ============================================================ */
-
 :root,
 [data-shape='rounded'] {
   --radius-card: 10px;
@@ -234,10 +202,6 @@
   --radius-sm: 2px;
   --radius-tag: 3px;
 }
-
-/* ============================================================
-   BASE RESET
-   ============================================================ */
 
 *,
 *::before,
@@ -312,4 +276,3 @@ table th.num {
 .clr-neg {
   color: var(--negative);
 }
-

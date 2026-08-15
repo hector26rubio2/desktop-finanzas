@@ -183,8 +183,7 @@ export class LoansComponent implements OnInit {
   }
 
   save() {
-    // Sin esta guarda, un doble clic creaba dos préstamos con sus dos
-    // desembolsos: `createLoan` no lleva clave de idempotencia que los una.
+
     if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
@@ -216,10 +215,6 @@ export class LoansComponent implements OnInit {
       });
   }
 
-  /**
-   * Borrar un préstamo se lleva su desembolso y todos sus pagos. Antes bastaba
-   * un clic, sin preguntar y sin deshacer.
-   */
   askDelete(loan: LoanResponse) {
     this.deleting.set(loan);
     this.showDeleteModal.set(true);

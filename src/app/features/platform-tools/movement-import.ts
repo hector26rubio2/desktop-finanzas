@@ -318,8 +318,6 @@ async function normalizeCandidate(raw: unknown, rowIndex: number): Promise<Norma
   const id = explicitId ?? `import-${contentHash.slice(0, 32)}`;
   const createdAt = normalizeIsoDate(record['createdAt']) ?? date;
 
-  // El documento se construye desde una lista blanca. El ID calculado se asigna
-  // después del contenido normalizado y nunca puede ser sustituido por el input.
   const movement: NormalizedImportedMovement = {
     ...content,
     categoryName: optionalText(record['categoryName']),
@@ -444,8 +442,6 @@ async function stableHash(value: string): Promise<string> {
     return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   }
 
-  // Electron moderno ofrece Web Crypto. Este fallback conserva estabilidad en
-  // entornos de prueba/reparación antiguos sin convertir el ID en aleatorio.
   const seeds = [0x811c9dc5, 0x9e3779b9, 0x85ebca6b, 0xc2b2ae35, 0x27d4eb2f, 0x165667b1, 0xd3a2646c, 0xfd7046c5];
   return seeds
     .map((seed) => {

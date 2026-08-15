@@ -1,29 +1,6 @@
 import type { LocalBatchOperation } from '@shared/services/local/local-data.repository';
 import type { LocalAuditFinding, LocalDataAuditInput, LocalDataAuditReport } from './local-data-audit';
 
-/**
- * Segundo tiempo de la auditoría. `local-data-audit.ts` solo detecta —está
- * marcado `readOnly`—; aquí se decide qué se puede arreglar.
- *
- * La regla que gobierna el módulo: **solo se repara lo que se deduce por
- * aritmética o del propio libro de movimientos.** Todo lo que exija adivinar la
- * intención del usuario se lista para que él decida (invariante §2.7 de
- * ESTADO-EJECUTIVO: no se corrige información ambigua en silencio).
- *
- * Reparable:
- * - `movement_amount_base_invalid`, y solo si `amount` y `trmApplied` son
- *   positivos: `amountBase = amount × trmApplied` es una multiplicación, no un
- *   criterio. Si falta cualquiera de los dos, no hay nada que deducir.
- * - `loan_payment_count_mismatch` e `installment_payment_count_mismatch`:
- *   `paidMonths` y `paidCount` son contadores derivados. El libro manda, así que
- *   se recalculan desde los movimientos enlazados.
- *
- * No reparable —requiere tu decisión—: desembolsos ausentes o duplicados,
- * enlaces rotos entre compra y plan, saldos vivos que no cuadran, y toda
- * operación pareada incompleta o desbalanceada. En esos casos falta información
- * o sobra, y elegir por el usuario sería inventar un hecho financiero.
- */
-
 export const REPAIRABLE_CODES = [
   'movement_amount_base_invalid',
   'loan_payment_count_mismatch',
@@ -46,13 +23,13 @@ export interface LocalRepairSkip {
   code: string;
   entityKind: LocalAuditFinding['entityKind'];
   entityId: string;
-  /** Por qué no se toca. El usuario lee esto para decidir. */
+
   reason: string;
 }
 
 export interface LocalRepairPlan {
   planVersion: 1;
-  /** Nada se ha escrito todavía: esto es lo que se haría. */
+
   applied: false;
   summary: {
     findings: number;
@@ -61,7 +38,7 @@ export interface LocalRepairPlan {
   };
   changes: LocalRepairChange[];
   skipped: LocalRepairSkip[];
-  /** Se aplican en una sola transacción o no se aplica ninguna. */
+
   operations: LocalBatchOperation[];
 }
 
@@ -105,7 +82,7 @@ export function planLocalDataRepair(report: LocalDataAuditReport, input: LocalDa
   const changes: LocalRepairChange[] = [];
   const skipped: LocalRepairSkip[] = [];
   const operations: LocalBatchOperation[] = [];
-  // Un documento puede acumular varios hallazgos; se escribe una sola vez.
+
   const patched = new Map<string, { kind: 'movement' | 'loan' | 'installmentpurchase'; value: LocalRecord }>();
 
   const patch = (
@@ -135,7 +112,7 @@ export function planLocalDataRepair(report: LocalDataAuditReport, input: LocalDa
         const amount = finiteNumber(movement['amount']);
         const trmApplied = finiteNumber(movement['trmApplied']);
         if (amount === null || amount <= 0 || trmApplied === null || trmApplied <= 0) {
-          // Rellenar una TRM o un monto ausente sería inventar la operación.
+
           skip(finding, 'Falta amount o trmApplied válido: no se puede deducir amountBase sin inventar una cifra.');
           break;
         }
@@ -181,7 +158,7 @@ export function planLocalDataRepair(report: LocalDataAuditReport, input: LocalDa
           skip(finding, 'El plan de cuotas ya no existe en los datos suministrados.');
           break;
         }
-        // Cada pago aporta dos patas con el mismo operationId: se cuentan operaciones, no filas.
+
         const paymentOperations = new Set(
           movements
             .filter(

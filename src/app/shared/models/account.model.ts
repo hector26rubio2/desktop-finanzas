@@ -34,8 +34,8 @@ export interface AccountBalance {
   outstandingDebtBase?: number;
   cycleSpend?: number;
   cycleSpendBase?: number;
-  /** @deprecated Compatibility alias for outstandingDebt. */
+
   usedInCycle: number;
-  /** @deprecated Compatibility alias for outstandingDebtBase. */
+
   usedInCycleBase?: number;
 }

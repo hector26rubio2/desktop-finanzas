@@ -56,13 +56,12 @@ export class SessionService {
     return this._hasStoredToken;
   }
 
-  /** Token de reanudación emitido por el perfil local, no un refresh token de servidor. */
   async getResumeToken(): Promise<string | null> {
     const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw) as { v: number; d: string };
-      // v4 = cifrado por el SO (Electron safeStorage); v3 = cifrado web (fallback).
+
       if (parsed.v === 4 && typeof parsed.d === 'string') {
         const api = electronApi();
         const dec = api?.secureDecrypt ? await api.secureDecrypt(parsed.d) : null;
@@ -84,7 +83,6 @@ export class SessionService {
   async saveResumeToken(token: string, remember: boolean): Promise<void> {
     const storage = remember ? localStorage : sessionStorage;
 
-    // Preferir cifrado del SO (DPAPI/Keychain) si Electron lo expone.
     const api = electronApi();
     if (api?.secureEncrypt) {
       const enc = await api.secureEncrypt(token);
@@ -95,7 +93,6 @@ export class SessionService {
       }
     }
 
-    // Fallback: cifrado web (AES-GCM) para navegador/dev.
     const encrypted = await localEncrypt(token);
     storage.setItem(STORAGE_KEY, JSON.stringify({ v: 3, d: encrypted }));
     this._hasStoredToken = true;

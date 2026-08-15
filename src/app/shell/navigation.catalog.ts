@@ -18,7 +18,7 @@ export interface AppNavigationGroup {
 
 export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
   {
-    key: 'nav.vista_general',
+    key: 'nav.dashboard',
     items: [
       {
         id: 'dashboard',
@@ -28,6 +28,11 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         subtitleKey: 'header_sub.dashboard',
         kbd: 'g d',
       },
+    ],
+  },
+  {
+    key: 'nav.movements',
+    items: [
       {
         id: 'movements',
         key: 'nav.movements',
@@ -35,6 +40,13 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         titleKey: 'header.movements',
         subtitleKey: 'header_sub.movements',
         kbd: 'g m',
+      },
+      {
+        id: 'recurring',
+        key: 'nav.recurring',
+        icon: 'list',
+        titleKey: 'header.recurring',
+        subtitleKey: 'header_sub.recurring',
       },
       {
         id: 'calendar',
@@ -46,15 +58,8 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
     ],
   },
   {
-    key: 'nav.accounts',
+    key: 'header.portfolio',
     items: [
-      {
-        id: 'portfolio',
-        key: 'nav.portfolio',
-        icon: 'dashboard',
-        titleKey: 'header.portfolio',
-        subtitleKey: 'header_sub.portfolio',
-      },
       {
         id: 'accounts',
         key: 'nav.accounts',
@@ -79,16 +84,16 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         subtitleKey: 'header_sub.loans',
       },
       {
-        id: 'recurring',
-        key: 'nav.recurring',
-        icon: 'list',
-        titleKey: 'header.recurring',
-        subtitleKey: 'header_sub.recurring',
+        id: 'portfolio',
+        key: 'nav.portfolio',
+        icon: 'dashboard',
+        titleKey: 'header.portfolio',
+        subtitleKey: 'header_sub.portfolio',
       },
     ],
   },
   {
-    key: 'nav.analisis',
+    key: 'nav.reports',
     items: [
       {
         id: 'reports',
@@ -98,6 +103,11 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         subtitleKey: 'header_sub.reports',
         kbd: 'g r',
       },
+    ],
+  },
+  {
+    key: 'nav.settings',
+    items: [
       {
         id: 'categories',
         key: 'nav.categories',
@@ -106,11 +116,6 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         subtitleKey: 'header_sub.categories',
         kbd: 'g k',
       },
-    ],
-  },
-  {
-    key: 'nav.app',
-    items: [
       {
         id: 'platform-tools',
         key: 'nav.data_tools',

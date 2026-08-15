@@ -1,8 +1,7 @@
 const CHANNELS = new Set(['auth:status', 'auth:register', 'auth:login', 'auth:resume', 'auth:logout', 'auth:change-password', 'auth:recover', 'auth:update-profile']);
 
 function registerAuthIpc({ ipcMain, store, database }) {
-  // Los dueños salen de SQLite, no del renderer: quién posee un documento no es
-  // algo que la interfaz pueda afirmar.
+
   const owners = () => {
     try {
       return database ? database.owners() : [];

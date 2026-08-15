@@ -32,9 +32,7 @@ type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, DataTableComponent, ThemeCreatorComponent],
   templateUrl: './settings.component.html',
-  // Esta hoja se cargaba desde el array global de `angular.json`, la única
-  // feature sin encapsular: cualquier `.card__h` o `.btn` que redefiniera aquí
-  // se filtraba a toda la aplicación.
+
   styleUrl: './settings.component.css',
 })
 export class SettingsComponent implements OnInit {
@@ -64,7 +62,7 @@ export class SettingsComponent implements OnInit {
 
   private resolveSection(raw: string | null): Section | null {
     if (!raw) return null;
-    // Secciones idioma/monedas ahora viven dentro de perfil
+
     if (raw === 'idioma' || raw === 'monedas') return 'perfil';
     return this.validSections.includes(raw as Section) ? (raw as Section) : null;
   }
@@ -123,8 +121,6 @@ export class SettingsComponent implements OnInit {
 
   fontOptions = FONT_OPTIONS;
 
-  // Paginación adaptativa: el tamaño de página se calcula según el ancho real
-  // del contenedor (ResizeObserver). Si cabe todo, no hay pager.
   private presetListRef = viewChild<ElementRef<HTMLElement>>('presetListRef');
   private fontGridRef = viewChild<ElementRef<HTMLElement>>('fontGridRef');
 
@@ -133,9 +129,9 @@ export class SettingsComponent implements OnInit {
   themePage = signal(0);
   fontPage = signal(0);
 
-  private readonly themeItemMin = 180 + 6; // minmax + gap de .preset-list
+  private readonly themeItemMin = 180 + 6;
   private readonly themeMaxRows = 12;
-  private readonly fontItemMin = 150 + 10; // minmax + gap de .font-grid
+  private readonly fontItemMin = 150 + 10;
   private readonly fontRows = 2;
 
   constructor() {

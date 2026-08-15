@@ -37,11 +37,7 @@ export interface FinancialKpis {
   averageDailyExpense: number;
   projectedMonthExpense: number;
   creditUtilizationPercent: number;
-  /**
-   * Tarjetas que quedaron fuera del cálculo por estar en otra moneda: convertir
-   * su cupo exigiría una tasa que nadie ha declarado, y esta aplicación no
-   * inventa tasas. Se expone para que la cifra no prometa más de lo que cubre.
-   */
+
   creditCardsExcluded: number;
   creditCardsCounted: number;
   totalDebt: number;

@@ -8,11 +8,6 @@ import { I18nService } from '@shared/i18n/i18n.service';
 import { LangPickerComponent } from '@shared/lang-picker';
 import { ThemePickerComponent } from '@shared/theme-picker';
 
-/**
- * Recuperación con el código emitido al crear el perfil. No hay correo de
- * restablecimiento porque no hay servidor que lo envíe: este código es la única
- * vuelta atrás, y al usarse se emite uno nuevo.
- */
 @Component({
   selector: 'app-recover',
   standalone: true,
@@ -53,7 +48,7 @@ export class RecoverComponent {
         next: (enrollment) => {
           this.loading.set(false);
           this.form.reset();
-          // El código anterior ya no sirve; este lo reemplaza.
+
           this.recoveryCode.set(enrollment.recoveryCode);
         },
         error: () => {

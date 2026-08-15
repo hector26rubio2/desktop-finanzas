@@ -11,7 +11,7 @@ interface ElectronLogAPI {
 
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
-  // In production only warnings and errors reach the console / log file.
+
   private readonly threshold: Level = environment.production ? 'warn' : 'debug';
 
   private get api(): ElectronLogAPI | null {

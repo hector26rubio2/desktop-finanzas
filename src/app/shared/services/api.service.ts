@@ -51,9 +51,6 @@ export class ApiService {
   private installmentsApi = inject(InstallmentsApiService);
   private recurringApi = inject(RecurringTransactionsApiService);
 
-  // La autenticación ya no pasa por aquí: es local y va por IPC (LocalAuthService).
-
-  // ── Accounts ──────────────────────────────────────────────────────────
   getAccounts(): Observable<AccountResponse[]> {
     return this.accountsApi.getAccounts();
   }
@@ -74,7 +71,6 @@ export class ApiService {
     return this.accountsApi.getAccountBalances(ids);
   }
 
-  // ── Categories ────────────────────────────────────────────────────────
   getCategories(): Observable<CategoryResponse[]> {
     return this.categoriesApi.getCategories();
   }
@@ -103,7 +99,6 @@ export class ApiService {
     return this.categoriesApi.updateCategory(id, req);
   }
 
-  // ── Movements ─────────────────────────────────────────────────────────
   getMovements(
     yearMonth: string,
     page = 1,
@@ -138,7 +133,6 @@ export class ApiService {
     return this.movementsApi.updateMovement(id, req);
   }
 
-  // ── Loans ─────────────────────────────────────────────────────────────
   getLoans(): Observable<LoanResponse[]> {
     return this.loansApi.getLoans();
   }
@@ -152,7 +146,6 @@ export class ApiService {
     return this.loansApi.deleteLoan(id);
   }
 
-  // ── Installments ──────────────────────────────────────────────────────
   getInstallments(): Observable<InstallmentResponse[]> {
     return this.installmentsApi.getInstallments();
   }
@@ -180,7 +173,6 @@ export class ApiService {
     return this.installmentsApi.deleteInstallment(id);
   }
 
-  // ── Recurring transactions ────────────────────────────────────────────
   getRecurring(): Observable<RecurringTransactionResponse[]> {
     return this.recurringApi.getRecurring();
   }

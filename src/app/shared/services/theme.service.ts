@@ -36,9 +36,6 @@ export interface FontPack {
   family: string;
 }
 
-// Pilas de fuentes del sistema únicamente: no hay @font-face ni paquete
-// @fontsource en el repo, y la CSP de producción bloquea fuentes remotas,
-// así que solo se ofrecen fuentes que ya existen en Windows/macOS/Linux.
 export const FONT_OPTIONS: FontPack[] = [
   {
     id: 'system',
@@ -194,8 +191,6 @@ export class ThemeService {
     this.setTheme('custom');
   }
 
-  // ── Programmatic palette ──────────────────────────────────────────
-
   private applyPreset(id: string) {
     const preset = THEME_PRESETS.find((p) => p.id === id);
     if (!preset) return;
@@ -217,7 +212,6 @@ export class ThemeService {
 
     this.generateTriadicPalette(h1, ct.isDark, primaryChroma, secChroma, terChroma, bgHue, secondHue, thirdHue);
 
-    // Override bg scale with user's actual background chroma (not near-zero neutral)
     const isDark = ct.isDark;
     const bgL = bg.l * 100;
     const bgOff = isDark ? [0, 4, 9, 15] : [0, -3, -7, -12];
@@ -251,11 +245,9 @@ export class ThemeService {
     const h3 = tertiaryHue ?? (primaryHue + 240) % 360;
     const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 
-    // Lightness curve: peak chroma at 500
     const L = [97, 92, 83, 72, 60, 48, 40, 31, 23, 15, 10];
     const cOff = [-0.04, -0.03, -0.02, -0.01, 0, 0, -0.01, -0.02, -0.03, -0.04, -0.05];
 
-    // ── Accent scales ──
     const buildScale = (hue: number, baseC: number, prefix: string) => {
       for (let i = 0; i < 11; i++) {
         const c = clampChroma(baseC + cOff[i]);
@@ -266,14 +258,12 @@ export class ThemeService {
     buildScale(h2, secondaryChroma, 'secondary');
     buildScale(h3, tertiaryChroma, 'tertiary');
 
-    // ── Neutral scale ──
     const nL = [98, 93, 85, 75, 63, 51, 39, 29, 19, 11, 7];
     const nC = [0.003, 0.004, 0.005, 0.005, 0.005, 0.006, 0.006, 0.006, 0.006, 0.005, 0.004];
     for (let i = 0; i < 11; i++) {
       root.style.setProperty(`--color-neutral-${steps[i]}`, `oklch(${nL[i]}% ${nC[i]} ${neutralHue})`);
     }
 
-    // ── Semantic ──
     const sem = (name: string, lite: number, chroma: number, hue: number) => {
       const l = isDark ? Math.min(lite + 20, 80) : lite;
       root.style.setProperty(`--color-${name}`, `oklch(${l}% ${chroma} ${hue})`);
@@ -286,7 +276,6 @@ export class ThemeService {
     sem('danger', 44, 0.16, 20);
     sem('info', 46, 0.14, 245);
 
-    // ── Mode-dependent role tokens ──
     const accentStep = isDark ? 300 : 500;
     const accentStepDeep = isDark ? 500 : 600;
 
@@ -304,7 +293,7 @@ export class ThemeService {
 
     root.style.setProperty('--color-text-body', isDark ? 'var(--color-neutral-100)' : 'var(--color-neutral-900)');
     root.style.setProperty('--color-text-muted', isDark ? 'var(--color-neutral-400)' : 'var(--color-neutral-600)');
-    // neutral-500 (no 400) en claro para cumplir contraste WCAG AA (~4.6:1) en texto secundario
+
     root.style.setProperty('--color-text-subtle', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-500)');
 
     root.style.setProperty('--color-border-subtle', isDark ? 'var(--color-neutral-800)' : 'var(--color-neutral-200)');
@@ -320,7 +309,6 @@ export class ThemeService {
     root.style.setProperty('--color-text-on-info', fgAccent);
     root.style.setProperty('--color-text-on-warning', isDark ? 'var(--color-neutral-950)' : 'var(--color-neutral-950)');
 
-    // ── Interaction ──
     root.style.setProperty(
       '--color-hover',
       isDark
@@ -349,7 +337,6 @@ export class ThemeService {
 
     root.style.setProperty('color-scheme', isDark ? 'dark' : 'light');
 
-    // ── Backward-compat aliases ──
     root.style.setProperty('--bg-0', 'var(--color-page-bg)');
     root.style.setProperty('--bg-1', 'var(--color-surface)');
     root.style.setProperty('--bg-2', 'var(--color-surface-elevated)');
@@ -399,8 +386,6 @@ export class ThemeService {
     root.style.setProperty('--shadow-2', 'var(--color-shadow-2)');
   }
 
-  // ── Font ─────────────────────────────────────────────────────────
-
   private applyFont(f: FontOption) {
     const opt = FONT_OPTIONS.find((o) => o.id === f);
     if (opt) {
@@ -413,8 +398,6 @@ export class ThemeService {
     if (raw && FONT_OPTIONS.some((o) => o.id === raw)) return raw as FontOption;
     return 'system';
   }
-
-  // ── Helpers ──────────────────────────────────────────────────────
 
   private resolveStoredTheme(): Theme {
     const raw = localStorage.getItem('theme');

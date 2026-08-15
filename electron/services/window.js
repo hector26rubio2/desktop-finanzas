@@ -2,15 +2,7 @@ const path = require('path');
 const { startLocalServer } = require('./local-server');
 
 function configureHeaders(session, { isDev, nonce }) {
-  // La app no tiene servidor ni acceso con Google: la política no concede
-  // ningún origen externo. Lo único que queda es el websocket del dev server.
-  //
-  // `script-src` no lleva 'unsafe-inline' a propósito, y eso obliga a apagar
-  // `optimization.styles.inlineCritical` en angular.json: esa optimización carga
-  // la hoja como `media="print"` y la activa con un `onload` EN LÍNEA. Sin
-  // 'unsafe-inline' ese manejador no corre, la hoja se queda en `print` y la
-  // aplicación abre sin estilos — solo en el paquete de producción, que es donde
-  // esta política se aplica. Si alguien reactiva inlineCritical, vuelve el fallo.
+
   const csp = [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''}`,
@@ -36,8 +28,7 @@ async function createWindow({ BrowserWindow, session, isDev, nonce, logger }) {
   const userAgent = session.defaultSession.getUserAgent().replace(/Electron\/[\d.]+ /, '');
   session.defaultSession.setUserAgent(userAgent);
   const window = new BrowserWindow({ width: 1280, height: 800, show: false, backgroundColor: '#0f172a', webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true, nativeWindowOpen: true, devTools: isDev, preload: path.join(__dirname, '..', 'preload.js') } });
-  // Ninguna ventana emergente tiene razón de existir: la que había era el popup
-  // del acceso con Google, que ya no forma parte de la aplicación.
+
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.once('ready-to-show', () => window.show());
   window.webContents.on('did-fail-load', (_event, code, description) => logger.error('did-fail-load', code, description));

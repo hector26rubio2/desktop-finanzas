@@ -1,5 +1,5 @@
 <div class="view">
-  <!-- Tabs -->
+
   <div style="display: flex; gap: 8px; align-items: center">
     <div class="seg-ctrl">
       <button class="seg-ctrl__btn" [class.seg-ctrl__btn--active]="tab() === 'overview'" (click)="tab.set('overview')">
@@ -30,7 +30,6 @@
     </div>
   </div>
 
-  <!-- Overview tab -->
   @if (tab() === 'overview') {
     @if (loading()) {
       <app-skeleton variant="kpis" [count]="6" [label]="i18n.t('reports.cargando')" />
@@ -41,7 +40,6 @@
     } @else {
       <app-kpi-strip [items]="kpiItems()" />
 
-      <!-- Cashflow table -->
       <div class="card" style="padding: 0; overflow: hidden">
         <div class="card__h">
           <span class="card__title">{{ i18n.t('reports.cashflow_title') }}</span>
@@ -80,7 +78,6 @@
     }
   }
 
-  <!-- Categories tab -->
   @if (tab() === 'cat') {
     @if (catLoading()) {
       <app-skeleton variant="chart" [label]="i18n.t('reports.cargando')" />
@@ -120,7 +117,6 @@
     }
   }
 
-  <!-- Month over month -->
   @if (tab() === 'mom') {
     @if (!loading() && monthStats().length > 0) {
       <div class="card" style="padding: 0; overflow: hidden">

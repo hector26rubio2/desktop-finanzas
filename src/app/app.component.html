@@ -1,9 +1,3 @@
-<!--
-  Región de anuncios. Es la misma para el lector de pantalla y para la vista:
-  antes era `sr-only`, así que guardar algo solo se confirmaba en audio y en
-  pantalla no pasaba nada. Sigue vacía cuando no hay mensaje, para que el
-  lector no anuncie un contenedor en blanco.
--->
 <div role="status" aria-live="polite" aria-atomic="true" class="toast-region">
   @if (notif.message(); as message) {
     <div class="toast">{{ message }}</div>

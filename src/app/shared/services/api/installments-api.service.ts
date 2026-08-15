@@ -7,17 +7,6 @@ import { roundMoney } from '../../utils/amortization';
 import { LocalDataRepository, type LocalBatchOperation } from '../local/local-data.repository';
 import { MovementsApiService } from './movements-api.service';
 
-/**
- * Clave estable del pago de una cuota. Pagar la cuota N de una compra es **una
- * sola** operación: si el usuario hace doble clic o reintenta, la segunda
- * llamada trae la misma clave y `pay()` la reconoce como reintento en vez de
- * cobrar otra vez. Generarla con `randomUUID()` en el click anulaba por
- * completo esa protección.
- *
- * Si el llamador trae un `paidCount` desactualizado, la clave choca con un pago
- * ya registrado y la operación se rechaza como duplicada — que es el fallo
- * correcto.
- */
 export function installmentPaymentKey(purchase: Pick<InstallmentResponse, 'id' | 'paidCount'>): string {
   return `${purchase.id}:installment:${purchase.paidCount + 1}`;
 }

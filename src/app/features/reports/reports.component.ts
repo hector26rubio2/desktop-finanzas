@@ -31,7 +31,7 @@ interface MonthStat {
 
 interface CashflowRow extends MonthStat {
   neto: number;
-  /** Valor para la columna barra (clave única requerida por data-table) */
+
   bar: number;
 }
 

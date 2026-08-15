@@ -260,8 +260,6 @@ export class CardsComponent implements OnInit {
     return items.filter((m) => m.type === 'Expense');
   });
 
-  // amountBase ya viene convertido a moneda base por el backend (Amount*TrmApplied):
-  // evita mezclar monedas y el 'ARS' hardcodeado.
   selectedTotalExpenses = computed(() =>
     this.selectedExpenses().reduce((s, m) => s + (m.amountBase ?? m.amount * m.trmApplied), 0),
   );
@@ -283,7 +281,6 @@ export class CardsComponent implements OnInit {
     return base * (1 + rate / 100);
   });
 
-  /** Compras en cuotas activas de la tarjeta seleccionada */
   selectedInstallments = computed(() => {
     const id = this.selectedId();
     if (!id) return [];
@@ -326,7 +323,6 @@ export class CardsComponent implements OnInit {
     const dateStr = v.startDate!;
     const description = v.description!;
 
-    // Crear movimiento Expense con CreditCard
     const movReq = {
       type: 'Expense' as const,
       sourceType: 'CreditCard',
@@ -339,7 +335,7 @@ export class CardsComponent implements OnInit {
       loanInstallments: cuotas,
       loanInterestRate: card.interestRate || undefined,
     };
-    // El backend crea y enlaza el plan de cuotas dentro de la misma transacción.
+
     this.api
       .createMovement(movReq)
       .pipe(takeUntilDestroyed(this.destroyRef))

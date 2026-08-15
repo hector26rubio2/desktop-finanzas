@@ -166,9 +166,7 @@ export class FinancialApiService {
     const snapshot = await this.snapshot();
     const accounts = await this.local.list<AccountResponse>('account');
     const cardsWithLimit = accounts.filter((x) => x.type === 'Credit' && Number(x.creditLimit || 0) > 0);
-    // El cupo está en la moneda de la tarjeta y no hay tasa declarada para
-    // convertirlo, así que una tarjeta en otra moneda queda fuera entera —cupo y
-    // deuda— en vez de mezclar unidades. Cuántas quedan fuera se informa abajo.
+
     const eligibleCards = cardsWithLimit.filter((x) => x.currency === snapshot.baseCurrency);
     const cardBalances = eligibleCards.length
       ? await this.local.accountBalances<Record<string, AccountBalance>>(eligibleCards.map((x) => x.id))

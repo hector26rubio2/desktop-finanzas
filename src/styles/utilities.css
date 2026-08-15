@@ -37,10 +37,6 @@ table th.num {
   color: var(--negative);
 }
 
-/* ============================================================
-   ROW HELPERS
-   ============================================================ */
-
 .row-flex {
   display: flex;
   align-items: center;
@@ -110,10 +106,6 @@ table th.num {
   min-width: 200px;
 }
 
-/* ============================================================
-   SCROLLBARS
-   ============================================================ */
-
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--line-2) transparent;
@@ -129,10 +121,6 @@ table th.num {
   background: var(--line-2);
   border-radius: 4px;
 }
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
 
 @keyframes fadeIn {
   from {
@@ -177,10 +165,6 @@ table th.num {
   }
 }
 
-/* ============================================================
-   STAGGER UTILITY
-   ============================================================ */
-
 .stagger > * {
   opacity: 0;
   animation: fadeIn 300ms var(--ease-out) forwards;
@@ -210,24 +194,17 @@ table th.num {
   animation-delay: 280ms;
 }
 
-/* ── Global Scrollbar ──────────────────────────────────────── */
 ::-webkit-scrollbar {
   display: none;
 }
 
-/* Firefox */
 * {
   scrollbar-width: none;
 }
 
-/* IE */
 * {
   -ms-overflow-style: none;
 }
-
-/* ============================================================
-   UTILITY CLASSES — spacing, flex, layout
-   ============================================================ */
 
 .flex {
   display: flex;
@@ -390,7 +367,6 @@ table th.num {
   border: 0;
 }
 
-/* Venía de skeleton.css, que ahora vive en el componente app-skeleton. */
 .p-40 {
   padding: 40px;
 }

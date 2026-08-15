@@ -1,4 +1,4 @@
-import '@angular/compiler'; // JIT: necesario para compilar plantillas en tests
+import '@angular/compiler';
 import 'zone.js';
 import 'zone.js/testing';
 import { getTestBed } from '@angular/core/testing';

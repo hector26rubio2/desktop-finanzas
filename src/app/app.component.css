@@ -1,15 +1,10 @@
-/*
-  Aviso de confirmación. Va por encima del overlay de los modales (z-index 100)
-  porque muchas confirmaciones se disparan justo al cerrar uno: si quedara
-  debajo, el usuario no vería el aviso que acaba de provocar.
-*/
 .toast-region {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 120;
-  /* Sin mensaje el contenedor no debe tapar clics ni ocupar sitio. */
+
   pointer-events: none;
   display: grid;
   justify-items: center;
@@ -39,7 +34,6 @@
   }
 }
 
-/* Respeta a quien pidió menos movimiento en el sistema. */
 @media (prefers-reduced-motion: reduce) {
   .toast {
     animation: none;

@@ -98,7 +98,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   flex-shrink: 0;
-  scrollbar-width: none; /* scrollbar oculta; scroll sigue con rueda/drag/touch */
+  scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -369,7 +369,7 @@
   max-height: calc(100vh - 160px);
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: none; /* scrollbar oculta; scroll sigue con rueda/drag/touch */
+  scrollbar-width: none;
   -ms-overflow-style: none;
   display: flex;
   flex-direction: column;
@@ -539,7 +539,6 @@
   gap: 6px;
 }
 
-/* ── Installments panel ── */
 .cc-inst-panel {
   gap: 0 !important;
 }

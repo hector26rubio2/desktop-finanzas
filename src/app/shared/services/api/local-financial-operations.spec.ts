@@ -156,13 +156,11 @@ describe('local financial operation services', () => {
     expect(rows.find((item) => item.operationType === 'CreditInterest')?.amount).toBe(2);
   });
 
-  // La clave se generaba con randomUUID() en el click, así que cada reintento
-  // traía una clave nueva y el segundo cobro pasaba como operación distinta.
   describe('installment payment key', () => {
     it('identifies the installment being paid, not the moment of the click', () => {
       expect(installmentPaymentKey({ id: 'plan-a', paidCount: 0 })).toBe('plan-a:installment:1');
       expect(installmentPaymentKey({ id: 'plan-a', paidCount: 2 })).toBe('plan-a:installment:3');
-      // Debe sobrevivir la validación del servicio.
+
       expect(installmentPaymentKey({ id: 'plan-a', paidCount: 0 })).toMatch(/^[A-Za-z0-9._:-]{1,128}$/);
     });
 
@@ -173,7 +171,6 @@ describe('local financial operation services', () => {
       }));
       const plan = (await local.list<InstallmentResponse>('installmentpurchase'))[0];
 
-      // Los dos clics ven el mismo `paidCount`, así que derivan la misma clave.
       const key = installmentPaymentKey(plan);
       await firstValueFrom(installments.payInstallment(plan.id, 'cash', key));
       const second = await firstValueFrom(installments.payInstallment(plan.id, 'cash', key));
@@ -182,7 +179,7 @@ describe('local financial operation services', () => {
       const charges = (await local.list<MovementResponse>('movement')).filter(
         (item) => item.operationType === 'CreditPayment' && item.installmentPurchaseId === plan.id,
       );
-      expect(charges).toHaveLength(2); // las dos patas de UN pago, no de dos
+      expect(charges).toHaveLength(2);
       expect(purchase.installmentPurchaseId).toBe(plan.id);
     });
   });

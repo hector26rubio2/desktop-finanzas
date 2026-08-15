@@ -42,11 +42,6 @@ import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
 
 type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
 
-/**
- * Tamaño con el que se pide el mes entero al buscar. El almacén local no impone
- * tope de página (`electron/local-data/database.js` pagina en memoria), así que
- * este número solo tiene que ser mayor que cualquier mes real.
- */
 const MONTH_PAGE_SIZE = 10_000;
 
 @Component({
@@ -72,24 +67,11 @@ const MONTH_PAGE_SIZE = 10_000;
   styleUrl: './movements.component.css',
 })
 export class MovementsComponent implements OnInit {
-  /**
-   * En `true` esto apagaba las 275 líneas del formulario propio y dejaba en su
-   * lugar una lista plana de campos: sin los botones Gasto/Ingreso y
-   * Efectivo/Cuenta/Tarjeta, sin el saldo disponible de la cuenta, sin el cupo
-   * ni la tasa de la tarjeta, sin el aviso de "excede el saldo" y con un
-   * "Revisa este campo" genérico en vez de los errores por campo.
-   *
-   * Mantener las dos versiones es la deuda de verdad. Cuál se retira es una
-   * decisión de producto, no de código: hasta tomarla, gana la que informa más.
-   */
+
   readonly useDynamicMovementForm = false;
   page = signal<PagedResult<MovementResponse> | null>(null);
   summary = signal<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
 
-  /**
-   * El resumen del mes se cargaba en cada página y no se pintaba en ningún
-   * sitio: la pantalla de movimientos calculaba los totales y no los enseñaba.
-   */
   summaryItems = computed<KpiStripItem[] | null>(() => {
     const s = this.summary();
     if (!s) return null;
@@ -270,7 +252,7 @@ export class MovementsComponent implements OnInit {
     description: [''],
     categoryId: [''],
     accountId: [''],
-    // Recurrencia: si isRecurring=true, al guardar se crea una plantilla recurrente.
+
     isRecurring: [false],
     recFrequency: ['Monthly' as 'Daily' | 'Weekly' | 'Monthly' | 'Yearly'],
     recInterval: [1, [Validators.min(1)]],
@@ -296,19 +278,13 @@ export class MovementsComponent implements OnInit {
     isSaving: [false],
   });
 
-  /**
-   * Movimientos del mes completo. Solo se carga cuando el usuario busca: la
-   * búsqueda filtraba `page().items`, es decir las 20 filas visibles, así que
-   * un concepto de la página 3 daba "sin resultados" y parecía no existir.
-   */
   monthMovements = signal<MovementResponse[] | null>(null);
 
   filteredItems = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const p = this.page();
     if (!q) return p ? p.items : [];
-    // Mientras llega el mes completo se filtra lo que haya, para no vaciar la
-    // tabla entre pulsación y respuesta.
+
     const source = this.monthMovements() ?? p?.items ?? [];
     return source.filter(
       (m) =>
@@ -470,7 +446,7 @@ export class MovementsComponent implements OnInit {
 
   loadPage(p: number) {
     this.currentPage.set(p);
-    // Cambió el mes o un filtro: el mes cacheado para buscar ya no vale.
+
     this.monthMovements.set(null);
     const filters: {
       currency?: string;
@@ -500,10 +476,6 @@ export class MovementsComponent implements OnInit {
       });
   }
 
-  /**
-   * Busca contra el mes entero, no contra la página. El mes se pide una sola vez
-   * por búsqueda y se reutiliza mientras el usuario sigue escribiendo.
-   */
   onSearch(query: string) {
     this.searchQuery.set(query);
     if (!query.trim() || this.monthMovements() !== null) return;
@@ -556,7 +528,7 @@ export class MovementsComponent implements OnInit {
 
   openCreate() {
     this.editingMovement.set(null);
-    // La cuenta predeterminada del usuario precarga origen, cuenta y moneda
+
     const def = this.accounts().find((a) => a.isDefault);
     const sourceType = def
       ? def.type === 'Cash'
@@ -665,8 +637,7 @@ export class MovementsComponent implements OnInit {
   }
 
   save() {
-    // `createMovement` no lleva clave de idempotencia: sin esta guarda un doble
-    // clic registraba el mismo gasto dos veces.
+
     if (this.saving()) return;
     this.movForm.markAllAsTouched();
     if (this.movForm.invalid) return;
@@ -689,7 +660,6 @@ export class MovementsComponent implements OnInit {
     };
     const editing = this.editingMovement();
 
-    // Movimiento recurrente: crear plantilla en vez de un movimiento puntual.
     if (!editing && v.isRecurring) {
       this.api
         .createRecurring({

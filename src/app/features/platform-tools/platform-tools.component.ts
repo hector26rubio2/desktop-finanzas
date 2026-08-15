@@ -152,11 +152,6 @@ export class PlatformToolsComponent {
     }
   }
 
-  /**
-   * Aplica solo los cambios que el plan declaró deducibles, en un único lote.
-   * Los que requieren decisión quedan intactos y siguen listados: si esta
-   * función los tocara, estaría corrigiendo información ambigua en silencio.
-   */
   async applyRepair() {
     const plan = this.repairPlan();
     if (this.repairing() || !plan || plan.operations.length === 0) return;
@@ -167,7 +162,7 @@ export class PlatformToolsComponent {
         `Reparación aplicada en un único lote: ${plan.summary.repairable} corregido(s). `
         + `${plan.summary.requiresDecision} caso(s) siguen esperando tu decisión y no se tocaron.`,
       );
-      // El informe anterior ya no describe el estado del disco.
+
       this.auditReport.set(null);
       this.repairPlan.set(null);
       await this.loadMetrics();

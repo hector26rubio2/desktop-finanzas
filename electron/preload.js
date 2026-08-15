@@ -1,12 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Ninguna clave de cifrado se expone al renderer. Tampoco queda cifrado de
-// tráfico: la aplicación no tiene servidor al que hablar.
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   log: (level, message, data) => ipcRenderer.send('log:write', { level, message, data }),
-  // Cifrado a nivel de SO para el token de reanudación de sesión. Devuelven
-  // null si no está disponible → el renderer usa su cifrado web de respaldo.
   secureEncrypt: (plain) => ipcRenderer.invoke('secure:encrypt', plain),
   secureDecrypt: (b64) => ipcRenderer.invoke('secure:decrypt', b64),
   onUpdateStatus: (callback) => {
@@ -15,7 +11,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   downloadUpdate: () => ipcRenderer.invoke('update:download'),
   installUpdate: () => ipcRenderer.invoke('update:install'),
-  // Autenticación local: no hay servidor. El perfil y la sesión viven en el main.
   auth: Object.freeze({
     status: () => ipcRenderer.invoke('auth:status'),
     register: (payload) => ipcRenderer.invoke('auth:register', payload),
@@ -28,15 +23,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }),
   localData: Object.freeze({
     status: () => ipcRenderer.invoke('local:status'),
-    list: (kind, ownerId) => ipcRenderer.invoke('local:list', kind, ownerId),
-    get: (kind, ownerId, id) => ipcRenderer.invoke('local:get', kind, ownerId, id),
-    put: (kind, ownerId, value, operation) => ipcRenderer.invoke('local:put', kind, ownerId, value, operation),
-    putMany: (kind, ownerId, values, operation) => ipcRenderer.invoke('local:put-many', kind, ownerId, values, operation),
-    batch: (ownerId, operations) => ipcRenderer.invoke('local:batch', ownerId, operations),
-    remove: (kind, ownerId, id) => ipcRenderer.invoke('local:remove', kind, ownerId, id),
-    movements: (ownerId, query) => ipcRenderer.invoke('local:movements', ownerId, query),
-    summary: (ownerId, year, month) => ipcRenderer.invoke('local:summary', ownerId, year, month),
-    accountBalances: (ownerId, ids) => ipcRenderer.invoke('local:account-balances', ownerId, ids),
+    list: (entity) => ipcRenderer.invoke('local:list', entity),
+    get: (entity, id) => ipcRenderer.invoke('local:get', entity, id),
+    put: (entity, value) => ipcRenderer.invoke('local:put', entity, value),
+    putMany: (entity, values) => ipcRenderer.invoke('local:put-many', entity, values),
+    batch: (operations) => ipcRenderer.invoke('local:batch', operations),
+    remove: (entity, id) => ipcRenderer.invoke('local:remove', entity, id),
+    movements: (query) => ipcRenderer.invoke('local:movements', query),
+    summary: (year, month) => ipcRenderer.invoke('local:summary', year, month),
+    accountBalances: (ids) => ipcRenderer.invoke('local:account-balances', ids),
     backup: (destination) => ipcRenderer.invoke('local:backup', destination),
     backupPreview: (source) => ipcRenderer.invoke('local:backup-preview', source),
     restore: (source, expectedCurrentRevision) => ipcRenderer.invoke('local:restore', source, expectedCurrentRevision),

@@ -17,7 +17,6 @@ export class AuthService {
   private recurring = inject(RecurringTransactionsApiService);
   private baseCurrencyPolicy = inject(BaseCurrencyPolicyService);
 
-  /** Resuelve cuando la reapertura al arrancar terminó, con o sin sesión. */
   private readonly restored: Promise<void>;
 
   constructor() {
@@ -36,14 +35,12 @@ export class AuthService {
     return this.token.currentUser;
   }
 
-  /** Moneda base del usuario; fuente única para toda la app. */
   readonly baseCurrency = computed(() => this.token.currentUser()?.baseCurrency ?? 'COP');
 
   get hasStoredToken(): boolean {
     return this.session.hasStoredToken;
   }
 
-  /** ¿Hay perfil en esta máquina? Decide entre pantalla de alta y de ingreso. */
   status(): Promise<LocalAuthStatus> {
     return this.local.status();
   }
@@ -61,7 +58,6 @@ export class AuthService {
     );
   }
 
-  /** Alta en el primer arranque. El código de recuperación se muestra una sola vez. */
   register(name: string, email: string, password: string, baseCurrency: string) {
     return this.local.register(name, email, password, baseCurrency).pipe(
       switchMap(async (enrollment) => {
@@ -71,7 +67,6 @@ export class AuthService {
     );
   }
 
-  /** Única vuelta atrás tras olvidar la contraseña: el código emitido en el alta. */
   recover(recoveryCode: string, newPassword: string) {
     return this.local.recover(recoveryCode, newPassword).pipe(
       switchMap(async (enrollment) => {
@@ -99,18 +94,13 @@ export class AuthService {
     await this.materializeRecurring();
   }
 
-  /**
-   * Reapertura al arrancar. No toca la red: si el usuario pidió mantener la
-   * sesión, el main valida el token de reanudación contra el perfil local.
-   */
   private async tryRestoreSession(): Promise<void> {
     if (!this.session.hasStoredToken) return;
     const resumeToken = await this.session.getResumeToken();
     if (!resumeToken) return;
     const session = await this.local.resume(resumeToken).catch(() => null);
     if (!session) {
-      // El token ya no vale (contraseña cambiada, perfil recreado, cierre de sesión
-      // en otra ventana). Se cae a la pantalla de desbloqueo, no a un estado a medias.
+
       this.session.clear();
       return;
     }
@@ -124,7 +114,7 @@ export class AuthService {
         this.recurring.materializeDue().subscribe({ next: () => resolve(), error: () => resolve() });
       });
     } catch {
-      // Authentication must remain available even if one local template is invalid.
+
     }
   }
 }

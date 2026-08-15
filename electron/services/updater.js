@@ -8,10 +8,7 @@ function setupUpdater({ ipcMain, BrowserWindow, isDev, logger }) {
     autoUpdater.on('update-not-available', () => send('not-available'));
     autoUpdater.on('download-progress', (progress) => send('downloading', { percent: Math.round(progress.percent) }));
     autoUpdater.on('update-downloaded', (info) => send('downloaded', { version: info.version }));
-    // Una compilación sin instalador no lleva `app-update.yml`, y sin conexión
-    // no hay a quién preguntar. Ninguna de las dos es un fallo que el usuario
-    // pueda resolver, así que se registran pero no se le enseñan: un banner rojo
-    // permanente por algo inaccionable acaba enseñando a ignorar los banners.
+
     const isUnactionable = (message) => /app-update\.yml|ENOENT|ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|net::/i.test(message || '');
     autoUpdater.on('error', (error) => {
       logger.error('updater', error.message);

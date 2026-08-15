@@ -4,11 +4,9 @@ const os = require('os');
 const path = require('path');
 
 const PROFILE_VERSION = 1;
-// 128 * N * r = 32 MiB of memory per derivation. maxmem must be raised above the
-// 32 MiB Node default or scrypt refuses to run with these parameters.
+
 const SCRYPT = { N: 32768, r: 8, p: 1, keylen: 64, maxmem: 96 * 1024 * 1024 };
-// Crockford base32 without I, L, O and U: no character can be misread when the
-// user copies the recovery code by hand.
+
 const RECOVERY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const RECOVERY_GROUPS = 5;
 const RECOVERY_GROUP_LENGTH = 5;
@@ -35,7 +33,7 @@ function newRecoveryCode() {
   const groups = [];
   for (let group = 0; group < RECOVERY_GROUPS; group++) {
     let chunk = '';
-    // rejection sampling: 256 % 32 === 0, so a plain modulo stays uniform here.
+
     for (const byte of crypto.randomBytes(RECOVERY_GROUP_LENGTH)) chunk += RECOVERY_ALPHABET[byte % RECOVERY_ALPHABET.length];
     groups.push(chunk);
   }
@@ -46,14 +44,6 @@ function normalizeRecoveryCode(code) {
   return String(code || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 }
 
-/**
- * Local credential store. There is no server: the profile lives on this machine,
- * wrapped by the OS keychain exactly like the database key in `database.js`.
- *
- * The password is an application lock, not disk encryption — the SQLite key is
- * still wrapped by `safeStorage`, so it protects the app against someone using
- * an already-unlocked OS session, not against someone with the raw disk.
- */
 class LocalAuthStore {
   constructor({ app, safeStorage, logger, profilePath }) {
     this.safeStorage = safeStorage;
@@ -68,25 +58,15 @@ class LocalAuthStore {
     const profile = this.#read();
     return {
       hasProfile: profile !== null,
-      // Suggested only; the user edits it before confirming. Never treated as identity.
+
       suggestedName: profile?.user.name || os.userInfo().username || '',
       unlocked: this.session !== null,
       lockedUntil: this.lockedUntil > Date.now() ? this.lockedUntil : 0,
-      // Datos que ya viven en el disco sin perfil que los reclame.
+
       orphanOwners: profile ? [] : existingOwners,
     };
   }
 
-  /**
-   * `existingOwners` son los dueños con documentos vivos en SQLite.
-   *
-   * Con exactamente uno, el perfil **adopta** ese id: es el caso inequívoco —el
-   * usuario tiene una sola historia financiera en esta máquina y acuñar un id
-   * nuevo la dejaría invisible sin borrar un solo registro.
-   *
-   * Con varios no se elige por él: se exige que indique cuál, porque adivinar
-   * ahí es decidir de quién son unos movimientos.
-   */
   register({ name, email, password, baseCurrency, existingOwners = [], adoptOwnerId = null }) {
     if (this.#read()) throw new Error('A local profile already exists on this machine');
     this.#assertPassword(password);
@@ -122,7 +102,7 @@ class LocalAuthStore {
       createdAt: new Date().toISOString(),
     };
     this.#write(profile);
-    // Shown once by the UI and never recoverable afterwards — only its hash is stored.
+
     return { ...this.#open(profile, false), recoveryCode };
   }
 
@@ -134,12 +114,11 @@ class LocalAuthStore {
     return this.#open(profile, remember);
   }
 
-  /** Reopens a remembered session at startup without asking for the password. */
   resume(resumeToken) {
     const profile = this.#read();
     if (!profile?.resume || !resumeToken) return null;
     if (!verifySecret(String(resumeToken), profile.resume)) {
-      // A token that no longer matches is stale or forged; drop it either way.
+
       this.#write({ ...profile, resume: null });
       return null;
     }
@@ -157,15 +136,11 @@ class LocalAuthStore {
     const profile = this.#requireProfile();
     if (!verifySecret(String(currentPassword || ''), profile.password)) throw new Error('The current password is incorrect');
     this.#assertPassword(newPassword);
-    // Every remembered session dies with the old password.
+
     this.#write({ ...profile, password: hashSecret(newPassword), resume: null });
     return { ok: true };
   }
 
-  /**
-   * The only way back in after a forgotten password. The code is single-use: a
-   * fresh one is issued and the old hash is gone once this returns.
-   */
   recover({ recoveryCode, newPassword }) {
     this.#assertNotLockedOut();
     const profile = this.#requireProfile();
@@ -233,9 +208,7 @@ class LocalAuthStore {
     try {
       return JSON.parse(this.safeStorage.decryptString(fs.readFileSync(this.profilePath)));
     } catch (error) {
-      // A profile that cannot be decrypted is not an empty profile. Failing closed
-      // here is what stops a corrupt file from silently offering a fresh signup
-      // over data that is still on disk.
+
       this.logger?.error?.('auth', `the local profile is unreadable: ${error.message}`);
       throw new Error('The local profile is unreadable on this machine');
     }

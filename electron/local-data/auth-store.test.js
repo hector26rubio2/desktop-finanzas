@@ -37,22 +37,18 @@ test('registering opens a session, normalizes the profile and issues a recovery 
   assert.equal(enrollment.user.email, 'hector@local');
   assert.equal(enrollment.user.baseCurrency, 'COP');
   assert.equal(enrollment.ownerId, enrollment.user.id);
-  // Sin "recordar sesión" no se emite token de reanudación.
+
   assert.equal(enrollment.resumeToken, null);
   assert.match(enrollment.recoveryCode, /^[0-9A-Z]{5}(-[0-9A-Z]{5}){4}$/);
 
   assert.equal(store.status().hasProfile, true);
   assert.equal(store.status().unlocked, true);
 
-  // Ni la contraseña ni el código quedan en claro en el archivo.
   const stored = fs.readFileSync(profilePath);
   assert.equal(stored.includes(Buffer.from(CREDENTIALS.password)), false);
   assert.equal(stored.includes(Buffer.from(enrollment.recoveryCode)), false);
 });
 
-// Al retirar el API, el id del usuario dejó de venir del servidor. Un perfil que
-// acuñe un id nuevo sobre datos existentes los deja invisibles sin borrar nada:
-// la aplicación abriría vacía sobre el libro entero.
 test('the profile adopts the only owner already holding data', () => {
   const { store } = fixture();
   const existingOwners = [{ ownerId: 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f', documents: 73 }];
@@ -61,9 +57,9 @@ test('the profile adopts the only owner already holding data', () => {
 
   const enrollment = store.register({ ...CREDENTIALS, existingOwners });
   assert.equal(enrollment.ownerId, 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f');
-  // Y sigue siendo el mismo tras entrar de nuevo.
+
   assert.equal(store.login({ password: CREDENTIALS.password }).ownerId, 'b3b04c8b-1697-4705-8b10-3fb4517d8b6f');
-  // Con perfil ya creado no quedan datos huérfanos que reclamar.
+
   assert.deepEqual(store.status(existingOwners).orphanOwners, []);
 });
 
@@ -80,7 +76,6 @@ test('with several owners it refuses to guess whose the data is', () => {
   assert.throws(() => store.register({ ...CREDENTIALS, existingOwners }), /more than one owner/);
   assert.equal(store.status(existingOwners).hasProfile, false);
 
-  // Solo con una elección explícita, y solo si ese dueño existe.
   assert.throws(
     () => store.register({ ...CREDENTIALS, existingOwners, adoptOwnerId: 'owner-c' }),
     /no data on this machine/,
@@ -117,7 +112,7 @@ test('sign-in pauses after five failed attempts', () => {
   for (let attempt = 0; attempt < 5; attempt++) {
     assert.throws(() => store.login({ password: 'incorrecta' }), /Incorrect credentials/);
   }
-  // El bloqueo no distingue entre contraseña correcta e incorrecta: pausa ambas.
+
   assert.throws(() => store.login({ password: CREDENTIALS.password }), /Too many attempts/);
 });
 
@@ -153,14 +148,12 @@ test('the recovery code restores access once and is replaced by a new one', () =
 
   assert.throws(() => store.recover({ recoveryCode: 'AAAAA-AAAAA-AAAAA-AAAAA-AAAAA', newPassword: 'nueva12345' }), /Incorrect credentials/);
 
-  // Se acepta escrito a mano: minúsculas y separadores distintos.
   const recovered = store.recover({ recoveryCode: enrollment.recoveryCode.toLowerCase().replace(/-/g, ' '), newPassword: 'nueva12345' });
   assert.equal(recovered.ownerId, enrollment.ownerId);
   assert.notEqual(recovered.recoveryCode, enrollment.recoveryCode);
 
-  // El mismo ownerId significa que los datos financieros siguen siendo legibles.
   assert.equal(store.login({ password: 'nueva12345' }).ownerId, enrollment.ownerId);
-  // El código viejo ya no sirve.
+
   assert.throws(() => store.recover({ recoveryCode: enrollment.recoveryCode, newPassword: 'otra12345' }), /Incorrect credentials/);
 });
 

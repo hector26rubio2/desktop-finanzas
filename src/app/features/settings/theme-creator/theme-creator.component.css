@@ -1,22 +1,7 @@
-/*
-  Estilos del creador de temas, extraídos de settings.component.css.
-
-  El margen inferior lo pone ahora el contenedor de ajustes sobre el host:
-  la regla original era `.appearance-grid .creator-panel`, y ese ancestro vive
-  en la plantilla del padre — desde aquí nunca casaría.
-*/
-
-/*
-  El host es ahora la celda del grid de apariencia, que estira sus items.
-  Sin esto sería un elemento en línea y el panel dejaría de igualar el alto
-  de la columna de temas.
-*/
 :host {
   display: block;
   height: 100%;
 }
-
-/* ── Creador de tema ──────────────────────────────────────── */
 
 .creator-panel {
   height: 100%;
@@ -140,8 +125,6 @@
   justify-content: center;
   gap: 8px;
 }
-
-/* ── Maqueta del borrador (dentro del creador) ────────────── */
 
 .mockup {
   border: 1px solid var(--line-1);

@@ -132,7 +132,7 @@ export class RecurringTransactionsApiService {
       try {
         created += await this.materializeOne(item, referenceDate);
       } catch {
-        // One malformed or orphaned template must not prevent other due movements.
+
       }
     }
     return created;

@@ -27,7 +27,7 @@ export class RegisterComponent implements OnInit {
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
-    // Sin servidor no hay correo que verificar: queda como etiqueta opcional.
+
     email: ['', [Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/\d/)]],
     baseCurrency: ['COP', [Validators.required, Validators.pattern(/^[A-Z]{3,4}$/)]],
@@ -35,10 +35,10 @@ export class RegisterComponent implements OnInit {
 
   loading = signal(false);
   error = signal<string | null>(null);
-  /** El código solo existe en memoria y solo hasta que el usuario confirme haberlo guardado. */
+
   recoveryCode = signal<string | null>(null);
   recoveryAcknowledged = signal(false);
-  /** Documentos que ya están en el disco y que este perfil va a reclamar. */
+
   adoptedDocuments = signal(0);
   adoptionNotice = () => this.i18n.t('auth.adopting_data').replace('{count}', String(this.adoptedDocuments()));
 

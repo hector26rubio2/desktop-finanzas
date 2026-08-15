@@ -71,10 +71,6 @@
   }
 }
 
-/*
-  Sin animación el bloque sigue siendo visible y el lector sigue anunciando:
-  se pierde el brillo, no la información.
-*/
 @media (prefers-reduced-motion: reduce) {
   .skel__bar {
     animation: none;

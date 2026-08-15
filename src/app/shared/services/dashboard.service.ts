@@ -36,7 +36,7 @@ export class DashboardService {
 
   constructor() {
     this.destroyRef.onDestroy(() => {
-      // cleanup handled by takeUntilDestroyed
+
     });
   }
 
@@ -232,8 +232,6 @@ export class DashboardService {
     }
   }
 
-  // Trae TODAS las páginas de un mes (el backend capa pageSize en 100). Sin esto,
-  // un mes con >100 movimientos subestima todos los KPIs del dashboard.
   private fetchYm(ym: string) {
     const PAGE = 100;
     return this.movementsApi.getMovements(ym, 1, PAGE).pipe(

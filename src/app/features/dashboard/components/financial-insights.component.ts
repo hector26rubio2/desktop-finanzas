@@ -102,7 +102,7 @@ export class FinancialInsightsComponent {
     try {
       localStorage.setItem('dashboard.financial.widgets.v1', JSON.stringify(this.widgets()));
     } catch {
-      /* non-persistent environment */
+
     }
   }
 
@@ -118,7 +118,7 @@ export class FinancialInsightsComponent {
     try {
       localStorage.setItem('dashboard.financial.widgets.v1', JSON.stringify(this.widgets()));
     } catch {
-      /* non-persistent environment */
+
     }
   }
   widgetOrder(id: WidgetId) {
@@ -155,7 +155,7 @@ export class FinancialInsightsComponent {
       const parsed = JSON.parse(localStorage.getItem('dashboard.financial.widgets.v1') ?? 'null');
       if (Array.isArray(parsed)) return DEFAULT_WIDGETS.filter((x) => parsed.includes(x));
     } catch {
-      /* default layout */
+
     }
     return [...DEFAULT_WIDGETS];
   }

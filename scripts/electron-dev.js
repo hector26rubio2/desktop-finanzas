@@ -2,8 +2,7 @@ const { spawn, execSync } = require('child_process');
 const http = require('http');
 const electronBin = require('electron');
 
-// kill any leftover process on port 4200
-try { execSync('taskkill /f /fi "PID ne 0" /im node.exe 2>nul', { stdio: 'ignore' }); } catch { /* ok */ }
+try { execSync('taskkill /f /fi "PID ne 0" /im node.exe 2>nul', { stdio: 'ignore' }); } catch {  }
 
 const ng = spawn('ng', ['serve'], { shell: true, stdio: 'inherit' });
 

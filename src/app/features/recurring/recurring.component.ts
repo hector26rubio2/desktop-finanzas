@@ -182,7 +182,6 @@ export class RecurringComponent implements OnInit {
       .subscribe((updated) => this.items.update((l) => l.map((i) => (i.id === updated.id ? updated : i))));
   }
 
-  /** Antes bastaba un clic para borrar la plantilla, sin preguntar. */
   askDelete(item: RecurringTransactionResponse) {
     this.deleting.set(item);
     this.showDeleteModal.set(true);

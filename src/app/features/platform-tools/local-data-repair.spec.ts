@@ -65,7 +65,7 @@ describe('planLocalDataRepair', () => {
       ],
       movements: [
         { id: 'buy', type: 'Expense', accountId: 'card', sourceType: 'CreditCard', installmentPurchaseId: 'plan-1', amount: 300, currency: 'COP', trmApplied: 1, amountBase: 300, date: '2026-07-01' },
-        // Un solo pago con sus dos patas.
+
         { id: 'pay-out', type: 'Expense', accountId: 'cash', operationType: 'CreditPayment', operationId: 'op-1', installmentPurchaseId: 'plan-1', amount: 100, currency: 'COP', trmApplied: 1, amountBase: 100, date: '2026-08-01' },
         { id: 'pay-in', type: 'Income', accountId: 'card', operationType: 'CreditPayment', operationId: 'op-1', installmentPurchaseId: 'plan-1', amount: 100, currency: 'COP', trmApplied: 1, amountBase: 100, date: '2026-08-01' },
       ],
@@ -80,7 +80,7 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       movements: [
-        // Media transferencia: falta la pata de entrada.
+
         { id: 't1', type: 'Expense', accountId: 'cash', operationType: 'Transfer', operationId: 'op-9', amount: 50, currency: 'COP', trmApplied: 1, amountBase: 50, date: '2026-07-01' },
       ],
     });

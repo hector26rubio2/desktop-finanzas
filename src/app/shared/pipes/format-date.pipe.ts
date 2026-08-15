@@ -10,7 +10,7 @@ export class FmtDatePipe implements PipeTransform {
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
-    // Fechas sin hora en el origen no deben inventar una (parseDate usa 12:00 como mediodía neutro)
+
     if (!value.includes(':')) return `${day}/${month}/${year}`;
     const hours = String(d.getHours()).padStart(2, '0');
     const mins = String(d.getMinutes()).padStart(2, '0');

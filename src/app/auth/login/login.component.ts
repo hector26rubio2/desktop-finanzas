@@ -25,7 +25,6 @@ export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   formatThemeLabel = (id: string) => this.i18n.t('theme.' + id);
 
-  // Un solo perfil por equipo: no hay a quién identificar, solo qué desbloquear.
   form = this.fb.group({
     password: ['', Validators.required],
     remember: [false],
@@ -34,7 +33,7 @@ export class LoginComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   passwordVisible = signal(false);
-  /** null mientras se consulta el perfil: evita mostrar "no hay perfil" antes de saberlo. */
+
   hasProfile = signal<boolean | null>(null);
 
   async ngOnInit() {

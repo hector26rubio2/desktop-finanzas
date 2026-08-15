@@ -28,10 +28,8 @@ export class BaseCurrencyPolicyService {
     const currency = requestedCode.trim().toUpperCase();
     const current = this.token.currentUser()?.baseCurrency ?? 'COP';
 
-    // Selecting the current currency is always safe and requires no database access.
     if (currency === current) return { status: 'unchanged', currency };
 
-    // Fail closed when the encrypted local store cannot be inspected.
     if (!this.local.available) return { status: 'unavailable', currency: current };
 
     try {

@@ -83,7 +83,6 @@
               </div>
             </div>
           }
-          <!-- /lockedToCreditCard -->
 
           @if (formSourceType() === 'Cash') {
             <label class="form-label mov-form-field" style="margin-top: 8px">
@@ -532,8 +531,7 @@
         </button>
       </span>
     </ng-template>
-    <!-- Sin buscador propio: filtraba solo las filas ya cargadas y convivía con
-         el de la barra superior. Dos cajas, dos resultados distintos. -->
+
     <app-data-table
       [columns]="cols()"
       [data]="filteredItems()"

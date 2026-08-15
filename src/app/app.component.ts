@@ -41,8 +41,7 @@ export class AppComponent {
   private destroyRef = inject(DestroyRef);
 
   private currentUrl = signal(this.router.url || '/login');
-  // Rutas que se pintan sin la carcasa de la app. `recover` es la que sustituyó
-  // a forgot-password/reset-password/verify-email al quitar el servidor.
+
   private AUTH_ROUTES = new Set(['login', 'register', 'recover']);
 
   activeView = computed(() => {

@@ -50,7 +50,6 @@ export function range(n: number, max = 36): number[] {
   return Array.from({ length: Math.min(n, max) }, (_, i) => i);
 }
 
-/** Formato de fecha+hora para display (locale-aware). Reemplaza fmtDateTime locales. */
 export function formatDateTime(dateStr: string, locale = 'es-AR'): string {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
