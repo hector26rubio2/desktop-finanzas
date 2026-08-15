@@ -164,9 +164,11 @@ export class FinancialApiService {
     const elapsed = today.getUTCFullYear() === yy && today.getUTCMonth() + 1 === mm ? today.getUTCDate() : days;
     const snapshot = await this.snapshot();
     const accounts = await this.local.list<AccountResponse>('account');
-    const eligibleCards = accounts.filter(
-      (x) => x.type === 'Credit' && x.currency === snapshot.baseCurrency && Number(x.creditLimit || 0) > 0,
-    );
+    const cardsWithLimit = accounts.filter((x) => x.type === 'Credit' && Number(x.creditLimit || 0) > 0);
+    // El cupo está en la moneda de la tarjeta y no hay tasa declarada para
+    // convertirlo, así que una tarjeta en otra moneda queda fuera entera —cupo y
+    // deuda— en vez de mezclar unidades. Cuántas quedan fuera se informa abajo.
+    const eligibleCards = cardsWithLimit.filter((x) => x.currency === snapshot.baseCurrency);
     const cardBalances = eligibleCards.length
       ? await this.local.accountBalances<Record<string, AccountBalance>>(eligibleCards.map((x) => x.id))
       : {};
@@ -215,6 +217,8 @@ export class FinancialApiService {
       averageDailyExpense: now.expense / Math.max(1, elapsed),
       projectedMonthExpense: (now.expense / Math.max(1, elapsed)) * days,
       creditUtilizationPercent: creditLimit ? (creditUsed / creditLimit) * 100 : 0,
+      creditCardsCounted: eligibleCards.length,
+      creditCardsExcluded: cardsWithLimit.length - eligibleCards.length,
       totalDebt: snapshot.totalLiabilities,
       monthlyDebtService,
       financialBurdenPercent: now.income ? (monthlyDebtService / now.income) * 100 : 0,

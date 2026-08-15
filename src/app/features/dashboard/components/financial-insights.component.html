@@ -112,7 +112,14 @@
           <div class="kpi">
             <span>Uso de tarjetas</span
             ><strong [class.alert]="k.creditUtilizationPercent > 70">{{ percent(k.creditUtilizationPercent) }}</strong
-            ><small>Alerta sobre 70%</small>
+            >@if (k.creditCardsExcluded > 0) {
+              <small
+                >{{ k.creditCardsCounted }} de {{ k.creditCardsCounted + k.creditCardsExcluded }} tarjetas · el resto
+                está en otra moneda</small
+              >
+            } @else {
+              <small>Alerta sobre 70%</small>
+            }
           </div>
           <div class="kpi">
             <span>Runway</span><strong>{{ k.runwayMonths | number: '1.0-2' }} meses</strong
