@@ -1,10 +1,14 @@
 const tsParser = require('@typescript-eslint/parser');
 const tsPlugin = require('@typescript-eslint/eslint-plugin');
-const angularPlugin = require('@angular-eslint/eslint-plugin');
-const angularTemplatePlugin = require('@angular-eslint/eslint-plugin-template');
-const angularTemplateParser = require('@angular-eslint/template-parser');
+// En angular-eslint 22 los presets dejaron de vivir en `@angular-eslint/eslint-plugin`
+// —ese paquete ya solo exporta `rules`— y pasaron al paquete paraguas
+// `angular-eslint`, que expone `configs` y los plugins ya construidos.
+const angular = require('angular-eslint');
 const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
+
+/** Reúne las reglas de una lista de configuraciones planas en un solo objeto. */
+const rulesOf = (configs) => Object.assign({}, ...configs.map((config) => config.rules ?? {}));
 
 module.exports = [
   { ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'src/index.html'] },
@@ -18,12 +22,13 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      '@angular-eslint': angularPlugin,
+      '@angular-eslint': angular.tsPlugin,
       'prettier': prettierPlugin,
     },
+    processor: angular.processInlineTemplates,
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      ...angularPlugin.configs.recommended.rules,
+      ...rulesOf(angular.configs.tsRecommended),
       ...prettierConfig.rules,
       'prettier/prettier': 'warn',
       '@angular-eslint/component-class-suffix': ['error', { suffixes: ['Component'] }],
@@ -39,14 +44,14 @@ module.exports = [
   {
     files: ['**/*.html'],
     languageOptions: {
-      parser: angularTemplateParser,
+      parser: angular.templateParser,
     },
     plugins: {
-      '@angular-eslint/template': angularTemplatePlugin,
+      '@angular-eslint/template': angular.templatePlugin,
       'prettier': prettierPlugin,
     },
     rules: {
-      ...angularTemplatePlugin.configs.recommended.rules,
+      ...rulesOf(angular.configs.templateRecommended),
       'prettier/prettier': 'warn',
       '@angular-eslint/template/no-negated-async': 'error',
     },
