@@ -177,7 +177,7 @@
           <div class="card" style="padding: 0; overflow: hidden">
             <div class="card__h">
               <span class="card__title">{{ i18n.t('loans.cuadro_amortizacion') }} {{ loan.loanType }}</span>
-              <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="deleteLoan(loan.id)">
+              <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="askDelete(loan)">
                 <svg
                   width="13"
                   height="13"
@@ -220,5 +220,22 @@
         </div>
       }
     </div>
+  }
+
+  @if (showDeleteModal()) {
+    <app-confirm-dialog
+      [visible]="true"
+      [title]="i18n.t('loans.delete_title')"
+      [message]="
+        i18n.t('loans.delete_confirm') +
+        '<br /><strong style=color:var(--fg-0)>' +
+        (deleting()?.description ?? '') +
+        '</strong>'
+      "
+      [confirmLabel]="i18n.t('common.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
   }
 </div>

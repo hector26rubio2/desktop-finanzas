@@ -17,6 +17,7 @@ import { ApiService, MovementResponse, PagedResult } from '../../shared/services
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
 import { parseDate } from '../../shared/utils/date';
+import { sumBaseAmount } from '../../shared/utils/financial-classification';
 import type { KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import type { ColumnDef } from '@ui/organisms/data-table/data-table.component';
 
@@ -83,7 +84,9 @@ export class CalendarComponent implements OnInit {
       });
   });
 
-  totalCommitted = computed(() => this.eventsThisMonth().reduce((s, e) => s + e.movement.amount, 0));
+  // Sumaba `amount`, en la moneda de cada movimiento: mezclaba pesos con dólares
+  // y el compromiso del mes salía mal sin que nada lo delatara.
+  totalCommitted = computed(() => sumBaseAmount(this.eventsThisMonth().map((event) => event.movement)));
 
   kpiItems = computed<KpiStripItem[]>(() => [
     { label: this.i18n.t('calendar.pagos_mes'), value: '' + this.eventsThisMonth().length },

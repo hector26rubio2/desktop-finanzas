@@ -28,11 +28,15 @@
         </div>
       } @else {
         <div class="dp-head">
-          <button class="dp-arrow" (click)="pickerPrevMonth()">&#9664;</button>
+          <button class="dp-arrow" [attr.aria-label]="i18n.t('common.mes_anterior')" (click)="pickerPrevMonth()">
+            &#9664;
+          </button>
           <button class="dp-title" (click)="pickerMode.set('year')">
             {{ MONTHS()[pickerMonth()] }} {{ pickerYear() }}
           </button>
-          <button class="dp-arrow" (click)="pickerNextMonth()">&#9654;</button>
+          <button class="dp-arrow" [attr.aria-label]="i18n.t('common.mes_siguiente')" (click)="pickerNextMonth()">
+            &#9654;
+          </button>
         </div>
         <div class="dp-day-head">
           @for (d of DAYS(); track d) {

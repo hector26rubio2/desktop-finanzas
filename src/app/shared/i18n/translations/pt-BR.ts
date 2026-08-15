@@ -379,6 +379,12 @@ const pt: Record<TranslationKey, string> = {
   'loans.table_interes': 'Juros',
   'loans.table_capital': 'Capital',
   'loans.table_saldo': 'Saldo',
+  'loans.delete_title': 'Excluir empréstimo',
+  'loans.delete_confirm': 'Isso apaga o empréstimo com seu desembolso e todos os pagamentos. Não dá para desfazer.',
+  'loans.deleted': 'Empréstimo excluído',
+  'recurring.delete_title': 'Excluir recorrente',
+  'recurring.delete_confirm': 'Isso apaga o modelo. Os movimentos já gerados permanecem.',
+  'recurring.deleted': 'Recorrente excluída',
 
   'reports.tab_general': 'Visão geral',
   'reports.tab_categorias': 'Categorias',
@@ -585,6 +591,10 @@ const pt: Record<TranslationKey, string> = {
   'common.new_movement_dialog': 'Novo movimento',
 
   'calendar.detail_title': 'Detalhes do movimento',
+
+  'common.mes_anterior': 'Mês anterior',
+  'common.mes_siguiente': 'Próximo mês',
+  'common.sin_datos': 'Sem dados',
 };
 
 export default pt;

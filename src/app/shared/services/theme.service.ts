@@ -28,18 +28,7 @@ export type Theme =
 export type Density = 'dense' | 'comfy' | 'airy';
 export type Shape = 'rounded' | 'sharp';
 
-export type FontOption =
-  | 'geist'
-  | 'inter'
-  | 'onest'
-  | 'poppins'
-  | 'nunito'
-  | 'rubik'
-  | 'manrope'
-  | 'sora'
-  | 'dm-sans'
-  | 'work-sans'
-  | 'system';
+export type FontOption = 'system' | 'system-serif' | 'system-mono';
 
 export interface FontPack {
   id: FontOption;
@@ -47,18 +36,21 @@ export interface FontPack {
   family: string;
 }
 
+// Pilas de fuentes del sistema únicamente: no hay @font-face ni paquete
+// @fontsource en el repo, y la CSP de producción bloquea fuentes remotas,
+// así que solo se ofrecen fuentes que ya existen en Windows/macOS/Linux.
 export const FONT_OPTIONS: FontPack[] = [
-  { id: 'geist', name: 'Geist', family: "'Geist', system-ui, sans-serif" },
-  { id: 'inter', name: 'Inter', family: "'Inter', system-ui, sans-serif" },
-  { id: 'onest', name: 'Onest', family: "'Onest', system-ui, sans-serif" },
-  { id: 'poppins', name: 'Poppins', family: "'Poppins', system-ui, sans-serif" },
-  { id: 'nunito', name: 'Nunito', family: "'Nunito', system-ui, sans-serif" },
-  { id: 'rubik', name: 'Rubik', family: "'Rubik', system-ui, sans-serif" },
-  { id: 'manrope', name: 'Manrope', family: "'Manrope', system-ui, sans-serif" },
-  { id: 'sora', name: 'Sora', family: "'Sora', system-ui, sans-serif" },
-  { id: 'dm-sans', name: 'DM Sans', family: "'DM Sans', system-ui, sans-serif" },
-  { id: 'work-sans', name: 'Work Sans', family: "'Work Sans', system-ui, sans-serif" },
-  { id: 'system', name: 'System', family: 'system-ui, -apple-system, sans-serif' },
+  {
+    id: 'system',
+    name: 'Sistema',
+    family: 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  { id: 'system-serif', name: 'Serif del sistema', family: 'Georgia, "Times New Roman", Times, serif' },
+  {
+    id: 'system-mono',
+    name: 'Monoespaciada',
+    family: '"Cascadia Code", "SF Mono", Consolas, "Roboto Mono", monospace',
+  },
 ];
 
 export interface CustomTheme {
@@ -419,7 +411,7 @@ export class ThemeService {
   private resolveStoredFont(): FontOption {
     const raw = localStorage.getItem('font');
     if (raw && FONT_OPTIONS.some((o) => o.id === raw)) return raw as FontOption;
-    return 'geist';
+    return 'system';
   }
 
   // ── Helpers ──────────────────────────────────────────────────────

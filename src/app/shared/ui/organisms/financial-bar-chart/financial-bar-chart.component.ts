@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { I18nService } from '../../../i18n/i18n.service';
 
 export interface FinancialBarDatum {
   key: string;
@@ -16,6 +17,7 @@ export interface FinancialBarDatum {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FinancialBarChartComponent {
+  i18n = inject(I18nService);
   abs = Math.abs;
   data = input.required<FinancialBarDatum[]>();
   title = input.required<string>();

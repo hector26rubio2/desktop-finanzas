@@ -28,6 +28,8 @@ import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
 import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
+import { formatMoney } from '../../shared/utils/money';
 import { MovementDetailModalComponent } from '@ui/organisms/movement-detail-modal/movement-detail-modal.component';
 import { FmtDatePipe } from '../../shared/pipes/format-date.pipe';
 import { sourceLabel, subTypeLabel } from '../../shared/utils/movement-labels';
@@ -38,6 +40,13 @@ import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.co
 import { isGenericMovementSource, movementFormFields } from './movement-form.schema';
 
 type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }>;
+
+/**
+ * Tamaño con el que se pide el mes entero al buscar. El almacén local no impone
+ * tope de página (`electron/local-data/database.js` pagina en memoria), así que
+ * este número solo tiene que ser mayor que cualquier mes real.
+ */
+const MONTH_PAGE_SIZE = 10_000;
 
 @Component({
   selector: 'app-movements',
@@ -55,14 +64,40 @@ type MovTpl = TemplateRef<{ $implicit: MovementResponse; row: MovementResponse }
     MovementDetailModalComponent,
     DataTableComponent,
     DynamicFormComponent,
+    KpiStripComponent,
   ],
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.css',
 })
 export class MovementsComponent implements OnInit {
-  readonly useDynamicMovementForm = true;
+  /**
+   * En `true` esto apagaba las 275 líneas del formulario propio y dejaba en su
+   * lugar una lista plana de campos: sin los botones Gasto/Ingreso y
+   * Efectivo/Cuenta/Tarjeta, sin el saldo disponible de la cuenta, sin el cupo
+   * ni la tasa de la tarjeta, sin el aviso de "excede el saldo" y con un
+   * "Revisa este campo" genérico en vez de los errores por campo.
+   *
+   * Mantener las dos versiones es la deuda de verdad. Cuál se retira es una
+   * decisión de producto, no de código: hasta tomarla, gana la que informa más.
+   */
+  readonly useDynamicMovementForm = false;
   page = signal<PagedResult<MovementResponse> | null>(null);
   summary = signal<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
+
+  /**
+   * El resumen del mes se cargaba en cada página y no se pintaba en ningún
+   * sitio: la pantalla de movimientos calculaba los totales y no los enseñaba.
+   */
+  summaryItems = computed<KpiStripItem[] | null>(() => {
+    const s = this.summary();
+    if (!s) return null;
+    const currency = this.auth.baseCurrency();
+    return [
+      { label: this.i18n.t('transactions.total_ingresos'), value: formatMoney(s.totalIncome, currency), color: 'var(--positive)' },
+      { label: this.i18n.t('transactions.total_gastos'), value: formatMoney(s.totalExpense, currency), color: 'var(--negative)' },
+      { label: this.i18n.t('transactions.balance_neto'), value: formatMoney(s.balance, currency) },
+    ];
+  });
   categories = signal<CategoryResponse[]>([]);
   accounts = signal<AccountResponse[]>([]);
   accountBalances = signal<Record<string, AccountBalance>>({});
@@ -259,12 +294,21 @@ export class MovementsComponent implements OnInit {
     isSaving: [false],
   });
 
+  /**
+   * Movimientos del mes completo. Solo se carga cuando el usuario busca: la
+   * búsqueda filtraba `page().items`, es decir las 20 filas visibles, así que
+   * un concepto de la página 3 daba "sin resultados" y parecía no existir.
+   */
+  monthMovements = signal<MovementResponse[] | null>(null);
+
   filteredItems = computed(() => {
-    const p = this.page();
-    if (!p) return [];
     const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return p.items;
-    return p.items.filter(
+    const p = this.page();
+    if (!q) return p ? p.items : [];
+    // Mientras llega el mes completo se filtra lo que haya, para no vaciar la
+    // tabla entre pulsación y respuesta.
+    const source = this.monthMovements() ?? p?.items ?? [];
+    return source.filter(
       (m) =>
         (m.description ?? '').toLowerCase().includes(q) ||
         (m.categoryName ?? '').toLowerCase().includes(q) ||
@@ -424,6 +468,8 @@ export class MovementsComponent implements OnInit {
 
   loadPage(p: number) {
     this.currentPage.set(p);
+    // Cambió el mes o un filtro: el mes cacheado para buscar ya no vale.
+    this.monthMovements.set(null);
     const filters: {
       currency?: string;
       categoryId?: string;
@@ -450,6 +496,19 @@ export class MovementsComponent implements OnInit {
       .subscribe({
         next: (s) => this.summary.set(s),
       });
+  }
+
+  /**
+   * Busca contra el mes entero, no contra la página. El mes se pide una sola vez
+   * por búsqueda y se reutiliza mientras el usuario sigue escribiendo.
+   */
+  onSearch(query: string) {
+    this.searchQuery.set(query);
+    if (!query.trim() || this.monthMovements() !== null) return;
+    this.api
+      .getMovements(this.currentMonth(), 1, MONTH_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (r) => this.monthMovements.set(r.items) });
   }
 
   onPageChange(p: number) {

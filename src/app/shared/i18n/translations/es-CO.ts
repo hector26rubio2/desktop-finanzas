@@ -379,6 +379,12 @@ const es: Record<TranslationKey, string> = {
   'loans.table_interes': 'Interés',
   'loans.table_capital': 'Capital',
   'loans.table_saldo': 'Saldo',
+  'loans.delete_title': 'Eliminar préstamo',
+  'loans.delete_confirm': 'Se borrará el préstamo con su desembolso y todos sus pagos. No se puede deshacer.',
+  'loans.deleted': 'Préstamo eliminado',
+  'recurring.delete_title': 'Eliminar recurrente',
+  'recurring.delete_confirm': 'Se borrará la plantilla. Los movimientos ya generados se quedan.',
+  'recurring.deleted': 'Recurrente eliminada',
 
   'reports.tab_general': 'Vista general',
   'reports.tab_categorias': 'Categorías',
@@ -585,6 +591,10 @@ const es: Record<TranslationKey, string> = {
   'common.new_movement_dialog': 'Nuevo movimiento',
 
   'calendar.detail_title': 'Detalle del movimiento',
+
+  'common.mes_anterior': 'Mes anterior',
+  'common.mes_siguiente': 'Mes siguiente',
+  'common.sin_datos': 'Sin datos',
 };
 
 export default es;

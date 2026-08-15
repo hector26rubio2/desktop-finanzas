@@ -8,8 +8,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--tap-target-sm);
+  height: var(--tap-target-sm);
   border-radius: var(--radius-button);
   border: 1px solid var(--line-1);
   background: var(--bg-2);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { MovementResponse } from '../models/movement.model';
-import { financialFlowContribution } from './financial-classification';
+import { financialFlowContribution, sumBaseAmount } from './financial-classification';
+import { roundMoney } from './amortization';
 
 const movement = (value: Partial<MovementResponse>): MovementResponse => ({
   id: 'm', type: 'Expense', subType: 'Expense', sourceType: 'OwnAccount', loanParty: null,
@@ -9,6 +10,42 @@ const movement = (value: Partial<MovementResponse>): MovementResponse => ({
   categoryColor: null, categoryIcon: null, accountId: null, accountName: null,
   installmentPurchaseId: null, operationId: null, operationType: null, createdAt: '2026-08-01',
   ...value,
+});
+
+describe('sumBaseAmount', () => {
+  // El fallo que motivó esta función: el calendario sumaba `amount`, que está en
+  // la moneda de cada movimiento. 10 USD a TRM 4000 más 5.000 COP daban 5.010.
+  it('adds in base currency instead of mixing currencies', () => {
+    const dolares = movement({ amount: 10, currency: 'USD', trmApplied: 4000, amountBase: 40_000 });
+    const pesos = movement({ amount: 5_000, currency: 'COP', trmApplied: 1, amountBase: 5_000 });
+
+    expect(sumBaseAmount([dolares, pesos])).toBe(45_000);
+    // La suma ingenua que había antes:
+    expect(dolares.amount + pesos.amount).toBe(5_010);
+  });
+
+  it('contributes zero for a movement without a converted amount', () => {
+    expect(sumBaseAmount([movement({ amountBase: null as unknown as number })])).toBe(0);
+    expect(sumBaseAmount([])).toBe(0);
+  });
+
+  // Los importes son `number` de JavaScript, o sea IEEE-754: 0.1 + 0.2 !== 0.3.
+  // Esta prueba fija hasta dónde llega el error acumulado y obliga a redondear
+  // al final del agregado, no en cada paso.
+  it('keeps a thousand cent-sized amounts exact to the cent', () => {
+    const centimos = Array.from({ length: 1000 }, () => movement({ amount: 0.1, amountBase: 0.1 }));
+
+    const bruto = sumBaseAmount(centimos);
+    expect(bruto).not.toBe(100); // la suma cruda ya arrastra el error
+    expect(roundMoney(bruto)).toBe(100);
+  });
+
+  it('survives amounts with cents at a realistic scale', () => {
+    const movimientos = [12_345.67, 89.99, 0.01, 7_000.45, 1_234_567.89].map((amountBase) =>
+      movement({ amount: amountBase, amountBase }),
+    );
+    expect(roundMoney(sumBaseAmount(movimientos))).toBe(1_254_004.01);
+  });
 });
 
 describe('financialFlowContribution', () => {

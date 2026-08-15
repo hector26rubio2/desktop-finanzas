@@ -402,7 +402,7 @@
           [attr.aria-label]="i18n.t('common.search')"
           [placeholder]="i18n.t('transactions.buscar')"
           [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
+          (ngModelChange)="onSearch($event)"
         />
         <select
           class="mov-filter-sm"
@@ -461,6 +461,11 @@
         </button>
       </div>
     </div>
+
+    @if (summaryItems(); as items) {
+      <app-kpi-strip [items]="items" align="end" />
+    }
+
     <ng-template #dateCell let-m>
       <span class="mov-row-date">{{ m.date | fmtDate }}</span>
     </ng-template>
@@ -529,12 +534,14 @@
         </button>
       </span>
     </ng-template>
+    <!-- Sin buscador propio: filtraba solo las filas ya cargadas y convivía con
+         el de la barra superior. Dos cajas, dos resultados distintos. -->
     <app-data-table
       [columns]="cols()"
       [data]="filteredItems()"
       [trackBy]="trackById"
       [rowClickable]="true"
-      [searchable]="true"
+      [searchable]="false"
       (rowClick)="openDetail($event)"
       [emptyMessage]="i18n.t('common.no_results')"
       [page]="currentPage()"

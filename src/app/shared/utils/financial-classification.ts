@@ -40,3 +40,16 @@ export function financialFlowContribution(movement: MovementResponse): Financial
 export function isOperatingExpense(movement: MovementResponse): boolean {
   return financialFlowContribution(movement).expense > 0;
 }
+
+/**
+ * Suma en moneda base. Existe como función con nombre —y no como un `reduce`
+ * suelto en cada vista— porque sumar `amount` en vez de `amountBase` mezcla
+ * monedas sin avisar: el total sale plausible y es falso. Un `reduce` en línea
+ * tampoco se puede probar; esto sí.
+ *
+ * Un movimiento sin `amountBase` aporta 0: preferimos quedarnos cortos a
+ * inventar una conversión.
+ */
+export function sumBaseAmount(movements: readonly MovementResponse[]): number {
+  return movements.reduce((total, movement) => total + Number(movement.amountBase || 0), 0);
+}

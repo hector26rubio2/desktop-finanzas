@@ -87,7 +87,9 @@
 
 .btn--icon {
   padding: 5px 6px;
-  min-width: 0;
+  min-width: var(--tap-target-sm);
+  min-height: var(--tap-target-sm);
+  justify-content: center;
 }
 
 .btn:disabled {

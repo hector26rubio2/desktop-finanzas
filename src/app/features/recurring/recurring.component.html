@@ -142,12 +142,29 @@
               {{ r.isActive ? i18n.t('recurring.pause') : i18n.t('recurring.resume') }}
             </button>
             <button class="btn btn--ghost btn--sm" (click)="openEdit(r)">{{ i18n.t('recurring.edit') }}</button>
-            <button class="btn btn--ghost btn--sm" style="color: var(--negative)" (click)="remove(r.id)">
+            <button class="btn btn--ghost btn--sm" style="color: var(--negative)" (click)="askDelete(r)">
               {{ i18n.t('common.delete') }}
             </button>
           </div>
         </div>
       }
     </div>
+  }
+
+  @if (showDeleteModal()) {
+    <app-confirm-dialog
+      [visible]="true"
+      [title]="i18n.t('recurring.delete_title')"
+      [message]="
+        i18n.t('recurring.delete_confirm') +
+        '<br /><strong style=color:var(--fg-0)>' +
+        (deleting()?.description ?? '') +
+        '</strong>'
+      "
+      [confirmLabel]="i18n.t('common.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
   }
 </div>

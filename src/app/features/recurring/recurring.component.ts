@@ -16,12 +16,14 @@ import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { forkJoin } from 'rxjs';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
+import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-recurring',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent],
   templateUrl: './recurring.component.html',
   styleUrl: './recurring.component.css',
 })
@@ -30,6 +32,7 @@ export class RecurringComponent implements OnInit {
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);
+  private notif = inject(NotificationService);
   private auth = inject(AuthService);
 
   items = signal<RecurringTransactionResponse[]>([]);
@@ -40,6 +43,8 @@ export class RecurringComponent implements OnInit {
   loadState = computed(() => resolveViewLoadState(this.loading(), this.loadError(), this.items().length));
   saving = signal(false);
   showForm = signal(false);
+  showDeleteModal = signal(false);
+  deleting = signal<RecurringTransactionResponse | null>(null);
   editingId = signal<string | null>(null);
 
   form = this.fb.group({
@@ -176,11 +181,35 @@ export class RecurringComponent implements OnInit {
       .subscribe((updated) => this.items.update((l) => l.map((i) => (i.id === updated.id ? updated : i))));
   }
 
-  remove(id: string) {
+  /** Antes bastaba un clic para borrar la plantilla, sin preguntar. */
+  askDelete(item: RecurringTransactionResponse) {
+    this.deleting.set(item);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.deleting.set(null);
+  }
+
+  confirmDelete() {
+    const item = this.deleting();
+    if (!item) return;
+    this.showDeleteModal.set(false);
     this.api
-      .deleteRecurring(id)
+      .deleteRecurring(item.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.items.update((l) => l.filter((i) => i.id !== id)));
+      .subscribe({
+        next: () => {
+          this.items.update((l) => l.filter((i) => i.id !== item.id));
+          this.deleting.set(null);
+          this.notif.announce(this.i18n.t('recurring.deleted'));
+        },
+        error: () => {
+          this.deleting.set(null);
+          this.notif.announce(this.i18n.t('common.load_error'));
+        },
+      });
   }
 
   freqLabel(f: string): string {

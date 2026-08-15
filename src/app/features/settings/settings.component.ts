@@ -31,6 +31,10 @@ type Section = 'ajustes' | 'perfil' | 'apariencia' | 'atajos' | 'acerca';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, DataTableComponent],
   templateUrl: './settings.component.html',
+  // Esta hoja se cargaba desde el array global de `angular.json`, la única
+  // feature sin encapsular: cualquier `.card__h` o `.btn` que redefiniera aquí
+  // se filtraba a toda la aplicación.
+  styleUrl: './settings.component.css',
 })
 export class SettingsComponent implements OnInit {
   locales = [

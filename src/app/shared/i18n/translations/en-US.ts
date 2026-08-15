@@ -379,6 +379,12 @@ const en: Record<TranslationKey, string> = {
   'loans.table_interes': 'Interest',
   'loans.table_capital': 'Principal',
   'loans.table_saldo': 'Balance',
+  'loans.delete_title': 'Delete loan',
+  'loans.delete_confirm': 'This deletes the loan with its disbursement and every payment. It cannot be undone.',
+  'loans.deleted': 'Loan deleted',
+  'recurring.delete_title': 'Delete recurring template',
+  'recurring.delete_confirm': 'This deletes the template. Movements already generated stay.',
+  'recurring.deleted': 'Recurring template deleted',
 
   'reports.tab_general': 'Overview',
   'reports.tab_categorias': 'Categories',
@@ -585,6 +591,10 @@ const en: Record<TranslationKey, string> = {
   'common.new_movement_dialog': 'New transaction',
 
   'calendar.detail_title': 'Movement details',
+
+  'common.mes_anterior': 'Previous month',
+  'common.mes_siguiente': 'Next month',
+  'common.sin_datos': 'No data',
 };
 
 export default en;

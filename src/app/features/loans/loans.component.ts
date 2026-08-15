@@ -19,6 +19,8 @@ import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { forkJoin } from 'rxjs';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
+import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface AmortRow {
   n: number;
@@ -34,7 +36,7 @@ type AmortTpl = TemplateRef<{ $implicit: AmortRow; row: AmortRow }>;
   selector: 'app-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent],
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent],
   templateUrl: './loans.component.html',
   styleUrl: './loans.component.css',
 })
@@ -50,12 +52,15 @@ export class LoansComponent implements OnInit {
   schedule = signal<AmortRow[]>([]);
   showPayment = signal(false);
   paymentSaving = signal(false);
+  showDeleteModal = signal(false);
+  deleting = signal<LoanResponse | null>(null);
   private paymentIdempotencyKey = '';
 
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);
+  private notif = inject(NotificationService);
 
   selected = () => this.loans().find((l) => l.id === this.selectedId()) ?? null;
 
@@ -210,13 +215,38 @@ export class LoansComponent implements OnInit {
       });
   }
 
-  deleteLoan(id: string) {
+  /**
+   * Borrar un préstamo se lleva su desembolso y todos sus pagos. Antes bastaba
+   * un clic, sin preguntar y sin deshacer.
+   */
+  askDelete(loan: LoanResponse) {
+    this.deleting.set(loan);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.deleting.set(null);
+  }
+
+  confirmDelete() {
+    const loan = this.deleting();
+    if (!loan) return;
+    this.showDeleteModal.set(false);
     this.api
-      .deleteLoan(id)
+      .deleteLoan(loan.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.loans.update((list) => list.filter((l) => l.id !== id));
-        if (this.selectedId() === id) this.selectedId.set(this.loans()[0]?.id ?? null);
+      .subscribe({
+        next: () => {
+          this.loans.update((list) => list.filter((l) => l.id !== loan.id));
+          if (this.selectedId() === loan.id) this.selectedId.set(this.loans()[0]?.id ?? null);
+          this.deleting.set(null);
+          this.notif.announce(this.i18n.t('loans.deleted'));
+        },
+        error: () => {
+          this.deleting.set(null);
+          this.notif.announce(this.i18n.t('common.load_error'));
+        },
       });
   }
 

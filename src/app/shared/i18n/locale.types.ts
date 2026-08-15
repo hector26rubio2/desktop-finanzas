@@ -350,6 +350,12 @@ export type TranslationKey =
   | 'loans.table_interes'
   | 'loans.table_capital'
   | 'loans.table_saldo'
+  | 'loans.delete_title'
+  | 'loans.delete_confirm'
+  | 'loans.deleted'
+  | 'recurring.delete_title'
+  | 'recurring.delete_confirm'
+  | 'recurring.deleted'
   | 'reports.tab_general'
   | 'reports.tab_categorias'
   | 'reports.tab_mes_a_mes'
@@ -556,4 +562,7 @@ export type TranslationKey =
   | 'cards.gastos_ciclo'
   | 'cards.interes_estimado'
   | 'cards.pago_minimo'
-  | 'cards.pago_total';
+  | 'cards.pago_total'
+  | 'common.mes_anterior'
+  | 'common.mes_siguiente'
+  | 'common.sin_datos';

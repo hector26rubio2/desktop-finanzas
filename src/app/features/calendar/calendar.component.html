@@ -3,7 +3,7 @@
 
   <div class="row-flex">
     <div class="row-flex__item">
-      <button class="btn btn--ghost btn--icon" (click)="prevMonth()">
+      <button class="btn btn--ghost btn--icon" [attr.aria-label]="i18n.t('common.mes_anterior')" (click)="prevMonth()">
         <svg
           width="12"
           height="12"
@@ -19,7 +19,7 @@
       <h3 class="serif" style="font-size: 24px; font-weight: 400; min-width: 240px; text-align: center">
         {{ monthName() }} {{ year() }}
       </h3>
-      <button class="btn btn--ghost btn--icon" (click)="nextMonth()">
+      <button class="btn btn--ghost btn--icon" [attr.aria-label]="i18n.t('common.mes_siguiente')" (click)="nextMonth()">
         <svg
           width="12"
           height="12"
