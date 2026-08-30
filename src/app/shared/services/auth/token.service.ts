@@ -10,7 +10,6 @@ export class TokenService {
   }
 
   set(user: UserInfo): void {
-
     const pref = localStorage.getItem('pref-base-currency');
     this.currentUser.set(pref ? { ...user, baseCurrency: pref } : user);
   }

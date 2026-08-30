@@ -77,6 +77,13 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
         kbd: 'g t',
       },
       {
+        id: 'installments',
+        key: 'nav.installments',
+        icon: 'calendar',
+        titleKey: 'header.installments',
+        subtitleKey: 'header_sub.installments',
+      },
+      {
         id: 'loans',
         key: 'nav.loans',
         icon: 'loan',
@@ -135,8 +142,6 @@ export const APP_NAVIGATION_GROUPS: readonly AppNavigationGroup[] = [
   },
 ];
 
-export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = APP_NAVIGATION_GROUPS.flatMap(
-  (group) => group.items,
-);
+export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = APP_NAVIGATION_GROUPS.flatMap((group) => group.items);
 
 export const APP_NAVIGATION_BY_ID = new Map(APP_NAVIGATION_ITEMS.map((item) => [item.id, item]));

@@ -9,6 +9,17 @@
   background: var(--bg-0);
 }
 
+.dt-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.dt-scroll .table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 .dt-row {
   transition: background 0.1s;
 }
@@ -22,7 +33,6 @@
 }
 
 .dt-sortable {
-  cursor: pointer;
   user-select: none;
 }
 
@@ -30,8 +40,28 @@
   color: var(--fg-0);
 }
 
+.dt-sort-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: inherit;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.dt-sort-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .dt-sort-icon {
-  font-size: 8px;
+  font-size: var(--fs-2xs);
   margin-left: 4px;
   color: var(--fg-3);
 }
@@ -41,4 +71,40 @@
   padding: 40px var(--pad-x);
   color: var(--fg-3);
 }
-.dt-tools{display:flex;justify-content:space-between;gap:var(--space-3);padding:var(--space-2)}.dt-tools details{position:relative}.dt-tools details label{display:block;padding:var(--space-1)}.dt-status{padding:var(--space-4);color:var(--fg-2)}.dt-status--error{color:var(--negative);background:var(--negative-soft)}
+.dt-tools {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2);
+}
+.dt-tools details {
+  position: relative;
+}
+.dt-tools details label {
+  display: block;
+  padding: var(--space-1);
+}
+.dt-status {
+  padding: var(--space-4);
+  color: var(--fg-2);
+}
+.dt-status--error {
+  color: var(--negative);
+  background: var(--negative-soft);
+}
+
+.dt-tools input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  background: var(--bg-0);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-input, 6px);
+  padding: 6px 10px;
+  color: var(--fg-0);
+  font-size: var(--fs-sm);
+}
+.dt-tools input:focus {
+  outline: none;
+  border-color: var(--accent);
+}

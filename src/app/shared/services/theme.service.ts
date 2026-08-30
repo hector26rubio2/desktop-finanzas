@@ -294,7 +294,7 @@ export class ThemeService {
     root.style.setProperty('--color-text-body', isDark ? 'var(--color-neutral-100)' : 'var(--color-neutral-900)');
     root.style.setProperty('--color-text-muted', isDark ? 'var(--color-neutral-400)' : 'var(--color-neutral-600)');
 
-    root.style.setProperty('--color-text-subtle', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-500)');
+    root.style.setProperty('--color-text-subtle', isDark ? 'var(--color-neutral-400)' : 'var(--color-neutral-600)');
 
     root.style.setProperty('--color-border-subtle', isDark ? 'var(--color-neutral-800)' : 'var(--color-neutral-200)');
     root.style.setProperty('--color-border-default', isDark ? 'var(--color-neutral-700)' : 'var(--color-neutral-300)');
@@ -344,8 +344,8 @@ export class ThemeService {
     root.style.setProperty('--fg-0', 'var(--color-text-body)');
     root.style.setProperty('--fg-1', 'var(--color-text-muted)');
     root.style.setProperty('--fg-2', 'var(--color-text-subtle)');
-    root.style.setProperty('--fg-3', isDark ? 'var(--color-neutral-500)' : 'var(--color-neutral-500)');
-    root.style.setProperty('--fg-4', isDark ? 'var(--color-neutral-600)' : 'var(--color-neutral-300)');
+    root.style.setProperty('--fg-3', 'var(--color-text-muted)');
+    root.style.setProperty('--fg-4', 'var(--color-text-muted)');
     root.style.setProperty('--accent', 'var(--color-primary)');
     root.style.setProperty(
       '--accent-soft',

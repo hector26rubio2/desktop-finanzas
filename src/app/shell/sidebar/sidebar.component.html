@@ -1,4 +1,4 @@
-<aside class="sidebar" aria-label="Navigation">
+<aside class="sidebar" [attr.aria-label]="i18n.t('common.main_nav')">
   <button
     type="button"
     class="sidebar__head"
@@ -28,7 +28,7 @@
 
   <nav class="sidebar__scroll" role="navigation" [attr.aria-label]="i18n.t('common.main_nav')">
     @for (group of navGroups(); track group.label) {
-      <div class="sidebar__group" role="separator">{{ group.label }}</div>
+      <div class="sidebar__group">{{ group.label }}</div>
       @for (item of group.items; track item.id) {
         <button
           class="nav-item"
@@ -72,17 +72,10 @@
         {{ userInitials() }}
       </button>
       @if (!collapsed()) {
-        <div
-          class="sidebar__foot-meta"
-          role="button"
-          tabindex="0"
-          (click)="toggleUserMenu()"
-          (keydown.enter)="toggleUserMenu()"
-          style="cursor: pointer"
-        >
+        <button type="button" class="sidebar__foot-meta" (click)="toggleUserMenu()" [attr.aria-label]="userName()">
           <div class="sidebar__foot-name">{{ userName() }}</div>
           <div class="sidebar__foot-mail">{{ userEmail() }}</div>
-        </div>
+        </button>
       }
       @if (showUserMenu()) {
         <app-user-menu

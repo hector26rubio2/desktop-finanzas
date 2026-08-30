@@ -2,6 +2,9 @@
   position: fixed;
   inset: 0;
   z-index: 49;
+  padding: 0;
+  border: 0;
+  background: transparent;
   background: transparent;
 }
 
@@ -66,7 +69,7 @@
 }
 
 .user-menu__mail {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--fg-3);
   white-space: nowrap;
   overflow: hidden;
@@ -110,7 +113,7 @@
 
 .user-menu__hint {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   font-family: var(--font-mono);
 }

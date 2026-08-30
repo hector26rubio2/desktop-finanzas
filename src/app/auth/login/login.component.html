@@ -1,5 +1,4 @@
 <main class="auth-main">
-
   <div class="auth-brand-panel">
     <div class="auth-brand-dots"></div>
     <div class="auth-brand-content">
@@ -72,7 +71,6 @@
     </div>
 
     <div class="auth-form-container">
-
       <div class="auth-mobile-brand">
         <svg
           class="auth-mobile-brand-icon"
@@ -112,7 +110,13 @@
               autocomplete="current-password"
               placeholder="••••••••"
             />
-            <button type="button" (click)="togglePassword()" class="auth-input-toggle">
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="auth-input-toggle"
+              [attr.aria-label]="passwordVisible() ? i18n.t('auth.hide_password') : i18n.t('auth.show_password')"
+              [attr.aria-pressed]="passwordVisible()"
+            >
               @if (passwordVisible()) {
                 <svg
                   width="20"

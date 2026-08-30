@@ -1,21 +1,4 @@
 <div class="view">
-  <div class="cat-header" style="justify-content: flex-end">
-    <button class="btn btn--primary btn--sm" (click)="openCreate()">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.2"
-        stroke-linecap="round"
-      >
-        <path d="M8 1v14M1 8h14" />
-      </svg>
-      {{ i18n.t('categories.nueva') }}
-    </button>
-  </div>
-
   @if (categories().length > 0) {
     <div class="cat-toolbar">
       <div class="cat-search">
@@ -52,70 +35,80 @@
           {{ i18n.t('categories.income') }}
         </button>
       </div>
+      <button class="btn btn--primary btn--sm cat-toolbar-new" (click)="openCreate()">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        >
+          <path d="M8 1v14M1 8h14" />
+        </svg>
+        {{ i18n.t('categories.nueva') }}
+      </button>
     </div>
   }
 
   @if (showModal()) {
     <app-modal
-      [title]="editing() ? i18n.t('accounts.editar_title') : i18n.t('categories.nueva')"
+      [title]="editing() ? i18n.t('categories.editar') : i18n.t('categories.nueva')"
       (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="cat-form-row">
-          <label style="flex: 2; min-width: 140px">
-            {{ i18n.t('categories.nombre') }}
-            <input formControlName="name" [placeholder]="i18n.t('categories.nombre_placeholder')" />
-            @if (form.get('name')?.invalid && form.get('name')?.touched) {
-              <span class="field-error">{{ i18n.t('accounts.required') }}</span>
-            }
-          </label>
-          <label style="flex: 0 0 60px">
-            {{ i18n.t('categories.color') }}
-            <input type="color" formControlName="color" style="height: 38px; padding: 4px" />
-          </label>
-          <label style="flex: 1; min-width: 100px">
-            {{ i18n.t('categories.tipo') }}
-            <select formControlName="type">
-              <option value="Income">{{ i18n.t('categories.income') }}</option>
-              <option value="Expense">{{ i18n.t('categories.expense') }}</option>
-            </select>
-          </label>
-        </div>
-        <div class="cat-form-row" style="margin-top: 10px">
-          <label style="flex: 1; min-width: 140px">
-            {{ i18n.t('categories.icono') }}
-            <div class="icon-preview-selected" [style.background]="form.value.color">
-              <app-cat-icon [icon]="form.value.icon ?? 'tag'" [size]="18"></app-cat-icon>
+        <div class="cat-modal-grid">
+          <div class="cat-modal-fields">
+            <label class="cat-field">
+              {{ i18n.t('categories.nombre') }}
+              <input formControlName="name" [placeholder]="i18n.t('categories.nombre_placeholder')" />
+              @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                <span class="field-error">{{ i18n.t('accounts.required') }}</span>
+              }
+            </label>
+            <div class="cat-form-row">
+              <label style="flex: 0 0 64px">
+                {{ i18n.t('categories.color') }}
+                <input type="color" formControlName="color" style="height: 36px; padding: 3px; width: 100%" />
+              </label>
+              <label style="flex: 1; min-width: 90px">
+                {{ i18n.t('categories.tipo') }}
+                <select formControlName="type">
+                  <option value="Income">{{ i18n.t('categories.income') }}</option>
+                  <option value="Expense">{{ i18n.t('categories.expense') }}</option>
+                </select>
+              </label>
+            </div>
+            <div class="cat-section-title" style="margin-top: 4px">
+              {{ i18n.localize('Traducciones', 'Translations', 'Traduções') }}
+            </div>
+            <label class="cat-tr"
+              ><span>CO · ES</span
+              ><input formControlName="nameEs" [attr.placeholder]="i18n.localize('Español', 'Spanish', 'Espanhol')"
+            /></label>
+            <label class="cat-tr"><span>US · EN</span><input formControlName="nameEn" placeholder="English" /></label>
+            <label class="cat-tr"><span>BR · PT</span><input formControlName="namePt" placeholder="Português" /></label>
+          </div>
+          <div class="cat-modal-icon">
+            <div class="cat-section-title">{{ i18n.t('categories.icono') }}</div>
+            <div class="cat-icon-head">
+              <div class="icon-preview-selected" [style.background]="form.value.color">
+                <app-cat-icon [icon]="form.value.icon ?? 'tag'" [size]="18"></app-cat-icon>
+              </div>
             </div>
             <app-icon-picker
               [selectedIcon]="form.value.icon ?? 'tag'"
               (iconChange)="onIconSelect($event)"
             ></app-icon-picker>
-          </label>
-        </div>
-        <div style="margin-top: 14px; margin-bottom: 4px">
-          <span class="cat-section-title">Traducciones</span>
-        </div>
-        <div class="cat-form-row">
-          <label style="flex: 1; min-width: 100px">
-            <span class="lang-badge">🇨🇴</span> ES
-            <input formControlName="nameEs" placeholder="Nombre en español" />
-          </label>
-          <label style="flex: 1; min-width: 100px">
-            <span class="lang-badge">🇺🇸</span> EN
-            <input formControlName="nameEn" placeholder="Name in English" />
-          </label>
-          <label style="flex: 1; min-width: 100px">
-            <span class="lang-badge">🇧🇷</span> PT
-            <input formControlName="namePt" placeholder="Nome em português" />
-          </label>
-        </div>
-        <div class="form-actions" style="margin-top: 16px">
-          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
-            {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
-          </button>
+            <div class="form-actions cat-modal-actions">
+              <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
+              <button type="submit" class="btn btn--primary" [disabled]="saving()">
+                {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </app-modal>
@@ -155,12 +148,25 @@
         {{ c.type === 'Income' ? i18n.t('categories.income') : i18n.t('categories.expense') }}
       </span>
     </ng-template>
+    <ng-template #estadoCell let-c>
+      <button
+        type="button"
+        class="cat-estado"
+        [class.cat-estado--on]="c.isActive !== false"
+        [class.cat-estado--off]="c.isActive === false"
+        (click)="$event.stopPropagation(); toggleActive(c)"
+        [title]="c.isActive !== false ? 'Clic para deshabilitar' : 'Clic para habilitar'"
+      >
+        <span class="cat-estado__dot"></span>
+        {{ c.isActive !== false ? 'Activa' : 'Inactiva' }}
+      </button>
+    </ng-template>
     <ng-template #actionsCell let-c>
-      <span (click)="$event.stopPropagation()">
+      <span>
         <button
           class="btn btn--ghost btn--icon"
           style="color: var(--negative)"
-          (click)="askDelete(c.id)"
+          (click)="$event.stopPropagation(); askDelete(c.id)"
           [title]="i18n.t('common.delete')"
         >
           <svg
@@ -182,6 +188,7 @@
       [data]="paged()"
       [trackBy]="trackById"
       [rowClickable]="true"
+      [rowClass]="rowClass"
       (rowClick)="openEdit($event)"
       [emptyMessage]="i18n.t('common.no_results')"
       [page]="page()"

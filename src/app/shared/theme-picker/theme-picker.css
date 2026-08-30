@@ -63,7 +63,7 @@
   display: block;
   padding: 8px 10px 6px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -140,7 +140,7 @@
 }
 
 .theme-option__desc {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 400;
   color: var(--fg-3);
   line-height: 1.3;

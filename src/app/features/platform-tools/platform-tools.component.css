@@ -179,6 +179,27 @@
   text-transform: uppercase;
 }
 
+.backup-warning {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--line-1));
+  background: color-mix(in srgb, var(--warning) 10%, var(--bg-1));
+  color: var(--fg-1);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.backup-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.backup-row input {
+  min-width: 0;
+}
+
 @media (max-width: 760px) {
   .audit-panel__header {
     flex-direction: column;
@@ -191,5 +212,9 @@
 
   .audit-summary {
     grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+
+  .backup-row {
+    grid-template-columns: 1fr;
   }
 }

@@ -14,7 +14,16 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       movements: [
-        { id: 'm1', type: 'Expense', accountId: 'cash', amount: 10, currency: 'USD', trmApplied: 4000, amountBase: 10, date: '2026-07-01' },
+        {
+          id: 'm1',
+          type: 'Expense',
+          accountId: 'cash',
+          amount: 10,
+          currency: 'USD',
+          trmApplied: 4000,
+          amountBase: 10,
+          date: '2026-07-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);
@@ -30,7 +39,16 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       movements: [
-        { id: 'm1', type: 'Expense', accountId: 'cash', amount: 10, currency: 'USD', trmApplied: 0, amountBase: 10, date: '2026-07-01' },
+        {
+          id: 'm1',
+          type: 'Expense',
+          accountId: 'cash',
+          amount: 10,
+          currency: 'USD',
+          trmApplied: 0,
+          amountBase: 10,
+          date: '2026-07-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);
@@ -44,11 +62,43 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       loans: [
-        { id: 'l1', description: 'Banco', principal: 1200, currency: 'COP', trmApplied: 1, paidMonths: 5, outstandingPrincipal: 1100, startDate: '2026-01-01' },
+        {
+          id: 'l1',
+          description: 'Banco',
+          principal: 1200,
+          currency: 'COP',
+          trmApplied: 1,
+          paidMonths: 5,
+          outstandingPrincipal: 1100,
+          startDate: '2026-01-01',
+        },
       ],
       movements: [
-        { id: 'd1', type: 'Income', accountId: 'cash', loanId: 'l1', operationType: 'LoanDisbursement', amount: 1200, currency: 'COP', trmApplied: 1, amountBase: 1200, date: '2026-01-01' },
-        { id: 'p1', type: 'Expense', accountId: 'cash', loanId: 'l1', operationType: 'LoanPayment', amount: 100, currency: 'COP', trmApplied: 1, amountBase: 100, principalComponent: 100, date: '2026-02-01' },
+        {
+          id: 'd1',
+          type: 'Income',
+          accountId: 'cash',
+          loanId: 'l1',
+          operationType: 'LoanDisbursement',
+          amount: 1200,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 1200,
+          date: '2026-01-01',
+        },
+        {
+          id: 'p1',
+          type: 'Expense',
+          accountId: 'cash',
+          loanId: 'l1',
+          operationType: 'LoanPayment',
+          amount: 100,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 100,
+          principalComponent: 100,
+          date: '2026-02-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);
@@ -61,13 +111,57 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account, card],
       installmentPurchases: [
-        { id: 'plan-1', purchaseMovementId: 'buy', accountId: 'card', currency: 'COP', totalAmount: 300, monthlyAmount: 100, installmentsCount: 3, paidCount: 2 },
+        {
+          id: 'plan-1',
+          purchaseMovementId: 'buy',
+          accountId: 'card',
+          currency: 'COP',
+          totalAmount: 300,
+          monthlyAmount: 100,
+          installmentsCount: 3,
+          paidCount: 2,
+        },
       ],
       movements: [
-        { id: 'buy', type: 'Expense', accountId: 'card', sourceType: 'CreditCard', installmentPurchaseId: 'plan-1', amount: 300, currency: 'COP', trmApplied: 1, amountBase: 300, date: '2026-07-01' },
+        {
+          id: 'buy',
+          type: 'Expense',
+          accountId: 'card',
+          sourceType: 'CreditCard',
+          installmentPurchaseId: 'plan-1',
+          amount: 300,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 300,
+          date: '2026-07-01',
+        },
 
-        { id: 'pay-out', type: 'Expense', accountId: 'cash', operationType: 'CreditPayment', operationId: 'op-1', installmentPurchaseId: 'plan-1', amount: 100, currency: 'COP', trmApplied: 1, amountBase: 100, date: '2026-08-01' },
-        { id: 'pay-in', type: 'Income', accountId: 'card', operationType: 'CreditPayment', operationId: 'op-1', installmentPurchaseId: 'plan-1', amount: 100, currency: 'COP', trmApplied: 1, amountBase: 100, date: '2026-08-01' },
+        {
+          id: 'pay-out',
+          type: 'Expense',
+          accountId: 'cash',
+          operationType: 'CreditPayment',
+          operationId: 'op-1',
+          installmentPurchaseId: 'plan-1',
+          amount: 100,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 100,
+          date: '2026-08-01',
+        },
+        {
+          id: 'pay-in',
+          type: 'Income',
+          accountId: 'card',
+          operationType: 'CreditPayment',
+          operationId: 'op-1',
+          installmentPurchaseId: 'plan-1',
+          amount: 100,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 100,
+          date: '2026-08-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);
@@ -80,8 +174,18 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       movements: [
-
-        { id: 't1', type: 'Expense', accountId: 'cash', operationType: 'Transfer', operationId: 'op-9', amount: 50, currency: 'COP', trmApplied: 1, amountBase: 50, date: '2026-07-01' },
+        {
+          id: 't1',
+          type: 'Expense',
+          accountId: 'cash',
+          operationType: 'Transfer',
+          operationId: 'op-9',
+          amount: 50,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 50,
+          date: '2026-07-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);
@@ -96,10 +200,30 @@ describe('planLocalDataRepair', () => {
     const data = input({
       accounts: [account],
       loans: [
-        { id: 'l1', description: 'Banco', principal: 1200, currency: 'COP', trmApplied: 1, paidMonths: 9, outstandingPrincipal: 1200, startDate: '2026-01-01' },
+        {
+          id: 'l1',
+          description: 'Banco',
+          principal: 1200,
+          currency: 'COP',
+          trmApplied: 1,
+          paidMonths: 9,
+          outstandingPrincipal: 1200,
+          startDate: '2026-01-01',
+        },
       ],
       movements: [
-        { id: 'd1', type: 'Income', accountId: 'cash', loanId: 'l1', operationType: 'LoanDisbursement', amount: 1200, currency: 'COP', trmApplied: 1, amountBase: 1200, date: '2026-01-01' },
+        {
+          id: 'd1',
+          type: 'Income',
+          accountId: 'cash',
+          loanId: 'l1',
+          operationType: 'LoanDisbursement',
+          amount: 1200,
+          currency: 'COP',
+          trmApplied: 1,
+          amountBase: 1200,
+          date: '2026-01-01',
+        },
       ],
     });
     const plan = planLocalDataRepair(auditLocalData(data), data);

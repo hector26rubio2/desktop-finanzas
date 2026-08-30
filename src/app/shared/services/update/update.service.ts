@@ -12,14 +12,17 @@ export interface UpdateInfo {
 
 declare global {
   interface Window {
-
     electronAPI?: {
       platform: string;
       log?: (level: 'log' | 'warn' | 'error', message: string, data?: unknown) => void;
       onUpdateStatus: (cb: (data: UpdateInfo) => void) => void;
       checkForUpdates: () => Promise<{ available: boolean; error?: string }>;
       downloadUpdate: () => Promise<{ success: boolean; error?: string }>;
-      installUpdate: () => void;
+      installUpdate: () => Promise<{ scheduled: boolean }>;
+      dialogs?: {
+        chooseBackupDestination: () => Promise<string | null>;
+        chooseBackupSource: () => Promise<string | null>;
+      };
     };
   }
 }

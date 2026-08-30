@@ -1,12 +1,14 @@
 @if (visible) {
   <div
     class="overlay"
-    (click)="closeModal.emit()"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeModal.emit()"
+    tabindex="-1"
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="i18n.t('common.search_dialog')"
   >
-    <div class="cmdk" (click)="$event.stopPropagation()">
+    <div class="cmdk">
       <div class="cmdk__input-wrap">
         <svg
           width="14"
@@ -26,7 +28,6 @@
           [ngModel]="query()"
           (ngModelChange)="onQueryChange($event)"
           (keydown)="onKeydown($event)"
-          autofocus
           role="combobox"
           aria-autocomplete="list"
           aria-controls="cmdk-list"
@@ -34,14 +35,22 @@
           [attr.aria-activedescendant]="results().length > 0 ? 'cmdk-opt-' + activeIndex() : null"
           [attr.aria-label]="i18n.t('common.search_input')"
         />
-        <span class="kbd" style="cursor: pointer" (click)="closeModal.emit()">ESC</span>
+        <button
+          type="button"
+          class="kbd cmdk__close"
+          (click)="closeModal.emit()"
+          [attr.aria-label]="i18n.t('common.cancel')"
+        >
+          ESC
+        </button>
       </div>
       <div class="cmdk__list" id="cmdk-list" role="listbox">
         @for (item of results(); track item.kind + item.id; let i = $index) {
           @if (showSection(i)) {
             <div class="cmdk__section">{{ sectionLabel(item.kind) }}</div>
           }
-          <div
+          <button
+            type="button"
             class="cmdk__item"
             [class.cmdk__item--active]="i === activeIndex()"
             [id]="'cmdk-opt-' + i"
@@ -57,7 +66,7 @@
             @if (item.kbd) {
               <span class="cmdk__item-kbd">{{ item.kbd }}</span>
             }
-          </div>
+          </button>
         }
         @if (results().length === 0) {
           <div class="cmdk__empty serif">{{ i18n.t('cmdk.no_results') }}</div>

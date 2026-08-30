@@ -25,6 +25,7 @@ export class PieChartComponent implements OnDestroy {
   totalLabel = input('TOTAL');
   currency = input('ARS');
   legendPosition = input<'bottom' | 'right'>('right');
+  ariaLabel = input('Expense distribution chart');
 
   private chart?: Chart;
 

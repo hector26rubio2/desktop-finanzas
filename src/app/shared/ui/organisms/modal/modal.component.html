@@ -2,7 +2,11 @@
   <div class="modal">
     <div class="modal__h">
       <span class="modal__title">{{ title() }}</span>
-      <button class="btn btn--ghost btn--icon" (click)="closeModal.emit()" aria-label="Close">
+      <button
+        class="btn btn--ghost btn--icon"
+        (click)="closeModal.emit()"
+        [attr.aria-label]="i18n.localize('Cerrar', 'Close', 'Fechar')"
+      >
         <svg
           width="14"
           height="14"

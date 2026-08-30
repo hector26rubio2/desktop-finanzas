@@ -112,7 +112,6 @@ export function planLocalDataRepair(report: LocalDataAuditReport, input: LocalDa
         const amount = finiteNumber(movement['amount']);
         const trmApplied = finiteNumber(movement['trmApplied']);
         if (amount === null || amount <= 0 || trmApplied === null || trmApplied <= 0) {
-
           skip(finding, 'Falta amount o trmApplied válido: no se puede deducir amountBase sin inventar una cifra.');
           break;
         }
@@ -137,7 +136,8 @@ export function planLocalDataRepair(report: LocalDataAuditReport, input: LocalDa
           break;
         }
         const linked = movements.filter(
-          (movement) => text(movement['loanId']) === finding.entityId && text(movement['operationType']) === 'LoanPayment',
+          (movement) =>
+            text(movement['loanId']) === finding.entityId && text(movement['operationType']) === 'LoanPayment',
         ).length;
         changes.push({
           code: finding.code,

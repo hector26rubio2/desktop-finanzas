@@ -1,48 +1,84 @@
 <section class="insights" aria-labelledby="financial-insights-title" [attr.aria-busy]="loading()">
   <header class="insights__header">
     <div>
-      <h2 id="financial-insights-title">Analítica financiera verificable</h2>
-      <p>Cifras calculadas en este dispositivo desde SQLite cifrado, en moneda base.</p>
+      <h2 id="financial-insights-title">{{ copy().title }}</h2>
+      <p>{{ copy().subtitle }}</p>
     </div>
     <div class="insights__actions">
       <button type="button" (click)="formulasOpen.set(!formulasOpen())" [attr.aria-expanded]="formulasOpen()">
-        Fórmulas
+        {{ copy().formulas }}
       </button>
       <button type="button" (click)="customizeOpen.set(!customizeOpen())" [attr.aria-expanded]="customizeOpen()">
-        Personalizar
+        {{ copy().customize }}
       </button>
-      <button type="button" (click)="load()">Actualizar</button>
+      <button type="button" (click)="load()">{{ copy().refresh }}</button>
     </div>
   </header>
 
   @if (customizeOpen()) {
     <fieldset class="widget-picker">
-      <legend>Paneles visibles</legend>
+      <legend>{{ copy().visiblePanels }}</legend>
       <label
-        ><input type="checkbox" [checked]="isVisible('kpis')" (change)="toggle('kpis')" /> KPIs
-        <button type="button" aria-label="Subir KPIs" (click)="move('kpis', -1)">↑</button
-        ><button type="button" aria-label="Bajar KPIs" (click)="move('kpis', 1)">↓</button></label
+        ><input type="checkbox" [checked]="isVisible('kpis')" (change)="toggle('kpis')" /> {{ copy().kpis }}
+        <button type="button" [attr.aria-label]="copy().moveUp + ' ' + copy().kpis" (click)="move('kpis', -1)">↑</button
+        ><button type="button" [attr.aria-label]="copy().moveDown + ' ' + copy().kpis" (click)="move('kpis', 1)">
+          ↓
+        </button></label
       >
       <label
-        ><input type="checkbox" [checked]="isVisible('risks')" (change)="toggle('risks')" /> Deuda y liquidez
-        <button type="button" aria-label="Subir deuda y liquidez" (click)="move('risks', -1)">↑</button
-        ><button type="button" aria-label="Bajar deuda y liquidez" (click)="move('risks', 1)">↓</button></label
+        ><input type="checkbox" [checked]="isVisible('risks')" (change)="toggle('risks')" /> {{ copy().risks }}
+        <button type="button" [attr.aria-label]="copy().moveUp + ' ' + copy().risks" (click)="move('risks', -1)">
+          ↑</button
+        ><button type="button" [attr.aria-label]="copy().moveDown + ' ' + copy().risks" (click)="move('risks', 1)">
+          ↓
+        </button></label
       >
       <label
-        ><input type="checkbox" [checked]="isVisible('composition')" (change)="toggle('composition')" /> Patrimonio
-        <button type="button" aria-label="Subir patrimonio" (click)="move('composition', -1)">↑</button
-        ><button type="button" aria-label="Bajar patrimonio" (click)="move('composition', 1)">↓</button></label
+        ><input type="checkbox" [checked]="isVisible('composition')" (change)="toggle('composition')" />
+        {{ copy().wealth }}
+        <button type="button" [attr.aria-label]="copy().moveUp + ' ' + copy().wealth" (click)="move('composition', -1)">
+          ↑</button
+        ><button
+          type="button"
+          [attr.aria-label]="copy().moveDown + ' ' + copy().wealth"
+          (click)="move('composition', 1)"
+        >
+          ↓
+        </button></label
       >
       <label
-        ><input type="checkbox" [checked]="isVisible('investments')" (change)="toggle('investments')" /> Inversiones
-        <button type="button" aria-label="Subir inversiones" (click)="move('investments', -1)">↑</button
-        ><button type="button" aria-label="Bajar inversiones" (click)="move('investments', 1)">↓</button></label
+        ><input type="checkbox" [checked]="isVisible('investments')" (change)="toggle('investments')" />
+        {{ copy().investments }}
+        <button
+          type="button"
+          [attr.aria-label]="copy().moveUp + ' ' + copy().investments"
+          (click)="move('investments', -1)"
+        >
+          ↑</button
+        ><button
+          type="button"
+          [attr.aria-label]="copy().moveDown + ' ' + copy().investments"
+          (click)="move('investments', 1)"
+        >
+          ↓
+        </button></label
       >
       <label
         ><input type="checkbox" [checked]="isVisible('reconciliation')" (change)="toggle('reconciliation')" />
-        Conciliación
-        <button type="button" aria-label="Subir conciliación" (click)="move('reconciliation', -1)">↑</button
-        ><button type="button" aria-label="Bajar conciliación" (click)="move('reconciliation', 1)">↓</button></label
+        {{ copy().reconciliation }}
+        <button
+          type="button"
+          [attr.aria-label]="copy().moveUp + ' ' + copy().reconciliation"
+          (click)="move('reconciliation', -1)"
+        >
+          ↑</button
+        ><button
+          type="button"
+          [attr.aria-label]="copy().moveDown + ' ' + copy().reconciliation"
+          (click)="move('reconciliation', 1)"
+        >
+          ↓
+        </button></label
       >
     </fieldset>
   }
@@ -50,30 +86,30 @@
   @if (formulasOpen()) {
     <dl class="formulas">
       <div>
-        <dt>Neto</dt>
-        <dd>Ingresos − gastos</dd>
+        <dt>{{ copy().net }}</dt>
+        <dd>{{ copy().netFormula }}</dd>
       </div>
       <div>
-        <dt>Tasa de ahorro</dt>
-        <dd>transferencias de ahorro ÷ ingresos × 100</dd>
+        <dt>{{ copy().savingsRate }}</dt>
+        <dd>{{ copy().savingsFormula }}</dd>
       </div>
       <div>
-        <dt>Carga financiera</dt>
-        <dd>servicio mensual de deuda ÷ ingresos × 100</dd>
+        <dt>{{ copy().burden }}</dt>
+        <dd>{{ copy().burdenFormula }}</dd>
       </div>
       <div>
         <dt>Runway</dt>
-        <dd>liquidez ÷ gasto promedio mensual de los últimos 3 meses</dd>
+        <dd>{{ copy().runwayFormula }}</dd>
       </div>
       <div>
-        <dt>Patrimonio</dt>
-        <dd>activos − pasivos</dd>
+        <dt>{{ copy().wealth }}</dt>
+        <dd>{{ copy().wealthFormula }}</dd>
       </div>
     </dl>
   }
 
   @if (loading()) {
-    <p class="state" role="status">Calculando…</p>
+    <p class="state" role="status">{{ copy().calculating }}</p>
   }
   @if (error(); as message) {
     <p class="state state--error" role="alert">{{ message }}</p>
@@ -82,52 +118,57 @@
   @if (!loading() && kpis(); as k) {
     @if (isVisible('kpis')) {
       <article class="panel" [style.order]="widgetOrder('kpis')">
-        <h3>KPIs del período</h3>
+        <h3>{{ copy().periodKpis }}</h3>
         <div class="kpi-grid">
           <button class="kpi" (click)="drill('Income')">
-            <span>Ingresos</span><strong>{{ money(k.income) }}</strong
+            <span>{{ copy().income }}</span
+            ><strong>{{ money(k.income) }}</strong
             ><small>MoM {{ percent(k.incomeMomPercent) }} · YoY {{ percent(k.incomeYoyPercent) }}</small>
           </button>
           <button class="kpi" (click)="drill('Expense')">
-            <span>Gastos</span><strong>{{ money(k.expense) }}</strong
+            <span>{{ copy().expenses }}</span
+            ><strong>{{ money(k.expense) }}</strong
             ><small>MoM {{ percent(k.expenseMomPercent) }} · YoY {{ percent(k.expenseYoyPercent) }}</small>
           </button>
           <div class="kpi">
-            <span>Neto</span><strong>{{ money(k.net) }}</strong
-            ><small>Ingresos − gastos</small>
+            <span>{{ copy().net }}</span
+            ><strong>{{ money(k.net) }}</strong
+            ><small>{{ copy().netFormula }}</small>
           </div>
           <div class="kpi">
-            <span>Ahorro</span><strong>{{ percent(k.savingsRate) }}</strong
+            <span>{{ copy().savings }}</span
+            ><strong>{{ percent(k.savingsRate) }}</strong
             ><small>{{ money(k.savings) }}</small>
           </div>
           <div class="kpi">
-            <span>Deuda total</span><strong>{{ money(k.totalDebt) }}</strong
-            ><small>Servicio: {{ money(k.monthlyDebtService) }}</small>
+            <span>{{ copy().totalDebt }}</span
+            ><strong>{{ money(k.totalDebt) }}</strong
+            ><small>{{ copy().service }}: {{ money(k.monthlyDebtService) }}</small>
           </div>
           <div class="kpi">
-            <span>Carga financiera</span
+            <span>{{ copy().burden }}</span
             ><strong [class.alert]="k.financialBurdenPercent > 35">{{ percent(k.financialBurdenPercent) }}</strong
-            ><small>Alerta sobre 35%</small>
+            ><small>{{ copy().alert35 }}</small>
           </div>
           <div class="kpi">
-            <span>Uso de tarjetas</span
-            ><strong [class.alert]="k.creditUtilizationPercent > 70">{{ percent(k.creditUtilizationPercent) }}</strong
-            >@if (k.creditCardsExcluded > 0) {
+            <span>{{ copy().cardUse }}</span
+            ><strong [class.alert]="k.creditUtilizationPercent > 70">{{ percent(k.creditUtilizationPercent) }}</strong>
+            @if (k.creditCardsExcluded > 0) {
               <small
-                >{{ k.creditCardsCounted }} de {{ k.creditCardsCounted + k.creditCardsExcluded }} tarjetas · el resto
-                está en otra moneda</small
+                >{{ k.creditCardsCounted }} / {{ k.creditCardsCounted + k.creditCardsExcluded }}
+                {{ copy().cardsOf }}</small
               >
             } @else {
-              <small>Alerta sobre 70%</small>
+              <small>{{ copy().alert70 }}</small>
             }
           </div>
           <div class="kpi">
-            <span>Runway</span><strong>{{ k.runwayMonths | number: '1.0-2' }} meses</strong
-            ><small>Liquidez ÷ gasto promedio</small>
+            <span>Runway</span><strong>{{ k.runwayMonths | number: '1.0-2' }} {{ copy().months }}</strong
+            ><small>{{ copy().runwayShort }}</small>
           </div>
         </div>
-        <h4>Categorías que explican el gasto</h4>
-        <div class="bars" role="img" aria-label="Distribución accesible del gasto por categoría">
+        <h4>{{ copy().expenseCategories }}</h4>
+        <div class="bars" role="img" [attr.aria-label]="copy().expenseDistribution">
           @for (cat of k.topExpenseCategories; track cat.categoryId ?? cat.name) {
             <button class="bar-row" (click)="drill('Expense', cat.categoryId)">
               <span>{{ cat.name }}</span
@@ -145,9 +186,9 @@
     <div class="panel-grid">
       @if (isVisible('composition')) {
         <article class="panel" [style.order]="widgetOrder('composition')">
-          <h3>Patrimonio y composición</h3>
-          <p class="currency">Moneda base: {{ p.baseCurrency }}</p>
-          <div class="bars" role="img" aria-label="Composición de activos por tipo">
+          <h3>{{ copy().wealthComposition }}</h3>
+          <p class="currency">{{ copy().baseCurrency }}: {{ p.baseCurrency }}</p>
+          <div class="bars" role="img" [attr.aria-label]="copy().assetComposition">
             @for (item of p.composition; track item.type) {
               <button type="button" class="bar-row" (click)="drillPortfolioType(item.type)">
                 <span>{{ item.type }}</span
@@ -157,20 +198,20 @@
               </button>
             }
           </div>
-          <h4>Evolución</h4>
-          <div class="evolution" role="img" aria-label="Evolución mensual de activos y pasivos">
+          <h4>{{ copy().evolution }}</h4>
+          <div class="evolution" role="group" [attr.aria-label]="copy().evolutionAria">
             @for (point of p.evolution; track point.date) {
               <button type="button" class="evolution__month" (click)="drillEvolution(point.date)">
                 <span>{{ point.date }}</span
                 ><i
                   class="assets"
                   [style.height.%]="(point.assets / maxEvolution()) * 100"
-                  [attr.title]="'Activos ' + money(point.assets)"
+                  [attr.title]="copy().assets + ' ' + money(point.assets)"
                 ></i
                 ><i
                   class="liabilities"
                   [style.height.%]="(point.liabilities / maxEvolution()) * 100"
-                  [attr.title]="'Pasivos ' + money(point.liabilities)"
+                  [attr.title]="copy().liabilities + ' ' + money(point.liabilities)"
                 ></i
                 ><small>{{ money(point.netWorth) }}</small>
               </button>
@@ -180,23 +221,23 @@
       }
       @if (isVisible('investments')) {
         <article class="panel" [style.order]="widgetOrder('investments')">
-          <h3>Inversiones</h3>
+          <h3>{{ copy().investments }}</h3>
           @if (!p.investments.length) {
-            <p class="state">[sin datos]</p>
+            <p class="state">{{ copy().noData }}</p>
           }
           @for (investment of p.investments; track investment.entityId) {
             <button type="button" class="investment" (click)="drillEntity(investment)">
               <strong>{{ investment.name }}</strong
               ><span
-                >Valor:
-                {{ investment.currentValueBase === null ? '[sin datos]' : money(investment.currentValueBase) }}</span
+                >{{ copy().value }}:
+                {{ investment.currentValueBase === null ? copy().noData : money(investment.currentValueBase) }}</span
               >
-              <span>Rentabilidad nominal: {{ percent(investment.nominalReturnPercent) }}</span
-              ><span>Rentabilidad real: {{ percent(investment.realReturnPercent) }}</span>
-              <span>Concentración: {{ percent(investment.concentrationPercent) }}</span
-              ><span>Comisiones: {{ money(investment.feesBase) }}</span>
+              <span>{{ copy().nominalReturn }}: {{ percent(investment.nominalReturnPercent) }}</span
+              ><span>{{ copy().realReturn }}: {{ percent(investment.realReturnPercent) }}</span>
+              <span>{{ copy().concentration }}: {{ percent(investment.concentrationPercent) }}</span
+              ><span>{{ copy().fees }}: {{ money(investment.feesBase) }}</span>
               @if (investment.missingData.length) {
-                <small class="missing">Faltan: {{ investment.missingData.join(', ') }}</small>
+                <small class="missing">{{ copy().missing }}: {{ investment.missingData.join(', ') }}</small>
               }
             </button>
           }
@@ -208,31 +249,31 @@
   @if (!loading() && overview(); as o) {
     @if (isVisible('risks')) {
       <article class="panel" [style.order]="widgetOrder('risks')">
-        <h3>Deuda, tarjetas y liquidez</h3>
-        <p class="currency">Cada barra abre los movimientos exactos del período.</p>
+        <h3>{{ copy().riskTitle }}</h3>
+        <p class="currency">{{ copy().riskSubtitle }}</p>
         <div class="risk-grid">
           <div>
-            <h4>Deuda por entidad</h4>
+            <h4>{{ copy().debtByEntity }}</h4>
             <app-financial-bar-chart
-              title="Deuda por entidad"
+              [title]="copy().debtByEntity"
               [data]="debtBars()"
               [currency]="o.baseCurrency"
               (selected)="drillEntity($event)"
             />
           </div>
           <div>
-            <h4>Tarjetas</h4>
+            <h4>{{ copy().cards }}</h4>
             <app-financial-bar-chart
-              title="Deuda en tarjetas"
+              [title]="copy().cardDebt"
               [data]="cardBars()"
               [currency]="o.baseCurrency"
               (selected)="drillEntity($event)"
             />
           </div>
           <div>
-            <h4>Liquidez</h4>
+            <h4>{{ copy().liquidity }}</h4>
             <app-financial-bar-chart
-              title="Liquidez por cuenta"
+              [title]="copy().liquidityByAccount"
               [data]="liquidityBars()"
               [currency]="o.baseCurrency"
               (selected)="drillEntity($event)"
@@ -250,15 +291,17 @@
         [style.order]="widgetOrder('reconciliation')"
         [class.reconciliation--error]="!r.isReconciled"
       >
-        <h3>{{ r.isReconciled ? '✓ Conciliación aprobada' : '⚠ Diferencias contables' }}</h3>
-        <p>Tolerancia: {{ money(r.tolerance) }} {{ r.baseCurrency }} · {{ r.generatedAt | date: 'medium' }}</p>
+        <h3>{{ r.isReconciled ? '✓ ' + copy().reconciled : '⚠ ' + copy().differences }}</h3>
+        <p>
+          {{ copy().tolerance }}: {{ money(r.tolerance) }} {{ r.baseCurrency }} · {{ r.generatedAt | date: 'medium' }}
+        </p>
         <div class="check-grid">
           @for (check of r.checks; track check.metric) {
             <div>
               <strong>{{ check.metric }}</strong
-              ><span>Servido {{ money(check.served) }}</span
-              ><span>Recalculado {{ money(check.recalculated) }}</span
-              ><span [class.alert]="!check.matches">Diferencia {{ money(check.difference) }}</span>
+              ><span>{{ copy().served }} {{ money(check.served) }}</span
+              ><span>{{ copy().recalculated }} {{ money(check.recalculated) }}</span
+              ><span [class.alert]="!check.matches">{{ copy().difference }} {{ money(check.difference) }}</span>
             </div>
           }
         </div>

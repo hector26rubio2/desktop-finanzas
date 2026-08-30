@@ -22,7 +22,7 @@
   border: 1px solid var(--line-1);
   border-radius: var(--radius-button);
   color: var(--fg-2);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-family: inherit;
   cursor: pointer;
   transition:
@@ -44,12 +44,12 @@
 
 .kbd {
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   background: var(--bg-3);
   border: 1px solid var(--line-2);
   border-radius: 3px;
   padding: 1px 4px;
-  color: var(--fg-3);
+  color: var(--fg-0);
 }
 
 .sidebar {
@@ -116,7 +116,7 @@
 
 .sidebar__brand-ver {
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   color: var(--fg-4);
   letter-spacing: 0.06em;
 }
@@ -165,7 +165,7 @@
 .sidebar__group {
   padding: 10px var(--pad-x) 4px;
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -247,7 +247,7 @@
 }
 .nav-item__badge {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   background: var(--bg-2);
   border: 1px solid var(--line);
@@ -293,6 +293,17 @@
 .sidebar__foot-meta {
   flex: 1;
   min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar__foot-meta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 .sidebar__foot-name {
   font-size: 12px;
@@ -303,7 +314,7 @@
   text-overflow: ellipsis;
 }
 .sidebar__foot-mail {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   white-space: nowrap;
   overflow: hidden;
@@ -416,6 +427,9 @@
 
 .content__body {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4px 0;
@@ -448,6 +462,9 @@
   position: fixed;
   inset: 0;
   z-index: 49;
+  padding: 0;
+  border: 0;
+  background: transparent;
   background: transparent;
   cursor: default;
 }
@@ -582,7 +599,7 @@
 }
 
 .user-menu__mail {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   white-space: nowrap;
   overflow: hidden;
@@ -621,7 +638,7 @@ select:focus-visible {
 .user-menu__hint {
   margin-left: auto;
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   color: var(--fg-4);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -650,7 +667,7 @@ select:focus-visible {
   border: 0;
   border-radius: var(--radius-button);
   color: var(--fg-2);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-family: var(--font-family);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -864,7 +881,7 @@ select:focus-visible {
 }
 
 .user-menu__lang-code {
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-family: var(--font-family);
   color: var(--fg-3);
   letter-spacing: 0.06em;

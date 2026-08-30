@@ -9,10 +9,20 @@ directories:
 files:
   - electron/**/*
   - dist/browser/**/*
-  - "!dist/browser/stats.html"
+  - '!dist/browser/stats.html'
+  - '!electron/**/*.test.js'
+  - '!electron/local-data/migrations/meta/*_snapshot.json'
 
 asarUnpack:
   - node_modules/better-sqlite3/**
+
+asar: true
+compression: maximum
+removePackageScripts: true
+electronLanguages:
+  - es
+  - en
+  - pt-BR
 
 # Aquí se empaquetaba un fichero de entorno de producción dentro del instalador.
 # Nada lo lee ya, y un fichero de secretos dentro de un distribuible es un
@@ -23,21 +33,44 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.ico
-  artifactName: "${productName}-${version}-Setup.${ext}"
+  icon: build/icon.png
+  verifyUpdateCodeSignature: true
+  artifactName: '${productName}-${version}-windows-${arch}-Setup.${ext}'
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  runAfterFinish: true
 
 mac:
   target:
     - target: dmg
       arch:
         - x64
-  icon: build/icon.icns
-  artifactName: "${productName}-${version}-mac-${arch}.${ext}"
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.png
+  artifactName: '${productName}-${version}-mac-${arch}.${ext}'
+  category: public.app-category.finance
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: build/icon.png
+  category: Office
+  artifactName: '${productName}-${version}-linux-${arch}.${ext}'
 
 publish:
   provider: github

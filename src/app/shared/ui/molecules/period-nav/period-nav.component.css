@@ -14,7 +14,7 @@
   border: 1px solid var(--line-1);
   background: var(--bg-2);
   color: var(--fg-2);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-btn),

@@ -29,6 +29,7 @@ const categories = sqliteTable('categories', {
   type: text('type').notNull(),
   translations: text('translations', { mode: 'json' }),
   isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   ...timestamps,
 });
 

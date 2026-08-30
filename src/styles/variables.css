@@ -1,5 +1,11 @@
 :root {
-  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--fs-lg:18px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --fs-lg: 18px;
 
   --color-primary-50: oklch(97% 0.012 280);
   --color-primary-100: oklch(92% 0.025 280);
@@ -77,7 +83,7 @@
 
   --color-text-body: var(--color-neutral-900);
   --color-text-muted: var(--color-neutral-600);
-  --color-text-subtle: var(--color-neutral-500);
+  --color-text-subtle: var(--color-neutral-600);
 
   --color-border-subtle: var(--color-neutral-200);
   --color-border-default: var(--color-neutral-300);
@@ -98,8 +104,8 @@
   --fg-0: var(--color-text-body);
   --fg-1: var(--color-text-muted);
   --fg-2: var(--color-text-subtle);
-  --fg-3: var(--color-neutral-500);
-  --fg-4: var(--color-neutral-300);
+  --fg-3: var(--color-text-muted);
+  --fg-4: var(--color-text-muted);
   --accent: var(--color-primary);
   --accent-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
   --accent-deep: var(--color-primary-600);
@@ -141,15 +147,15 @@
 }
 
 :root {
-  --fs-3xs: 9px;
-  --fs-2xs: 10px;
-  --fs-xs: 11px;
-  --fs-sm: 12px;
-  --fs-md: 13px;
+  --fs-3xs: 11px;
+  --fs-2xs: 12px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
 }
 
 :root {
-  --tap-target-sm: 28px;
+  --tap-target-sm: 32px;
 }
 
 :root,
@@ -157,7 +163,7 @@
   --row-h: 44px;
   --pad-x: 18px;
   --pad-y: 14px;
-  --fs-base: 13px;
+  --fs-base: 14px;
   --sidebar-w: 220px;
   --header-h: 52px;
   --titlebar-h: 40px;
@@ -253,7 +259,7 @@ table th.num {
 
 .eyebrow {
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;

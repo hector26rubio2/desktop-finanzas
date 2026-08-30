@@ -28,11 +28,7 @@ export class InstallmentsApiService {
     return from(this.rejectManualProgress(id, paidCount));
   }
 
-  payInstallment(
-    id: string,
-    sourceAccountId: string,
-    idempotencyKey: string,
-  ): Observable<InstallmentResponse> {
+  payInstallment(id: string, sourceAccountId: string, idempotencyKey: string): Observable<InstallmentResponse> {
     return from(this.pay(id, sourceAccountId, idempotencyKey));
   }
 
@@ -63,11 +59,7 @@ export class InstallmentsApiService {
     return this.required(movement.installmentPurchaseId);
   }
 
-  private async pay(
-    id: string,
-    sourceAccountId: string,
-    idempotencyKey: string,
-  ): Promise<InstallmentResponse> {
+  private async pay(id: string, sourceAccountId: string, idempotencyKey: string): Promise<InstallmentResponse> {
     if (!/^[A-Za-z0-9._:-]{1,128}$/.test(idempotencyKey)) throw new Error('invalid_idempotency_key');
     const item = await this.required(id);
     if (!item.accountId) throw new Error('installment_credit_account_is_missing');
@@ -76,14 +68,16 @@ export class InstallmentsApiService {
     );
     if (existing.length > 0) {
       const sourceLeg = existing.find(
-        (movement) => movement.operationType === 'CreditPayment'
-          && movement.type === 'Expense'
-          && movement.accountId === sourceAccountId,
+        (movement) =>
+          movement.operationType === 'CreditPayment' &&
+          movement.type === 'Expense' &&
+          movement.accountId === sourceAccountId,
       );
       const destinationLeg = existing.find(
-        (movement) => movement.operationType === 'CreditPayment'
-          && movement.type === 'Income'
-          && movement.accountId === item.accountId,
+        (movement) =>
+          movement.operationType === 'CreditPayment' &&
+          movement.type === 'Income' &&
+          movement.accountId === item.accountId,
       );
       const belongsToPlan = existing.every((movement) => movement.installmentPurchaseId === id);
       if (belongsToPlan && sourceLeg && destinationLeg && existing.length <= 3) return item;
@@ -94,17 +88,24 @@ export class InstallmentsApiService {
       this.local.get<AccountResponse>('account', item.accountId),
     ]);
     if (!source || !credit) throw new Error('installment_payment_account_not_found');
-    if (!source.isActive || source.type === 'Credit') throw new Error('installment_payment_requires_an_active_cash_or_debit_account');
+    if (!source.isActive || source.type === 'Credit')
+      throw new Error('installment_payment_requires_an_active_cash_or_debit_account');
     if (!credit.isActive || credit.type !== 'Credit') throw new Error('installment_purchase_credit_account_is_invalid');
-    if (source.currency.toUpperCase() !== item.currency.toUpperCase() || credit.currency.toUpperCase() !== item.currency.toUpperCase()) {
+    if (
+      source.currency.toUpperCase() !== item.currency.toUpperCase() ||
+      credit.currency.toUpperCase() !== item.currency.toUpperCase()
+    ) {
       throw new Error('cross_currency_installment_payment_requires_an_exchange_operation');
     }
 
-    if (!item.isActive || item.paidCount >= item.installmentsCount) throw new Error('installment_purchase_is_already_paid');
+    if (!item.isActive || item.paidCount >= item.installmentsCount)
+      throw new Error('installment_purchase_is_already_paid');
 
     const installmentNumber = item.paidCount + 1;
     const principalComponent = roundMoney(
-      installmentNumber === item.installmentsCount ? item.remainingAmount : Math.min(item.monthlyAmount, item.remainingAmount),
+      installmentNumber === item.installmentsCount
+        ? item.remainingAmount
+        : Math.min(item.monthlyAmount, item.remainingAmount),
     );
     const interestComponent = roundMoney(principalComponent * ((item.interestRatePercent ?? 0) / 100));
     const totalPayment = roundMoney(principalComponent + interestComponent);

@@ -6,11 +6,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   secureEncrypt: (plain) => ipcRenderer.invoke('secure:encrypt', plain),
   secureDecrypt: (b64) => ipcRenderer.invoke('secure:decrypt', b64),
   onUpdateStatus: (callback) => {
-    ipcRenderer.on('update-status', (_event, data) => callback(data));
+    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('update-status', listener);
+    return () => ipcRenderer.removeListener('update-status', listener);
   },
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   downloadUpdate: () => ipcRenderer.invoke('update:download'),
   installUpdate: () => ipcRenderer.invoke('update:install'),
+  dialogs: Object.freeze({
+    chooseBackupDestination: () => ipcRenderer.invoke('dialog:backup-destination'),
+    chooseBackupSource: () => ipcRenderer.invoke('dialog:backup-source'),
+  }),
   auth: Object.freeze({
     status: () => ipcRenderer.invoke('auth:status'),
     register: (payload) => ipcRenderer.invoke('auth:register', payload),

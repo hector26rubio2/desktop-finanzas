@@ -9,6 +9,7 @@ const schema = require('./schema');
 
 const SCHEMA_VERSION = 1;
 const MIGRATIONS = path.join(__dirname, 'migrations');
+const MAX_RATE_PERCENT = 1000;
 
 const ENTITY_TABLES = {
   movement: schema.movements,
@@ -24,12 +25,40 @@ const ENTITY_TABLES = {
 };
 
 const DEFAULT_INSTRUMENT_TYPES = [
-  ['Stock', 'Acción'], ['ETF', 'ETF'], ['Fund', 'Fondo'], ['Bond', 'Bono'],
-  ['Crypto', 'Cripto'], ['Cash', 'Efectivo'], ['Other', 'Otro'],
+  ['Stock', 'Acción'],
+  ['ETF', 'ETF'],
+  ['Fund', 'Fondo'],
+  ['Bond', 'Bono'],
+  ['Crypto', 'Cripto'],
+  ['Cash', 'Efectivo'],
+  ['Other', 'Otro'],
+];
+
+const DEFAULT_CATEGORIES = [
+  { name: 'Alimentación', icon: 'utensils', color: '#F59E0B', type: 'Expense' },
+  { name: 'Transporte', icon: 'car', color: '#3B82F6', type: 'Expense' },
+  { name: 'Vivienda', icon: 'home', color: '#8B5CF6', type: 'Expense' },
+  { name: 'Servicios', icon: 'zap', color: '#06B6D4', type: 'Expense' },
+  { name: 'Compras', icon: 'shopping-bag', color: '#F97316', type: 'Expense' },
+  { name: 'Ocio', icon: 'gamepad', color: '#EC4899', type: 'Expense' },
+  { name: 'Salud', icon: 'stethoscope', color: '#EF4444', type: 'Expense' },
+  { name: 'Educación', icon: 'graduation-cap', color: '#10B981', type: 'Expense' },
+  { name: 'Otros gastos', icon: 'tag', color: '#6B7280', type: 'Expense' },
+  { name: 'Salario', icon: 'briefcase', color: '#22C55E', type: 'Income' },
+  { name: 'Ventas', icon: 'hand-coins', color: '#84CC16', type: 'Income' },
+  { name: 'Inversiones', icon: 'trending-up', color: '#14B8A6', type: 'Income' },
+  { name: 'Otros ingresos', icon: 'circle-dollar-sign', color: '#0EA5E9', type: 'Income' },
 ];
 
 const NON_ORDINARY_KINDS = new Set([
-  'Transfer', 'Saving', 'LoanPayment', 'LoanDisbursement', 'LoanGiven', 'LoanReceived', 'CreditPayment', 'Investment',
+  'Transfer',
+  'Saving',
+  'LoanPayment',
+  'LoanDisbursement',
+  'LoanGiven',
+  'LoanReceived',
+  'CreditPayment',
+  'Investment',
 ]);
 
 const VIEWS = `
@@ -77,22 +106,36 @@ WHERE pe.is_active = 1;
 const number = (value) => Number(value || 0);
 
 class LocalDatabase {
-  constructor({ app, logger, databasePath }) {
+  constructor({ app, logger, databasePath, safeStorage, keyPath }) {
     this.app = app;
     this.logger = logger;
+    this.safeStorage = safeStorage;
     this.databasePath = databasePath || path.join(app.getPath('userData'), 'data', 'finanzas.sqlite3');
+    this.keyPath = keyPath || path.join(app.getPath('userData'), 'data', 'finanzas.key');
+    this.encrypted = false;
+    this.key = null;
   }
 
   open() {
     fs.mkdirSync(path.dirname(this.databasePath), { recursive: true });
+    this.key = this.#databaseKey();
     this.sqlite = new Database(this.databasePath);
+    if (this.key) {
+      this.#unlockOrMigrate(this.key);
+      this.encrypted = true;
+    } else {
+      this.encrypted = false;
+    }
     this.sqlite.pragma('journal_mode = WAL');
     this.sqlite.pragma('busy_timeout = 5000');
     this.orm = drizzle(this.sqlite, { schema });
     migrate(this.orm, { migrationsFolder: MIGRATIONS });
     this.sqlite.exec(VIEWS);
     this.sqlite.pragma('foreign_keys = ON');
+    this.#assertHealthy(this.sqlite);
+    this.#repairInvalidLegacyRates();
     this.#seedInstrumentTypes();
+    this.#seedCategories();
     return this.status();
   }
 
@@ -100,10 +143,18 @@ class LocalDatabase {
     this.sqlite?.close();
     this.sqlite = null;
     this.orm = null;
+    this.key?.fill(0);
+    this.key = null;
   }
 
   status() {
-    return { schemaVersion: SCHEMA_VERSION, path: this.databasePath, syncEnabled: false, encryptedPayloads: false };
+    return {
+      schemaVersion: SCHEMA_VERSION,
+      path: this.databasePath,
+      syncEnabled: false,
+      encryptedPayloads: this.encrypted,
+      encryption: this.encrypted ? 'chacha20-os-protected-key' : 'none',
+    };
   }
 
   owners() {
@@ -129,15 +180,20 @@ class LocalDatabase {
   }
 
   applyBatch(operations) {
-    if (!Array.isArray(operations) || operations.length === 0) throw new Error('At least one local operation is required');
+    if (!Array.isArray(operations) || operations.length === 0)
+      throw new Error('At least one local operation is required');
     for (const item of operations) {
       if (!item || !['put', 'remove'].includes(item.action)) throw new Error('Unsupported local batch action');
       this.#table(item.kind);
-      if (item.action === 'put' && (!item.value || typeof item.value !== 'object')) throw new Error('A document is required for local put');
-      if (item.action === 'remove' && (!item.id || typeof item.id !== 'string')) throw new Error('An id is required for local remove');
+      if (item.action === 'put' && (!item.value || typeof item.value !== 'object'))
+        throw new Error('A document is required for local put');
+      if (item.action === 'remove' && (!item.id || typeof item.id !== 'string'))
+        throw new Error('An id is required for local remove');
     }
     const run = this.sqlite.transaction(() =>
-      operations.map((item) => (item.action === 'put' ? this.#put(item.kind, item.value) : this.remove(item.kind, item.id))),
+      operations.map((item) =>
+        item.action === 'put' ? this.#put(item.kind, item.value) : this.remove(item.kind, item.id),
+      ),
     );
     return run();
   }
@@ -160,7 +216,13 @@ class LocalDatabase {
     if (query.type) conditions.push(eq(m.type, query.type));
     if (query.kind) conditions.push(eq(m.kind, query.kind));
     if (query.portfolioEntityId) {
-      conditions.push(or(eq(m.portfolioEntityId, query.portfolioEntityId), eq(m.accountId, query.portfolioEntityId), eq(m.loanId, query.portfolioEntityId)));
+      conditions.push(
+        or(
+          eq(m.portfolioEntityId, query.portfolioEntityId),
+          eq(m.accountId, query.portfolioEntityId),
+          eq(m.loanId, query.portfolioEntityId),
+        ),
+      );
     }
     const rows = this.orm
       .select({
@@ -185,15 +247,26 @@ class LocalDatabase {
   summary(year, month) {
     const calculate = (items) => {
       const ordinary = (item) => !NON_ORDINARY_KINDS.has(item.kind);
-      const income = items.filter((x) => x.type === 'Income' && ordinary(x)).reduce((sum, x) => sum + number(x.amountBase), 0);
-      const ordinaryExpense = items.filter((x) => x.type === 'Expense' && ordinary(x)).reduce((sum, x) => sum + number(x.amountBase), 0);
-      const loanInterest = items.filter((x) => x.kind === 'LoanPayment').reduce((sum, x) => sum + number(x.interestComponent), 0);
+      const income = items
+        .filter((x) => x.type === 'Income' && ordinary(x))
+        .reduce((sum, x) => sum + number(x.amountBase), 0);
+      const ordinaryExpense = items
+        .filter((x) => x.type === 'Expense' && ordinary(x))
+        .reduce((sum, x) => sum + number(x.amountBase), 0);
+      const loanInterest = items
+        .filter((x) => x.kind === 'LoanPayment')
+        .reduce((sum, x) => sum + number(x.interestComponent), 0);
       const savings = items.filter((x) => x.kind === 'Saving').reduce((sum, x) => sum + number(x.amountBase), 0);
       return { income, expense: ordinaryExpense + loanInterest, savings };
     };
     const items = this.movements({ year, month, page: 1, pageSize: 1_000_000 }).items;
     const previousDate = new Date(Date.UTC(Number(year), Number(month) - 2, 1));
-    const previous = this.movements({ year: previousDate.getUTCFullYear(), month: previousDate.getUTCMonth() + 1, page: 1, pageSize: 1_000_000 }).items;
+    const previous = this.movements({
+      year: previousDate.getUTCFullYear(),
+      month: previousDate.getUTCMonth() + 1,
+      page: 1,
+      pageSize: 1_000_000,
+    }).items;
     const current = calculate(items);
     const prior = calculate(previous);
     const delta = (value, base) => (base === 0 ? 0 : ((value - base) / Math.abs(base)) * 100);
@@ -203,7 +276,10 @@ class LocalDatabase {
       balance: current.income - current.expense,
       savings: current.savings,
       savingsRate: current.income > 0 ? (current.savings / current.income) * 100 : 0,
-      comparedToPreviousMonth: { incomeDelta: delta(current.income, prior.income), expenseDelta: delta(current.expense, prior.expense) },
+      comparedToPreviousMonth: {
+        incomeDelta: delta(current.income, prior.income),
+        expenseDelta: delta(current.expense, prior.expense),
+      },
     };
   }
 
@@ -215,50 +291,110 @@ class LocalDatabase {
         const account = accounts.get(id);
         const related = movements.filter((item) => item.accountId === id);
         const nativeAmount = (item) => {
-          if (!account || !item.currency || String(item.currency).toUpperCase() === String(account.currency).toUpperCase()) {
+          if (
+            !account ||
+            !item.currency ||
+            String(item.currency).toUpperCase() === String(account.currency).toUpperCase()
+          ) {
             return number(item.amount);
           }
           return 0;
         };
         const balance = related.reduce((sum, item) => sum + (item.type === 'Income' ? 1 : -1) * nativeAmount(item), 0);
-        const balanceBase = related.reduce((sum, item) => sum + (item.type === 'Income' ? 1 : -1) * number(item.amountBase), 0);
+        const balanceBase = related.reduce(
+          (sum, item) => sum + (item.type === 'Income' ? 1 : -1) * number(item.amountBase),
+          0,
+        );
         const debtSign = (item) => {
           if (account?.type !== 'Credit') return 0;
-          if (item.type === 'Expense' && (item.sourceType === 'CreditCard' || ['CreditPurchase', 'CreditInterest'].includes(item.kind))) return 1;
+          if (
+            item.type === 'Expense' &&
+            (item.sourceType === 'CreditCard' || ['CreditPurchase', 'CreditInterest'].includes(item.kind))
+          )
+            return 1;
           if (item.type === 'Income' && (item.sourceType === 'CreditCard' || item.kind === 'CreditPayment')) return -1;
           return 0;
         };
-        const outstandingDebt = Math.max(0, related.reduce((sum, item) => sum + debtSign(item) * nativeAmount(item), 0));
-        const outstandingDebtBase = Math.max(0, related.reduce((sum, item) => sum + debtSign(item) * number(item.amountBase), 0));
+        const outstandingDebt = Math.max(
+          0,
+          related.reduce((sum, item) => sum + debtSign(item) * nativeAmount(item), 0),
+        );
+        const outstandingDebtBase = Math.max(
+          0,
+          related.reduce((sum, item) => sum + debtSign(item) * number(item.amountBase), 0),
+        );
         const [cycleStart, cycleEnd] = this.#cardCycle(account?.billingDay, asOf);
         const cycleSign = (item) => {
           if (account?.type !== 'Credit') return 0;
           const occurred = String(item.date || '').slice(0, 10);
           if (occurred < cycleStart || occurred > cycleEnd) return 0;
-          if (item.type === 'Expense' && (item.sourceType === 'CreditCard' || ['CreditPurchase', 'CreditInterest'].includes(item.kind))) return 1;
+          if (
+            item.type === 'Expense' &&
+            (item.sourceType === 'CreditCard' || ['CreditPurchase', 'CreditInterest'].includes(item.kind))
+          )
+            return 1;
           if (item.type === 'Income' && item.sourceType === 'CreditCard' && item.kind !== 'CreditPayment') return -1;
           return 0;
         };
-        const cycleSpend = Math.max(0, related.reduce((sum, item) => sum + cycleSign(item) * nativeAmount(item), 0));
-        const cycleSpendBase = Math.max(0, related.reduce((sum, item) => sum + cycleSign(item) * number(item.amountBase), 0));
-        return [id, { balance, balanceBase, outstandingDebt, outstandingDebtBase, cycleSpend, cycleSpendBase, usedInCycle: outstandingDebt, usedInCycleBase: outstandingDebtBase }];
+        const cycleSpend = Math.max(
+          0,
+          related.reduce((sum, item) => sum + cycleSign(item) * nativeAmount(item), 0),
+        );
+        const cycleSpendBase = Math.max(
+          0,
+          related.reduce((sum, item) => sum + cycleSign(item) * number(item.amountBase), 0),
+        );
+        return [
+          id,
+          {
+            balance,
+            balanceBase,
+            outstandingDebt,
+            outstandingDebtBase,
+            cycleSpend,
+            cycleSpendBase,
+            usedInCycle: outstandingDebt,
+            usedInCycleBase: outstandingDebtBase,
+          },
+        ];
       }),
     );
   }
 
   backup(destination) {
     const defaultName = `finanzas-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite3`;
-    const target = destination ? path.resolve(destination) : path.join(this.app.getPath('userData'), 'backups', defaultName);
+    const target = destination
+      ? path.resolve(destination)
+      : path.join(this.app.getPath('userData'), 'backups', defaultName);
     fs.mkdirSync(path.dirname(target), { recursive: true });
+    if (fs.existsSync(target)) throw new Error('backup_destination_exists');
     this.sqlite.pragma('wal_checkpoint(TRUNCATE)');
-    fs.copyFileSync(this.databasePath, target);
-    return { path: target, schemaVersion: SCHEMA_VERSION, revision: this.#revision(this.sqlite) };
+    const staged = `${target}.partial-${process.pid}`;
+    try {
+      fs.copyFileSync(this.databasePath, staged, fs.constants.COPYFILE_EXCL);
+      fs.renameSync(staged, target);
+    } catch (error) {
+      if (fs.existsSync(staged)) fs.unlinkSync(staged);
+      throw error;
+    }
+    return {
+      path: target,
+      schemaVersion: SCHEMA_VERSION,
+      revision: this.#revision(this.sqlite),
+      encrypted: this.encrypted,
+    };
   }
 
   backupPreview(source) {
-    const check = new Database(path.resolve(source), { readonly: true });
+    const { database: check, encrypted } = this.#openCandidate(source);
     try {
-      return { schemaVersion: SCHEMA_VERSION, backupRevision: this.#revision(check), currentRevision: this.#revision(this.sqlite) };
+      this.#assertHealthy(check, true);
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        backupRevision: this.#revision(check),
+        currentRevision: this.#revision(this.sqlite),
+        encrypted,
+      };
     } finally {
       check.close();
     }
@@ -266,22 +402,32 @@ class LocalDatabase {
 
   restore(source, expectedCurrentRevision) {
     const candidate = path.resolve(source);
-    const check = new Database(candidate, { readonly: true });
+    if (candidate === path.resolve(this.databasePath)) throw new Error('restore_source_is_current_database');
+    const { database: check } = this.#openCandidate(candidate);
     try {
-      check.prepare('SELECT COUNT(*) AS count FROM movements').get();
+      this.#assertHealthy(check, true);
       const currentRevision = this.#revision(this.sqlite);
-      if (!expectedCurrentRevision || currentRevision !== expectedCurrentRevision) throw new Error('stale_restore_current_data_changed');
+      if (typeof expectedCurrentRevision !== 'string' || currentRevision !== expectedCurrentRevision)
+        throw new Error('stale_restore_current_data_changed');
     } finally {
       check.close();
     }
+    this.sqlite.pragma('wal_checkpoint(TRUNCATE)');
     this.close();
     const rollback = `${this.databasePath}.restore-rollback`;
+    const staged = `${this.databasePath}.restore-next`;
     if (fs.existsSync(this.databasePath)) fs.copyFileSync(this.databasePath, rollback);
     try {
-      fs.copyFileSync(candidate, this.databasePath);
+      fs.copyFileSync(candidate, staged);
+      for (const suffix of ['', '-wal', '-shm']) {
+        const current = `${this.databasePath}${suffix}`;
+        if (fs.existsSync(current)) fs.unlinkSync(current);
+      }
+      fs.renameSync(staged, this.databasePath);
       this.open();
       if (fs.existsSync(rollback)) fs.unlinkSync(rollback);
     } catch (error) {
+      if (fs.existsSync(staged)) fs.unlinkSync(staged);
       if (fs.existsSync(rollback)) fs.copyFileSync(rollback, this.databasePath);
       this.open();
       throw error;
@@ -290,6 +436,7 @@ class LocalDatabase {
   }
 
   #put(entity, value) {
+    this.#validate(entity, value);
     const table = this.#table(entity);
     const keys = Object.keys(getTableColumns(table));
     const now = new Date().toISOString();
@@ -306,9 +453,28 @@ class LocalDatabase {
     delete set.createdAt;
     if (hasTimestamps) set.updatedAt = now;
     const insert = this.orm.insert(table).values(row);
-    const finalized = Object.keys(set).length > 0 ? insert.onConflictDoUpdate({ target: table.id, set }) : insert.onConflictDoNothing();
+    const finalized =
+      Object.keys(set).length > 0 ? insert.onConflictDoUpdate({ target: table.id, set }) : insert.onConflictDoNothing();
     finalized.run();
     return this.get(entity, id);
+  }
+
+  #validate(entity, value) {
+    const rateFields =
+      {
+        account: ['interestRate'],
+        loan: ['interestRateAnnual'],
+        installmentpurchase: ['interestRatePercent'],
+        creditcardterms: ['purchaseApr', 'cashAdvanceApr', 'intlPurchaseApr', 'deferredDefaultApr'],
+        movement: ['loanInterestRate'],
+      }[String(entity).toLowerCase()] ?? [];
+    for (const field of rateFields) {
+      if (value[field] === undefined || value[field] === null || value[field] === '') continue;
+      const rate = Number(value[field]);
+      if (!Number.isFinite(rate) || rate < 0 || rate > MAX_RATE_PERCENT) {
+        throw new RangeError(`${field}_must_be_between_0_and_${MAX_RATE_PERCENT}`);
+      }
+    }
   }
 
   #table(entity) {
@@ -326,14 +492,179 @@ class LocalDatabase {
     run();
   }
 
+  #seedCategories() {
+    if (this.orm.select().from(schema.categories).all().length > 0) return;
+    const run = this.sqlite.transaction(() => {
+      for (const category of DEFAULT_CATEGORIES) this.#put('category', { ...category, isDefault: true });
+    });
+    run();
+  }
+
   #revision(database) {
-    return database.prepare("SELECT COALESCE(MAX(updated_at), '') AS revision FROM movements").get().revision;
+    const tables = database
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+      .all()
+      .map((row) => row.name);
+    const snapshot = tables.map((table) => {
+      const quoted = `"${String(table).replaceAll('"', '""')}"`;
+      const columns = database.prepare(`PRAGMA table_info(${quoted})`).all();
+      const hasUpdatedAt = columns.some((column) => column.name === 'updated_at');
+      return database
+        .prepare(
+          `SELECT COUNT(*) AS count${hasUpdatedAt ? ", COALESCE(MAX(updated_at), '') AS updatedAt" : ''} FROM ${quoted}`,
+        )
+        .get();
+    });
+    return crypto.createHash('sha256').update(JSON.stringify({ tables, snapshot })).digest('hex');
+  }
+
+  #databaseKey() {
+    if (!this.safeStorage) return null;
+    if (!this.safeStorage.isEncryptionAvailable())
+      throw new Error('OS encryption is unavailable; refusing to open financial data without encryption');
+    if (this.safeStorage.getSelectedStorageBackend?.() === 'basic_text')
+      throw new Error('The OS credential store is insecure; refusing to open financial data without encryption');
+
+    if (fs.existsSync(this.keyPath)) {
+      const encoded = this.safeStorage.decryptString(fs.readFileSync(this.keyPath));
+      const key = Buffer.from(encoded, 'hex');
+      if (key.length !== 32) throw new Error('The local database key is invalid');
+      return key;
+    }
+
+    const key = crypto.randomBytes(32);
+    const protectedKey = this.safeStorage.encryptString(key.toString('hex'));
+    fs.mkdirSync(path.dirname(this.keyPath), { recursive: true });
+    const staged = `${this.keyPath}.partial-${process.pid}`;
+    fs.writeFileSync(staged, protectedKey, { mode: 0o600, flag: 'wx' });
+    fs.renameSync(staged, this.keyPath);
+    return key;
+  }
+
+  #configureCipher(database, key) {
+    database.pragma("cipher = 'chacha20'");
+    database.key(key);
+    database.pragma('memory_security = ON');
+  }
+
+  #unlockOrMigrate(key) {
+    const hasData = fs.existsSync(this.databasePath) && fs.statSync(this.databasePath).size > 0;
+    if (!hasData) {
+      this.#configureCipher(this.sqlite, key);
+      return;
+    }
+
+    try {
+      this.#configureCipher(this.sqlite, key);
+      this.sqlite.prepare('SELECT COUNT(*) AS count FROM sqlite_master').get();
+      return;
+    } catch (encryptedError) {
+      this.sqlite.close();
+      this.sqlite = new Database(this.databasePath);
+      try {
+        this.sqlite.prepare('SELECT COUNT(*) AS count FROM sqlite_master').get();
+      } catch {
+        this.sqlite.close();
+        throw new Error('The financial database cannot be decrypted with this operating-system profile', {
+          cause: encryptedError,
+        });
+      }
+    }
+
+    const rollback = `${this.databasePath}.encryption-rollback`;
+    fs.copyFileSync(this.databasePath, rollback);
+    try {
+      this.sqlite.pragma('journal_mode = DELETE');
+      this.sqlite.pragma("cipher = 'chacha20'");
+      this.sqlite.rekey(key);
+      this.sqlite.close();
+      this.sqlite = new Database(this.databasePath);
+      this.#configureCipher(this.sqlite, key);
+      this.sqlite.prepare('SELECT COUNT(*) AS count FROM sqlite_master').get();
+      fs.unlinkSync(rollback);
+      this.logger?.info?.('database', 'legacy plaintext database encrypted successfully');
+    } catch (error) {
+      this.sqlite?.close();
+      fs.copyFileSync(rollback, this.databasePath);
+      fs.unlinkSync(rollback);
+      throw new Error('The legacy database could not be encrypted safely', { cause: error });
+    }
+  }
+
+  #openCandidate(source) {
+    const candidate = path.resolve(String(source || ''));
+    if (!source || !fs.existsSync(candidate) || !fs.statSync(candidate).isFile())
+      throw new Error('backup_file_not_found');
+
+    if (this.key) {
+      const encrypted = new Database(candidate, { readonly: true, fileMustExist: true });
+      try {
+        this.#configureCipher(encrypted, this.key);
+        encrypted.prepare('SELECT COUNT(*) AS count FROM sqlite_master').get();
+        return { database: encrypted, encrypted: true };
+      } catch {
+        encrypted.close();
+      }
+    }
+
+    const plain = new Database(candidate, { readonly: true, fileMustExist: true });
+    try {
+      plain.prepare('SELECT COUNT(*) AS count FROM sqlite_master').get();
+      return { database: plain, encrypted: false };
+    } catch (error) {
+      plain.close();
+      throw new Error('backup_is_invalid_or_uses_a_different_key', { cause: error });
+    }
+  }
+
+  #assertHealthy(database, requireLedger = false) {
+    const result = database.pragma('quick_check', { simple: true });
+    if (result !== 'ok') throw new Error(`database_integrity_check_failed:${result}`);
+    if (database.pragma('foreign_key_check').length > 0) throw new Error('database_foreign_key_check_failed');
+    if (requireLedger) {
+      const tables = new Set(
+        database
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
+          .all()
+          .map((row) => row.name),
+      );
+      for (const required of ['movements', 'accounts', 'categories', '__drizzle_migrations']) {
+        if (!tables.has(required)) throw new Error(`backup_missing_required_table:${required}`);
+      }
+    }
+  }
+
+  #repairInvalidLegacyRates() {
+    const repairs = [
+      ['accounts', 'interest_rate', 'NULL'],
+      ['loans', 'interest_rate_annual', '0'],
+      ['installment_purchases', 'interest_rate_percent', 'NULL'],
+      ['credit_card_terms', 'purchase_apr', 'NULL'],
+      ['credit_card_terms', 'cash_advance_apr', 'NULL'],
+      ['credit_card_terms', 'intl_purchase_apr', 'NULL'],
+      ['credit_card_terms', 'deferred_default_apr', 'NULL'],
+      ['movements', 'loan_interest_rate', 'NULL'],
+    ];
+    const run = this.sqlite.transaction(() => {
+      let changed = 0;
+      for (const [table, column, replacement] of repairs) {
+        const result = this.sqlite
+          .prepare(`UPDATE ${table} SET ${column} = ${replacement} WHERE ${column} < 0 OR ${column} > ?`)
+          .run(MAX_RATE_PERCENT);
+        changed += result.changes;
+      }
+      return changed;
+    });
+    const changed = run();
+    if (changed > 0)
+      this.logger?.warn?.('database', `${changed} invalid legacy interest rate value(s) were neutralized`);
   }
 
   #cardCycle(billingDay, asOf) {
-    const value = asOf instanceof Date
-      ? new Date(Date.UTC(asOf.getFullYear(), asOf.getMonth(), asOf.getDate()))
-      : new Date(`${String(asOf).slice(0, 10)}T12:00:00Z`);
+    const value =
+      asOf instanceof Date
+        ? new Date(Date.UTC(asOf.getFullYear(), asOf.getMonth(), asOf.getDate()))
+        : new Date(`${String(asOf).slice(0, 10)}T12:00:00Z`);
     if (Number.isNaN(value.getTime())) throw new Error('Invalid account balance date');
     const year = value.getUTCFullYear();
     const month = value.getUTCMonth();

@@ -7,7 +7,7 @@
         class="btn btn--ghost btn--icon"
         [disabled]="page() === 1"
         (click)="goPrev()"
-        [attr.aria-label]="'Previous page'"
+        [attr.aria-label]="i18n.t('common.previous')"
       >
         <svg
           width="12"
@@ -26,7 +26,7 @@
         class="btn btn--ghost btn--icon"
         [disabled]="page() >= totalPages()"
         (click)="goNext()"
-        [attr.aria-label]="'Next page'"
+        [attr.aria-label]="i18n.t('common.next')"
       >
         <svg
           width="12"
@@ -44,7 +44,13 @@
   </div>
   <div class="pg-footer-right">
     @for (size of pageSizes(); track size) {
-      <button class="pg-size" [class.pg-size--active]="pageSize() === size" (click)="changePageSize(size)">
+      <button
+        class="pg-size"
+        [class.pg-size--active]="pageSize() === size"
+        [attr.aria-label]="i18n.t('common.items_per_page') + ': ' + size"
+        [attr.aria-pressed]="pageSize() === size"
+        (click)="changePageSize(size)"
+      >
         {{ size }}
       </button>
     }

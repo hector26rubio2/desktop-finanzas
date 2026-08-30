@@ -18,7 +18,7 @@ export type LocalBatchOperation =
   | { action: 'remove'; kind: LocalKind; id: string; operation?: string };
 
 interface LocalApi {
-  status(): Promise<{ schemaVersion: number; encryptedPayloads: boolean }>;
+  status(): Promise<{ schemaVersion: number; encryptedPayloads: boolean; encryption: string }>;
   list<T>(entity: LocalKind): Promise<T[]>;
   get<T>(entity: LocalKind, id: string): Promise<T | null>;
   put<T>(entity: LocalKind, value: T): Promise<T>;
@@ -28,8 +28,10 @@ interface LocalApi {
   movements<T>(query: Record<string, unknown>): Promise<T>;
   summary<T>(year: number, month: number): Promise<T>;
   accountBalances<T>(ids: string[]): Promise<T>;
-  backup(destination?: string): Promise<{ path: string; schemaVersion: number; revision: string }>;
-  backupPreview(source: string): Promise<{ schemaVersion: number; backupRevision: string; currentRevision: string }>;
+  backup(destination?: string): Promise<{ path: string; schemaVersion: number; revision: string; encrypted: boolean }>;
+  backupPreview(
+    source: string,
+  ): Promise<{ schemaVersion: number; backupRevision: string; currentRevision: string; encrypted: boolean }>;
   restore(source: string, expectedCurrentRevision: string): Promise<{ schemaVersion: number }>;
 }
 
@@ -80,7 +82,10 @@ export class LocalDataRepository {
   }
 
   putMany<T>(kind: LocalKind, values: T[], _operation?: string): Promise<T[]> {
-    return this.required().putMany<T>(kind, values.map((value) => withMovementKind(kind, value)));
+    return this.required().putMany<T>(
+      kind,
+      values.map((value) => withMovementKind(kind, value)),
+    );
   }
 
   batch(operations: LocalBatchOperation[]): Promise<unknown[]> {

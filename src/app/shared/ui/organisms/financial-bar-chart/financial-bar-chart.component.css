@@ -1,1 +1,45 @@
-.financial-bars{display:grid;gap:6px}.financial-bar{display:grid;grid-template-columns:minmax(90px,1fr) 2fr minmax(90px,auto);gap:8px;align-items:center;border:0;background:transparent;color:var(--fg-2);font:inherit;text-align:left;padding:5px;cursor:pointer}.financial-bar:hover,.financial-bar:focus-visible{background:var(--hover);outline:1px solid var(--accent)}.track{height:8px;background:var(--bg-3);border-radius:9px;overflow:hidden}.track i{display:block;height:100%}.financial-bar span,.financial-bar strong,.financial-bar small{font-size:10px}.financial-bar small{grid-column:2/-1;color:var(--fg-3)}p{font-size:10px;color:var(--fg-3)}
+.financial-bars {
+  display: grid;
+  gap: 6px;
+}
+.financial-bar {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 2fr minmax(90px, auto);
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--fg-2);
+  font: inherit;
+  text-align: left;
+  padding: 5px;
+  cursor: pointer;
+}
+.financial-bar:hover,
+.financial-bar:focus-visible {
+  background: var(--hover);
+  outline: 1px solid var(--accent);
+}
+.track {
+  height: 8px;
+  background: var(--bg-3);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.track i {
+  display: block;
+  height: 100%;
+}
+.financial-bar span,
+.financial-bar strong,
+.financial-bar small {
+  font-size: var(--fs-2xs);
+}
+.financial-bar small {
+  grid-column: 2/-1;
+  color: var(--fg-3);
+}
+p {
+  font-size: var(--fs-2xs);
+  color: var(--fg-3);
+}

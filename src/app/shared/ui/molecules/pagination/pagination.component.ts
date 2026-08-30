@@ -1,5 +1,6 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../../i18n/i18n.service';
 
 @Component({
   selector: 'app-pagination',
@@ -10,6 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './pagination.component.css',
 })
 export class PaginationComponent {
+  readonly i18n = inject(I18nService);
   page = input.required<number>();
   totalPages = input.required<number>();
   totalItems = input.required<number>();

@@ -5,85 +5,14 @@
       (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
     >
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <label class="form-label">
-          {{ i18n.t('accounts.nombre') }}
-          <input formControlName="name" placeholder="{{ i18n.t('accounts.nombre_placeholder') }}" />
-          @if (form.get('name')?.invalid && form.get('name')?.touched) {
-            <span class="field-error">{{ i18n.t('accounts.required') }}</span>
-          }
-        </label>
-        <div class="acc-form-row">
-          <label class="form-label" style="flex: 1">
-            {{ i18n.t('accounts.tipo') }}
-            <select formControlName="type" (change)="onTypeChange()">
-              <option value="Cash">{{ i18n.t('accounts.tipo_efectivo') }}</option>
-              <option value="Debit">{{ i18n.t('accounts.tipo_debito') }}</option>
-              <option value="Credit">{{ i18n.t('accounts.tipo_credito') }}</option>
-            </select>
-          </label>
-          <label class="form-label" style="flex: 1">
-            {{ i18n.t('accounts.moneda') }}
-            <select formControlName="currency">
-              <option>ARS</option>
-              <option>USD</option>
-              <option>EUR</option>
-              <option>COP</option>
-            </select>
-          </label>
-        </div>
-        @if (isNotCash) {
-          <div class="acc-form-row">
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('accounts.banco') }}
-              <input formControlName="bank" placeholder="{{ i18n.t('accounts.banco_placeholder') }}" />
-            </label>
-            <label class="form-label" style="flex: 0 0 120px">
-              {{ i18n.t('accounts.ultimos_digitos') }}
-              <input
-                formControlName="lastFour"
-                maxlength="4"
-                placeholder="{{ i18n.t('accounts.ultimos_digitos_placeholder') }}"
-              />
-            </label>
-          </div>
-        }
-        @if (isCreditType) {
-          <div style="margin-top: 8px; margin-bottom: 4px">
-            <span class="acc-section-title">{{ i18n.t('accounts.tipo_credito') }}</span>
-          </div>
-          <label class="form-label">
-            {{ i18n.t('accounts.limite') }}
-            <input
-              type="number"
-              formControlName="creditLimit"
-              min="0"
-              step="1000"
-              placeholder="{{ i18n.t('accounts.limite_placeholder') }}"
-            />
-          </label>
-          <div class="acc-form-row">
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('accounts.dia_cierre') }}
-              <input type="number" formControlName="billingDay" min="1" max="31" />
-            </label>
-            <label class="form-label" style="flex: 1">
-              {{ i18n.t('accounts.dia_vencimiento') }}
-              <input type="number" formControlName="paymentDay" min="1" max="31" />
-            </label>
-          </div>
-          <label class="form-label">
-            {{ i18n.t('accounts.tasa_mensual') }}
-            <input type="number" formControlName="interestRate" min="0" step="0.01" />
-          </label>
-        }
-        <div class="form-actions" style="margin-top: 16px">
-          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ i18n.t('common.cancel') }}</button>
-          <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
-            {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
-          </button>
-        </div>
-      </form>
+      <app-dynamic-form
+        [form]="form"
+        [fields]="accountFields()"
+        [busy]="saving()"
+        [submitLabel]="i18n.t('common.save')"
+        (submitted)="save()"
+        (cancelled)="closeModal()"
+      />
     </app-modal>
   }
 

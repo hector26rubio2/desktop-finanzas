@@ -20,6 +20,8 @@ import { CatIconComponent } from '@ui/atoms/cat-icon/cat-icon.component';
 import { DataTableComponent, type ColumnDef } from '@ui/organisms/data-table/data-table.component';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
+import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.component';
+import { accountFormFields } from '../../shared/forms/entity-form.schemas';
 
 type AccTpl = TemplateRef<{ $implicit: AccountResponse; row: AccountResponse }>;
 
@@ -35,6 +37,7 @@ type AccTpl = TemplateRef<{ $implicit: AccountResponse; row: AccountResponse }>;
     CatIconComponent,
     DataTableComponent,
     SkeletonComponent,
+    DynamicFormComponent,
   ],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',
@@ -115,8 +118,11 @@ export class AccountsComponent implements OnInit {
     creditLimit: [null as number | null],
     billingDay: [null as number | null],
     paymentDay: [null as number | null],
-    interestRate: [null as number | null],
+    interestRate: [null as number | null, [Validators.min(0), Validators.max(1000)]],
+    isDefault: [false],
   });
+
+  accountFields = computed(() => accountFormFields());
 
   get isNotCash(): boolean {
     return this.form.value.type !== 'Cash';
@@ -236,7 +242,7 @@ export class AccountsComponent implements OnInit {
 
   openCreate() {
     this.editing.set(null);
-    this.form.reset({ type: 'Debit', currency: 'ARS' });
+    this.form.reset({ type: 'Debit', currency: 'ARS', isDefault: false });
     this.showModal.set(true);
   }
 
@@ -252,6 +258,7 @@ export class AccountsComponent implements OnInit {
       billingDay: a.billingDay,
       paymentDay: a.paymentDay,
       interestRate: a.interestRate,
+      isDefault: a.isDefault,
     });
     this.showModal.set(true);
   }
@@ -273,17 +280,18 @@ export class AccountsComponent implements OnInit {
     this.saving.set(true);
     const v = this.form.value;
     const editingAcc = this.editing();
+    const isCredit = v.type === 'Credit';
     const req: AccountRequest = {
       name: v.name!,
       type: v.type!,
       currency: v.currency!,
       bank: v.bank || undefined,
       lastFour: v.lastFour || undefined,
-      creditLimit: v.creditLimit ?? undefined,
-      billingDay: v.billingDay ?? undefined,
-      paymentDay: v.paymentDay ?? undefined,
-      interestRate: v.interestRate ?? undefined,
-      isDefault: editingAcc?.isDefault ?? false,
+      creditLimit: isCredit ? (v.creditLimit ?? undefined) : undefined,
+      billingDay: isCredit ? (v.billingDay ?? undefined) : undefined,
+      paymentDay: isCredit ? (v.paymentDay ?? undefined) : undefined,
+      interestRate: isCredit ? (v.interestRate ?? undefined) : undefined,
+      isDefault: v.isDefault ?? editingAcc?.isDefault ?? false,
     };
     const op = editingAcc ? this.api.updateAccount(editingAcc!.id, req) : this.api.createAccount(req);
     op.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

@@ -32,7 +32,7 @@
 
 .cards-filter {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   padding: 5px 10px;
   border-radius: 4px;
   border: 1px solid var(--line);
@@ -186,7 +186,7 @@
 
 .cc-card-bank {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--fg-3);
@@ -194,7 +194,7 @@
 
 .cc-card-brand {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--accent);
@@ -202,7 +202,7 @@
 }
 
 .cc-card-name {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--fg-0);
@@ -289,7 +289,7 @@
 }
 
 .cc-card-metric-value {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--fg-0);
   white-space: nowrap;
@@ -450,7 +450,7 @@
 
 .cards-row-sub {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   margin-top: 2px;
 }
@@ -478,7 +478,7 @@
 
 .cards-page-size {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   padding: 3px 9px;
   border-radius: 3px;
@@ -598,7 +598,9 @@
   border-radius: 3px;
   display: flex;
   align-items: center;
-  transition: color 120ms ease, background 120ms ease;
+  transition:
+    color 120ms ease,
+    background 120ms ease;
 }
 
 .cc-inst-delete:hover:not(:disabled) {

@@ -32,20 +32,20 @@
 
 .pg-count {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   text-transform: lowercase;
 }
 
 .pg-info {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--fg-2);
 }
 
 .pg-size {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   padding: 3px 9px;
   border-radius: 3px;

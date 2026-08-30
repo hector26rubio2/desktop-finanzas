@@ -1,12 +1,6 @@
 export type PortfolioEntityKind = 'Asset' | 'Liability';
 export type PortfolioEntityType =
-  | 'Cash'
-  | 'BankAccount'
-  | 'CreditCard'
-  | 'Loan'
-  | 'Investment'
-  | 'OtherAsset'
-  | 'OtherLiability';
+  'Cash' | 'BankAccount' | 'CreditCard' | 'Loan' | 'Investment' | 'OtherAsset' | 'OtherLiability';
 export type PortfolioValuationSource = 'MovementLedger' | 'ContractBalance' | 'MarketPrice' | 'Manual';
 export type InvestmentTransactionType = 'Contribution' | 'Withdrawal' | 'Buy' | 'Sell' | 'Fee';
 

@@ -71,10 +71,7 @@ export class PortfolioApiService {
     return this.local.put('portfolioentity', entity, 'create-investment');
   }
 
-  private async value(
-    entityId: string,
-    request: AddPortfolioValuationRequest,
-  ): Promise<PortfolioValuationDocument> {
+  private async value(entityId: string, request: AddPortfolioValuationRequest): Promise<PortfolioValuationDocument> {
     await this.requiredInvestment(entityId);
     const amount = this.positive(request.amount, 'valuation_amount_must_be_positive');
     const trmApplied = this.positive(request.trmApplied, 'valuation_trm_must_be_positive');
@@ -165,7 +162,7 @@ export class PortfolioApiService {
 
   private entityType(entity: PortfolioEntityDocument): string {
     return typeof entity.type === 'number'
-      ? ['Cash', 'BankAccount', 'CreditCard', 'Loan', 'Investment', 'OtherAsset', 'OtherLiability'][entity.type] ?? ''
+      ? (['Cash', 'BankAccount', 'CreditCard', 'Loan', 'Investment', 'OtherAsset', 'OtherLiability'][entity.type] ?? '')
       : entity.type;
   }
 

@@ -1,7 +1,12 @@
 <div class="period-picker-wrap">
   <ng-content select="[date-picker-trigger]" />
   @if (show()) {
-    <div class="picker-backdrop" (click)="onClose()"></div>
+    <button
+      type="button"
+      class="picker-backdrop"
+      [attr.aria-label]="i18n.t('common.cancel')"
+      (click)="onClose()"
+    ></button>
     <div class="date-picker">
       @if (granularity() === 'year') {
         <div class="dp-year-grid">

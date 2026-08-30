@@ -12,6 +12,12 @@ describe('PortfolioApiService local investments', () => {
   let service: PortfolioApiService;
   let documents: Map<LocalKind, Map<string, { id: string }>>;
 
+  function seed<T extends { id: string }>(kind: LocalKind, value: T): void {
+    const bucket = documents.get(kind) ?? new Map<string, { id: string }>();
+    bucket.set(value.id, structuredClone(value));
+    documents.set(kind, bucket);
+  }
+
   const local = {
     list: async <T>(kind: LocalKind) => [...(documents.get(kind)?.values() ?? [])] as T[],
     get: async <T>(kind: LocalKind, id: string) => (documents.get(kind)?.get(id) as T) ?? null,
@@ -37,7 +43,13 @@ describe('PortfolioApiService local investments', () => {
         {
           provide: TokenService,
           useValue: {
-            currentUser: () => ({ id: 'u', email: 'test@finanzas.app', name: 'Test', baseCurrency: 'COP', role: 'User' }),
+            currentUser: () => ({
+              id: 'u',
+              email: 'test@finanzas.app',
+              name: 'Test',
+              baseCurrency: 'COP',
+              role: 'User',
+            }),
           },
         },
       ],

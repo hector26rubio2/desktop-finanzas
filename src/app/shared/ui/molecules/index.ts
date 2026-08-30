@@ -1,4 +1,3 @@
-export { CardComponent } from './card/card.component';
 export { KpiStripComponent } from './kpi-strip/kpi-strip.component';
 export type { KpiStripItem } from './kpi-strip/kpi-strip.component';
 export { PaginationComponent } from './pagination/pagination.component';

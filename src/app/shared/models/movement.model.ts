@@ -28,7 +28,15 @@ export interface MovementResponse {
   portfolioType?: string | null;
   investmentTransactionType?: 'Contribution' | 'Withdrawal' | 'Buy' | 'Sell' | 'Fee' | null;
   operationId: string | null;
-  operationType: 'Transfer' | 'CreditPurchase' | 'CreditInterest' | 'CreditPayment' | 'LoanDisbursement' | 'LoanPayment' | 'Saving' | null;
+  operationType:
+    | 'Transfer'
+    | 'CreditPurchase'
+    | 'CreditInterest'
+    | 'CreditPayment'
+    | 'LoanDisbursement'
+    | 'LoanPayment'
+    | 'Saving'
+    | null;
   createdAt: string;
 }
 

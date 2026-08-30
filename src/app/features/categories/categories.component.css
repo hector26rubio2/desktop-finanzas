@@ -38,8 +38,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-1);
+  background: var(--bg-0);
+  border: 1px solid var(--line-2);
   border-radius: var(--radius-input);
   padding: 0 10px;
   height: 32px;
@@ -49,6 +49,9 @@
   color: var(--fg-2);
 }
 
+.cat-search:focus-within {
+  border-color: var(--accent);
+}
 .cat-search input {
   background: none;
   border: 0;
@@ -66,9 +69,14 @@
   margin-left: auto;
 }
 
+.cat-toolbar-new {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .cat-filter-btn {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -126,6 +134,52 @@
   background: var(--hover) !important;
 }
 
+.cat-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.cat-estado__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cat-estado--on {
+  color: var(--positive);
+  border-color: color-mix(in oklab, var(--positive) 40%, transparent);
+}
+.cat-estado--on .cat-estado__dot {
+  background: var(--positive);
+}
+.cat-estado--off {
+  color: var(--fg-3);
+  border-color: var(--line);
+}
+.cat-estado--off .cat-estado__dot {
+  background: var(--fg-4);
+}
+.cat-estado:hover {
+  background: var(--hover);
+}
+:host ::ng-deep .cat-row-disabled td {
+  opacity: 0.5;
+}
+
 .cat-icon-chip {
   width: 24px;
   height: 24px;
@@ -180,26 +234,26 @@
 
 .cat-count-inline {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   text-transform: lowercase;
 }
 
 .cat-page-info {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--fg-2);
 }
 
 .cat-page-info {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--fg-2);
 }
 
 .cat-page-size {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   padding: 3px 9px;
   border-radius: 3px;
@@ -230,8 +284,79 @@
 .cat-form-row {
   display: flex;
   gap: 12px;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
+}
+
+.cat-form-row > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cat-form-row .field-error {
+  min-height: 14px;
+  line-height: 14px;
+}
+
+.cat-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.2fr) minmax(200px, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.cat-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cat-modal-fields .cat-form-row {
+  flex-wrap: nowrap;
+}
+.cat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cat-tr {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.cat-tr > span {
+  flex: 0 0 54px;
+  font-size: var(--fs-xs);
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.cat-tr > input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.cat-modal-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.cat-modal-icon app-icon-picker {
+  flex: none;
+}
+.cat-modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cat-tr > input.ng-invalid.ng-touched {
+  border-color: var(--negative);
+}
+@media (max-width: 560px) {
+  .cat-modal-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .icon-preview-selected {
@@ -252,7 +377,7 @@
 
 .cat-section-title {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;

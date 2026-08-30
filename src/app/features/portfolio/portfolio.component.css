@@ -1,1 +1,59 @@
-.portfolio{overflow:auto}.portfolio-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-4)}.portfolio-kpis article{background:var(--bg-1);border:1px solid var(--line);border-radius:var(--radius-card);padding:var(--space-4);display:grid}.portfolio-kpis span{color:var(--fg-2)}.portfolio-kpis strong{font-size:var(--fs-lg)}.portfolio-filter,.portfolio-actions,.portfolio-form-row{display:flex;gap:var(--space-2)}.portfolio-filter{margin-bottom:var(--space-3)}.portfolio-actions{align-items:center}.portfolio-form-row>.form-label{flex:1}.portfolio-form-help{color:var(--fg-2);font-size:var(--fs-xs);line-height:1.5}.form-actions{margin-top:var(--space-4)}@media(max-width:720px){.portfolio-kpis{grid-template-columns:1fr}.content__header,.portfolio-form-row{align-items:stretch;flex-direction:column}.portfolio-actions{align-items:stretch;flex-wrap:wrap}}
+.portfolio {
+  overflow: auto;
+}
+.portfolio-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.portfolio-kpis article {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: grid;
+}
+.portfolio-kpis span {
+  color: var(--fg-2);
+}
+.portfolio-kpis strong {
+  font-size: var(--fs-lg);
+}
+.portfolio-filter,
+.portfolio-actions,
+.portfolio-form-row {
+  display: flex;
+  gap: var(--space-2);
+}
+.portfolio-filter {
+  margin-bottom: var(--space-3);
+}
+.portfolio-actions {
+  align-items: center;
+}
+.portfolio-form-row > .form-label {
+  flex: 1;
+}
+.portfolio-form-help {
+  color: var(--fg-2);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+.form-actions {
+  margin-top: var(--space-4);
+}
+@media (max-width: 720px) {
+  .portfolio-kpis {
+    grid-template-columns: 1fr;
+  }
+  .content__header,
+  .portfolio-form-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .portfolio-actions {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+}

@@ -28,6 +28,10 @@ opencode.json
 *.log
 npm-debug.log*
 .agents
+
+# Artefactos generados (regenerables, no se versionan)
+graphify-out/
+.shots/
 # Google OAuth secrets
 client_secret_*.json
 # Lleva apiUrl, googleClientId y encryptionKey con valores reales. Nadie lo lee

@@ -23,6 +23,7 @@ export class LineChartComponent implements OnDestroy {
   labels = input<string[]>([]);
   incomeLabel = input('Income');
   expenseLabel = input('Expense');
+  ariaLabel = input('Income versus expense trend chart');
   maxTicksLimit = input(15);
   yMin = input<number | undefined>(undefined);
   yMax = input<number | undefined>(undefined);

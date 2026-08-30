@@ -86,6 +86,9 @@ export class ApiService {
   deleteCategory(id: string): Observable<void> {
     return this.categoriesApi.deleteCategory(id);
   }
+  setCategoryActive(id: string, isActive: boolean): Observable<CategoryResponse> {
+    return this.categoriesApi.setActive(id, isActive);
+  }
   updateCategory(
     id: string,
     req: {

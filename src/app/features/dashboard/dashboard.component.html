@@ -18,7 +18,12 @@
           {{ ds.currentLabel() }}
         </button>
         @if (showPicker()) {
-          <div class="picker-backdrop" (click)="closePicker()"></div>
+          <button
+            type="button"
+            class="picker-backdrop"
+            [attr.aria-label]="i18n.t('common.cancel')"
+            (click)="closePicker()"
+          ></button>
           <div class="date-picker">
             @if (ds.granularity() === 'year') {
               <div class="dp-year-grid">
@@ -82,16 +87,17 @@
     </div>
   </div>
 
-  <section class="power-filters" aria-label="Filtros globales del dashboard">
+  <section class="power-filters" [attr.aria-label]="i18n.t('dashboard.global_filters')">
     <div class="power-filters__title">
-      <span>Filtros globales</span><small>Filtran flujo, categorías y movimientos</small>
+      <span>{{ i18n.t('dashboard.global_filters') }}</span
+      ><small>{{ i18n.t('dashboard.global_filters_hint') }}</small>
     </div>
     <select
       [ngModel]="ds.accountFilterId()"
       (ngModelChange)="ds.setAccountFilterId($event)"
-      aria-label="Filtrar por cuenta"
+      [attr.aria-label]="i18n.t('dashboard.filter_account')"
     >
-      <option value="">Todas las cuentas</option>
+      <option value="">{{ i18n.t('dashboard.all_accounts') }}</option>
       @for (account of ds.accountOptions(); track account.id) {
         <option [value]="account.id">{{ account.name }}</option>
       }
@@ -99,9 +105,9 @@
     <select
       [ngModel]="ds.currencyFilter()"
       (ngModelChange)="ds.setCurrencyFilter($event)"
-      aria-label="Filtrar por moneda"
+      [attr.aria-label]="i18n.t('dashboard.filter_currency')"
     >
-      <option value="">Todas las monedas</option>
+      <option value="">{{ i18n.t('common.all_currencies') }}</option>
       @for (currency of ds.currencyOptions(); track currency) {
         <option [value]="currency">{{ currency }}</option>
       }
@@ -109,19 +115,25 @@
     <select
       [ngModel]="ds.categoryFilterId()"
       (ngModelChange)="ds.setCategoryFilterId($event)"
-      aria-label="Filtrar por categoría"
+      [attr.aria-label]="i18n.t('dashboard.filter_category')"
     >
-      <option value="">Todas las categorías</option>
+      <option value="">{{ i18n.t('dashboard.all_categories') }}</option>
       @for (category of ds.categories(); track category.id) {
         <option [value]="category.id">{{ catName(category) }}</option>
       }
     </select>
-    <select [ngModel]="ds.typeFilter()" (ngModelChange)="ds.setTypeFilter($event)" aria-label="Filtrar por tipo">
-      <option value="all">Ingresos y gastos</option>
-      <option value="Income">Solo ingresos</option>
-      <option value="Expense">Solo gastos</option>
+    <select
+      [ngModel]="ds.typeFilter()"
+      (ngModelChange)="ds.setTypeFilter($event)"
+      [attr.aria-label]="i18n.t('dashboard.filter_type')"
+    >
+      <option value="all">{{ i18n.t('dashboard.income_expense') }}</option>
+      <option value="Income">{{ i18n.t('dashboard.income_only') }}</option>
+      <option value="Expense">{{ i18n.t('dashboard.expense_only') }}</option>
     </select>
-    <button type="button" class="btn btn--ghost btn--sm" (click)="ds.resetFilters()">Restablecer</button>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="ds.resetFilters()">
+      {{ i18n.t('dashboard.reset_filters') }}
+    </button>
   </section>
 
   @if (ds.loading()) {
@@ -139,7 +151,7 @@
       <div class="card">
         <div class="card__h">
           <div class="cashflow-title">
-            <span class="card__title">Cashflow</span
+            <span class="card__title">{{ i18n.t('dashboard.cashflow') }}</span
             ><span class="eyebrow cashflow-title__sub">&middot; {{ cashflowSubtitle() }}</span>
           </div>
           <div class="legend-inline">
@@ -153,6 +165,7 @@
               [data]="ds.lineData()"
               [incomeLabel]="i18n.t('dashboard.ingresos')"
               [expenseLabel]="i18n.t('dashboard.gastos')"
+              [ariaLabel]="i18n.t('dashboard.cashflow')"
               [maxTicksLimit]="lineChartMaxTicks()"
               [yMin]="lineChartYRange().yMin"
               [yMax]="lineChartYRange().yMax"
@@ -195,6 +208,7 @@
             <span class="filter-tag-sep"></span>
             <select
               class="filter-tag-select"
+              [attr.aria-label]="i18n.t('transactions.filtro_categoria')"
               [ngModel]="ds.categoryFilterId()"
               (ngModelChange)="ds.setCategoryFilterId($event)"
             >
@@ -208,7 +222,12 @@
         <div class="card__body card__body--center">
           <div class="donut-wrap">
             @if (ds.categoryExpenses().length > 0) {
-              <app-pie-chart [categories]="ds.categoryExpenses()" [currency]="baseCurrency()" legendPosition="bottom" />
+              <app-pie-chart
+                [categories]="ds.categoryExpenses()"
+                [currency]="baseCurrency()"
+                [ariaLabel]="i18n.t('dashboard.gastos_categoria')"
+                legendPosition="bottom"
+              />
             } @else {
               <div class="empty-state p-40 donut-empty">
                 <p>{{ i18n.t('dashboard.sin_datos') }}</p>

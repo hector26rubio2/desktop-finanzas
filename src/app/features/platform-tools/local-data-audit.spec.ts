@@ -154,9 +154,7 @@ describe('auditLocalData', () => {
     data.accounts = [{ id: 'cash' }, { id: 'credit' }];
     data.categories = [{ id: 'category' }];
     data.loans = [{ id: 'loan', accountId: 'cash', principal: 100, outstandingPrincipal: 100, paidMonths: 0 }];
-    data.installmentPurchases = [
-      { id: 'plan', accountId: 'credit', purchaseMovementId: 'purchase', paidCount: 1 },
-    ];
+    data.installmentPurchases = [{ id: 'plan', accountId: 'credit', purchaseMovementId: 'purchase', paidCount: 1 }];
     data.movements = [
       movement({
         id: 'loan:disbursement',
@@ -201,9 +199,7 @@ describe('auditLocalData', () => {
     const data = emptyData();
     data.accounts = [{ id: 'cash' }, { id: 'credit' }];
     data.loans = [{ id: 'loan', accountId: 'cash', principal: 100, outstandingPrincipal: 100, paidMonths: 2 }];
-    data.installmentPurchases = [
-      { id: 'plan', accountId: 'credit', purchaseMovementId: 'purchase', paidCount: 2 },
-    ];
+    data.installmentPurchases = [{ id: 'plan', accountId: 'credit', purchaseMovementId: 'purchase', paidCount: 2 }];
     data.movements = [
       movement({
         id: 'legacy-loan',

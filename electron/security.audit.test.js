@@ -5,7 +5,6 @@ const test = require('node:test');
 
 const read = (relative) => fs.readFileSync(path.resolve(__dirname, relative), 'utf8');
 
-
 test('the main process exposes no traffic encryption and derives no key from the environment', () => {
   const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\/|(^|\s)\/\/.*$/gm, '$1');
   const security = withoutComments(read('services/security.js'));
@@ -20,7 +19,11 @@ test('the main process exposes no traffic encryption and derives no key from the
 
   const main = withoutComments(read('main.js'));
   assert.doesNotMatch(main, /loadEnvironment|readFileSync/, 'main.js vuelve a cargar un fichero de entorno');
-  assert.doesNotMatch(withoutComments(read('../electron-builder.yml')), /\.env/, 'el instalador vuelve a empaquetar un .env');
+  assert.doesNotMatch(
+    withoutComments(read('../electron-builder.yml')),
+    /\.env/,
+    'el instalador vuelve a empaquetar un .env',
+  );
   assert.match(security, /safeStorage\.encryptString/);
   assert.match(security, /safeStorage\.decryptString/);
 });
@@ -46,13 +49,19 @@ test('no server is left to call and the profile never leaves the main process', 
   for (const file of ['../src/environments/environment.ts', '../src/environments/environment.prod.ts']) {
     assert.doesNotMatch(read(file), /apiUrl/);
   }
-  
-  const assets = path.resolve(__dirname, '..', 'src', 'assets');
-  const assetFiles = fs.existsSync(assets) ? fs.readdirSync(assets, { recursive: true }) : [];
-  for (const entry of assetFiles) {
-    const file = path.join(assets, String(entry));
-    if (!fs.statSync(file).isFile()) continue;
-    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /encryptionKey|clientSecret|apiUrl|password/i, `secreto publicado en src/assets/${entry}`);
+
+  for (const relativeRoot of ['src/assets', 'public']) {
+    const root = path.resolve(__dirname, '..', relativeRoot);
+    const files = fs.existsSync(root) ? fs.readdirSync(root, { recursive: true }) : [];
+    for (const entry of files) {
+      const file = path.join(root, String(entry));
+      if (!fs.statSync(file).isFile()) continue;
+      assert.doesNotMatch(
+        fs.readFileSync(file, 'utf8'),
+        /encryptionKey|clientSecret|apiUrl|password/i,
+        `configuración sensible publicada en ${relativeRoot}/${entry}`,
+      );
+    }
   }
   assert.doesNotMatch(appConfig, /provideHttpClient/);
   assert.doesNotMatch(authIpc, /require\(|fs\./);
@@ -66,4 +75,33 @@ test('local server rejects traversal outside distribution root', () => {
   assert.match(server, /path\.resolve\(root/);
   assert.match(server, /startsWith\(/);
   assert.match(server, /path\.join\(root, 'index\.html'\)/);
+});
+
+test('browser navigation and every privileged IPC surface reject untrusted documents', () => {
+  const windowService = read('services/window.js');
+  const ipcSecurity = read('services/ipc-security.js');
+  const localIpc = read('local-data/ipc.js');
+  const authIpc = read('local-data/auth-ipc.js');
+  const securityIpc = read('services/security.js');
+  const updaterIpc = read('services/updater.js');
+  const dialogsIpc = read('services/dialogs.js');
+  const main = read('main.js');
+  assert.match(windowService, /will-navigate/);
+  assert.match(windowService, /preventDefault/);
+  assert.match(windowService, /will-attach-webview/);
+  assert.match(ipcSecurity, /senderFrame/);
+  assert.match(ipcSecurity, /mainFrame/);
+  assert.match(ipcSecurity, /trustedOrigins/);
+  for (const source of [localIpc, authIpc, securityIpc, updaterIpc, dialogsIpc, main])
+    assert.match(source, /assertTrustedSender/);
+});
+
+test('the database uses an OS-protected key and encrypted backups', () => {
+  const database = read('local-data/database.js');
+  assert.match(database, /safeStorage\.encryptString/);
+  assert.match(database, /safeStorage\.decryptString/);
+  assert.match(database, /cipher = 'chacha20'/);
+  assert.match(database, /\.rekey\(key\)/);
+  assert.match(database, /encryptedPayloads: this\.encrypted/);
+  assert.doesNotMatch(read('preload.js'), /finanzas\.key|databaseKey|encryptionKey/);
 });

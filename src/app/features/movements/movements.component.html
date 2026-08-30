@@ -204,10 +204,10 @@
                 </select>
               </label>
             } @else {
-              <label class="form-label" style="flex: 0 0 100px">
-                {{ i18n.t('transactions.currency') }}
+              <div class="form-label" style="flex: 0 0 100px">
+                <span>{{ i18n.t('transactions.currency') }}</span>
                 <div class="mov-currency-fixed">{{ formCurrency() }}</div>
-              </label>
+              </div>
             }
             @if (showTrm()) {
               <label class="form-label" style="flex: 0 0 120px">
@@ -337,10 +337,10 @@
             {{ i18n.t('transactions.amount') }}
             <input type="number" formControlName="amount" min="0.01" step="0.01" />
           </label>
-          <label class="form-label" style="flex: 0 0 100px">
-            {{ i18n.t('transactions.currency') }}
+          <div class="form-label" style="flex: 0 0 100px">
+            <span>{{ i18n.t('transactions.currency') }}</span>
             <div class="mov-currency-fixed">{{ transferForm.controls.currency.value }}</div>
-          </label>
+          </div>
           @if (transferForm.controls.currency.value !== baseCurrency()) {
             <label class="form-label" style="flex: 0 0 120px">
               {{ i18n.t('transactions.trm') }}
@@ -507,11 +507,11 @@
       </span>
     </ng-template>
     <ng-template #actionsCell let-m>
-      <span (click)="$event.stopPropagation()">
+      <span>
         <button
           class="btn btn--ghost btn--icon"
           style="color: var(--negative)"
-          (click)="askDelete(m.id)"
+          (click)="$event.stopPropagation(); askDelete(m.id)"
           [title]="i18n.t('transactions.delete_title')"
           [attr.aria-label]="i18n.t('transactions.delete_title')"
         >

@@ -69,19 +69,16 @@ describe('BaseCurrencyPolicyService', () => {
     'portfolioentity',
     'portfoliovaluation',
     'investmenttransaction',
-  ])(
-    'blocks a change when %s data exists',
-    async (blockingKind) => {
-      local.list.mockImplementation((kind: LocalKind) => Promise.resolve(kind === blockingKind ? [{ id: '1' }] : []));
+  ])('blocks a change when %s data exists', async (blockingKind) => {
+    local.list.mockImplementation((kind: LocalKind) => Promise.resolve(kind === blockingKind ? [{ id: '1' }] : []));
 
-      await expect(service.change('USD')).resolves.toMatchObject({
-        status: 'blocked',
-        currency: 'COP',
-        blockingKind,
-      });
-      expect(token.updateBaseCurrency).not.toHaveBeenCalled();
-    },
-  );
+    await expect(service.change('USD')).resolves.toMatchObject({
+      status: 'blocked',
+      currency: 'COP',
+      blockingKind,
+    });
+    expect(token.updateBaseCurrency).not.toHaveBeenCalled();
+  });
 
   it('fails closed when the local store is unavailable', async () => {
     local.available = false;

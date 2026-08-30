@@ -27,7 +27,4 @@ export class PlatformService {
   enabled(key: string) {
     return this.capabilities()[key] === true;
   }
-  async refreshCapabilities() {
-
-  }
 }

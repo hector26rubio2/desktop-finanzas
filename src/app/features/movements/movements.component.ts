@@ -67,7 +67,6 @@ const MONTH_PAGE_SIZE = 10_000;
   styleUrl: './movements.component.css',
 })
 export class MovementsComponent implements OnInit {
-
   readonly useDynamicMovementForm = false;
   page = signal<PagedResult<MovementResponse> | null>(null);
   summary = signal<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
@@ -77,8 +76,16 @@ export class MovementsComponent implements OnInit {
     if (!s) return null;
     const currency = this.auth.baseCurrency();
     return [
-      { label: this.i18n.t('transactions.total_ingresos'), value: formatMoney(s.totalIncome, currency), color: 'var(--positive)' },
-      { label: this.i18n.t('transactions.total_gastos'), value: formatMoney(s.totalExpense, currency), color: 'var(--negative)' },
+      {
+        label: this.i18n.t('transactions.total_ingresos'),
+        value: formatMoney(s.totalIncome, currency),
+        color: 'var(--positive)',
+      },
+      {
+        label: this.i18n.t('transactions.total_gastos'),
+        value: formatMoney(s.totalExpense, currency),
+        color: 'var(--negative)',
+      },
       { label: this.i18n.t('transactions.balance_neto'), value: formatMoney(s.balance, currency) },
     ];
   });
@@ -637,7 +644,6 @@ export class MovementsComponent implements OnInit {
   }
 
   save() {
-
     if (this.saving()) return;
     this.movForm.markAllAsTouched();
     if (this.movForm.invalid) return;

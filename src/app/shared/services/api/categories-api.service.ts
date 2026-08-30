@@ -28,7 +28,31 @@ export class CategoriesApiService {
   }
 
   updateCategory(id: string, req: CategoryCreateRequest): Observable<CategoryResponse> {
-    return from(this.local.put('category', this.localCategory(req, id), 'update'));
+    return from(this.update(id, req));
+  }
+
+  setActive(id: string, isActive: boolean): Observable<CategoryResponse> {
+    return from(this.setActiveImpl(id, isActive));
+  }
+
+  private async update(id: string, req: CategoryCreateRequest): Promise<CategoryResponse> {
+    const existing = await this.local.get<CategoryResponse>('category', id);
+    const merged: CategoryResponse = {
+      ...(existing ?? this.localCategory(req, id)),
+      id,
+      name: req.name,
+      color: req.color,
+      icon: req.icon,
+      type: req.type,
+      translations: req.translations ?? null,
+    };
+    return this.local.put('category', merged, 'update');
+  }
+
+  private async setActiveImpl(id: string, isActive: boolean): Promise<CategoryResponse> {
+    const existing = await this.local.get<CategoryResponse>('category', id);
+    if (!existing) throw new Error('category_not_found');
+    return this.local.put('category', { ...existing, isActive }, 'update');
   }
 
   private localCategory(req: CategoryCreateRequest, id: string = crypto.randomUUID()): CategoryResponse {
@@ -37,6 +61,7 @@ export class CategoriesApiService {
       ...req,
       translations: req.translations ?? null,
       isDefault: false,
+      isActive: true,
       createdAt: new Date().toISOString(),
     };
   }

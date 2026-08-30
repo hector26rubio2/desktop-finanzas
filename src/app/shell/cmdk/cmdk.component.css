@@ -76,7 +76,7 @@
 
 .cmdk__section {
   padding: 8px 16px 4px;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -91,6 +91,17 @@
   padding: 8px 16px;
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-btn);
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmdk__close {
+  cursor: pointer;
 }
 
 .cmdk__item:hover,
@@ -103,7 +114,7 @@
 }
 
 .cmdk__item-sub {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
 }
 
@@ -121,7 +132,7 @@
 
 .cmdk__item-kbd {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
   color: var(--fg-3);
   background: var(--bg-2);

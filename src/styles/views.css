@@ -61,7 +61,7 @@
 
 .cc__owner {
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--fg-2);
@@ -69,7 +69,7 @@
 
 .cc__exp {
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   color: var(--fg-2);
 }
@@ -108,7 +108,7 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   letter-spacing: 0.08em;
   color: var(--fg-3);
   margin-top: 8px;
@@ -204,7 +204,7 @@
 }
 .cmdk__section {
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fg-4);
@@ -230,12 +230,12 @@
   flex: 1;
 }
 .cmdk__item-sub {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--fg-3);
 }
 .cmdk__item-kbd {
   font-family: var(--font-family);
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   color: var(--fg-3);
   background: var(--bg-2);
   border: 1px solid var(--line-1);
@@ -263,7 +263,7 @@
 .legend-inline {
   display: flex;
   gap: 12px;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-family: var(--font-family);
 }
 

@@ -23,6 +23,9 @@ export function buildAmortization(
   startDate: string,
   type: 'French' | 'German' | 'American',
 ): AmortizationRow[] {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || Number.isNaN(Date.parse(`${startDate}T00:00:00Z`))) {
+    throw new RangeError('invalid_start_date');
+  }
   const monthlyRate = annualRate / 100 / 12;
   const rows: AmortizationRow[] = [];
   if (principal <= 0 || annualRate < 0 || termMonths <= 0) throw new RangeError('invalid_loan_terms');

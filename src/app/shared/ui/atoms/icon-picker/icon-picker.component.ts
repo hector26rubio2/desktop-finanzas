@@ -11,13 +11,16 @@ import { CAT_ICONS } from '../../../cat-icons';
   styles: [
     `
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
       .icon-grid {
         display: grid;
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 3px;
-        max-height: 160px;
+        flex: none;
+        max-height: 320px;
         overflow-y: auto;
         padding: 4px;
         border: 1px solid var(--line);

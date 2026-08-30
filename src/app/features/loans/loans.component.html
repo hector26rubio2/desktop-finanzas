@@ -4,79 +4,16 @@
   </div>
 
   @if (showForm) {
-    <div class="card" style="padding: var(--pad-x)">
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-          <label style="grid-column: 1/-1">
-            {{ i18n.t('loans.descripcion') }}
-            <input formControlName="description" placeholder="{{ i18n.t('loans.descripcion_placeholder') }}" />
-            <app-field-error [control]="form.get('description')" />
-          </label>
-          <label>
-            {{ i18n.t('loans.contraparte') }}
-            <input formControlName="party" placeholder="{{ i18n.t('accounts.banco_placeholder') }}" />
-          </label>
-          <label>
-            {{ i18n.t('loans.capital') }}
-            <input type="number" formControlName="principal" min="1" />
-            <app-field-error [control]="form.get('principal')" />
-          </label>
-          <label>
-            {{ i18n.t('loans.moneda') }}
-            <select formControlName="currency">
-              <option value="ARS">ARS</option>
-              <option value="USD">USD</option>
-              <option value="COP">COP</option>
-              <option value="EUR">EUR</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('loans.trm') }}
-            <input type="number" formControlName="trmApplied" min="0.000001" step="0.01" />
-          </label>
-          <label>
-            {{ i18n.t('loans.tea') }}
-            <input type="number" formControlName="interestRateAnnual" min="0" step="0.01" />
-            <app-field-error [control]="form.get('interestRateAnnual')" />
-          </label>
-          <label>
-            {{ i18n.t('loans.plazo') }}
-            <input type="number" formControlName="termMonths" min="1" max="600" />
-            <app-field-error [control]="form.get('termMonths')" />
-          </label>
-          <label>
-            {{ i18n.t('loans.tipo_amortizacion') }}
-            <select formControlName="loanType">
-              <option value="French">{{ i18n.t('loans.frances') }}</option>
-              <option value="German">{{ i18n.t('loans.aleman') }}</option>
-              <option value="American">{{ i18n.t('loans.americano') }}</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('loans.fecha_inicio') }}
-            <input type="date" formControlName="startDate" />
-            <app-field-error [control]="form.get('startDate')" />
-          </label>
-          <label>
-            {{ i18n.t('loans.cuenta_asociada') }}
-            <select formControlName="accountId">
-              <option value="">{{ i18n.t('loans.ninguna') }}</option>
-              @for (a of accounts(); track a.id) {
-                <option [value]="a.id">{{ a.name }}</option>
-              }
-            </select>
-          </label>
-        </div>
-        <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end">
-          <button type="button" class="btn btn--ghost" (click)="showForm = false">
-            {{ i18n.t('common.cancel') }}
-          </button>
-          <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
-            {{ saving() ? '…' : i18n.t('common.save') }}
-          </button>
-        </div>
-      </form>
-    </div>
+    <app-modal [title]="i18n.t('loans.nuevo')" (closeModal)="showForm = false" (overlayClick)="showForm = false">
+      <app-dynamic-form
+        [form]="form"
+        [fields]="loanFields()"
+        [busy]="saving()"
+        [submitLabel]="i18n.t('common.save')"
+        (submitted)="save()"
+        (cancelled)="showForm = false"
+      />
+    </app-modal>
   }
 
   @if (loadState() === 'loading') {
@@ -120,8 +57,14 @@
                 >{{ loan.currency }} {{ monthlyPayment(loan) | number: '1.0-0' }}/mes</span
               >
             </div>
-            <div style="margin-top: 6px; display: flex; gap: 6px">
-              <span class="tag tag--accent" style="font-size: var(--fs-2xs)">{{ loan.loanType.toUpperCase() }}</span>
+            <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap">
+              @if (loan.purpose) {
+                <span class="tag tag--accent" style="font-size: var(--fs-2xs)">{{ purposeLabel(loan.purpose) }}</span>
+              }
+              <span class="tag" style="font-size: var(--fs-2xs)">{{
+                loan.direction === 'Given' ? 'Me deben' : 'Yo debo'
+              }}</span>
+              <span class="tag" style="font-size: var(--fs-2xs)">{{ loan.loanType.toUpperCase() }}</span>
               <span class="tag" style="font-size: var(--fs-2xs)"
                 >TEA {{ loan.interestRateAnnual | number: '1.0-1' }}%</span
               >

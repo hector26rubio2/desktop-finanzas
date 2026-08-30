@@ -35,9 +35,7 @@ export class DashboardService {
   private destroyRef = inject(DestroyRef);
 
   constructor() {
-    this.destroyRef.onDestroy(() => {
-
-    });
+    this.destroyRef.onDestroy(() => {});
   }
 
   private lang = computed(() => {
@@ -276,7 +274,7 @@ export class DashboardService {
         },
         error: (err) => {
           this.logger.error('[dashboard] fetchAll failed', err);
-          this.error.set('No se pudieron leer los datos locales cifrados. Intenta recargar la aplicación.');
+          this.error.set('No se pudieron leer los datos locales. Intenta recargar la aplicación.');
           this.loading.set(false);
         },
       });

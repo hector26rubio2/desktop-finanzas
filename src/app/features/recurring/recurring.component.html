@@ -6,95 +6,14 @@
 
   @if (showForm()) {
     <app-modal [title]="i18n.t('recurring.new')" (closeModal)="showForm.set(false)">
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-          <label>
-            {{ i18n.t('recurring.type') }}
-            <select formControlName="type" (change)="onTypeChange()">
-              <option value="Expense">{{ i18n.t('transactions.expense') }}</option>
-              <option value="Income">{{ i18n.t('transactions.income') }}</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('recurring.amount') }}
-            <input type="number" formControlName="amount" min="0.01" step="0.01" />
-            <app-field-error [control]="form.get('amount')" />
-          </label>
-          <label>
-            {{ i18n.t('recurring.currency') }}
-            <select formControlName="currency" (change)="onCurrencyChange()">
-              <option value="COP">COP</option>
-              <option value="ARS">ARS</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('recurring.frequency') }}
-            <select formControlName="frequency">
-              <option value="Daily">{{ i18n.t('recurring.freq_daily') }}</option>
-              <option value="Weekly">{{ i18n.t('recurring.freq_weekly') }}</option>
-              <option value="Monthly">{{ i18n.t('recurring.freq_monthly') }}</option>
-              <option value="Yearly">{{ i18n.t('recurring.freq_yearly') }}</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('recurring.interval') }}
-            <input type="number" formControlName="interval" min="1" step="1" />
-            <app-field-error [control]="form.get('interval')" />
-          </label>
-          @if (form.value.frequency === 'Monthly') {
-            <label>
-              {{ i18n.t('recurring.day_of_month') }}
-              <input type="number" formControlName="dayOfMonth" min="1" max="31" step="1" />
-              <app-field-error [control]="form.get('dayOfMonth')" />
-            </label>
-          }
-          <label>
-            {{ i18n.t('recurring.start_date') }}
-            <input type="date" formControlName="startDate" />
-            <app-field-error [control]="form.get('startDate')" />
-          </label>
-          <label>
-            {{ i18n.t('recurring.end_date') }}
-            <input type="date" formControlName="endDate" />
-          </label>
-          <label>
-            {{ i18n.t('recurring.category') }}
-            <select formControlName="categoryId">
-              <option value="">{{ i18n.t('recurring.none') }}</option>
-              @for (c of categories(); track c.id) {
-                @if (c.type === form.value.type) {
-                  <option [value]="c.id">{{ c.icon }} · {{ i18n.catName(c.name, c.translations) }}</option>
-                }
-              }
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('recurring.account') }}
-            <select formControlName="accountId">
-              <option value="">{{ i18n.t('recurring.none') }}</option>
-              @for (a of accounts(); track a.id) {
-                @if (a.isActive && a.currency === form.value.currency) {
-                  <option [value]="a.id">{{ a.name }}</option>
-                }
-              }
-            </select>
-          </label>
-          <label style="grid-column: 1/-1">
-            {{ i18n.t('recurring.description') }}
-            <input formControlName="description" />
-          </label>
-        </div>
-        <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end">
-          <button type="button" class="btn btn--ghost" (click)="showForm.set(false)">
-            {{ i18n.t('common.cancel') }}
-          </button>
-          <button type="submit" class="btn btn--primary" [disabled]="saving()">
-            {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
-          </button>
-        </div>
-      </form>
+      <app-dynamic-form
+        [form]="form"
+        [fields]="recurringFields()"
+        [busy]="saving()"
+        [submitLabel]="i18n.t('common.save')"
+        (submitted)="save()"
+        (cancelled)="showForm.set(false)"
+      />
     </app-modal>
   }
 

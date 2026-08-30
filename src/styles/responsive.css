@@ -73,7 +73,7 @@
 
   .period-nav__label {
     min-width: 80px;
-    font-size: 11px;
+    font-size: var(--fs-xs);
   }
 
   .filter-tags {

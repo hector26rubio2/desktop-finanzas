@@ -12,6 +12,9 @@ const RECOVERY_GROUPS = 5;
 const RECOVERY_GROUP_LENGTH = 5;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 30_000;
+const MAX_PASSWORD_LENGTH = 1024;
+const MAX_NAME_LENGTH = 200;
+const MAX_EMAIL_LENGTH = 320;
 
 function derive(secret, salt) {
   return crypto.scryptSync(secret.normalize('NFKC'), Buffer.from(salt, 'base64'), SCRYPT.keylen, SCRYPT);
@@ -19,7 +22,14 @@ function derive(secret, salt) {
 
 function hashSecret(secret) {
   const salt = crypto.randomBytes(16).toString('base64');
-  return { salt, hash: derive(secret, salt).toString('base64'), algorithm: 'scrypt', N: SCRYPT.N, r: SCRYPT.r, p: SCRYPT.p };
+  return {
+    salt,
+    hash: derive(secret, salt).toString('base64'),
+    algorithm: 'scrypt',
+    N: SCRYPT.N,
+    r: SCRYPT.r,
+    p: SCRYPT.p,
+  };
 }
 
 function verifySecret(secret, stored) {
@@ -34,14 +44,17 @@ function newRecoveryCode() {
   for (let group = 0; group < RECOVERY_GROUPS; group++) {
     let chunk = '';
 
-    for (const byte of crypto.randomBytes(RECOVERY_GROUP_LENGTH)) chunk += RECOVERY_ALPHABET[byte % RECOVERY_ALPHABET.length];
+    for (const byte of crypto.randomBytes(RECOVERY_GROUP_LENGTH))
+      chunk += RECOVERY_ALPHABET[byte % RECOVERY_ALPHABET.length];
     groups.push(chunk);
   }
   return groups.join('-');
 }
 
 function normalizeRecoveryCode(code) {
-  return String(code || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+  return String(code || '')
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, '');
 }
 
 class LocalAuthStore {
@@ -72,11 +85,19 @@ class LocalAuthStore {
     this.#assertPassword(password);
     const trimmedName = String(name || '').trim();
     if (!trimmedName) throw new Error('name is required');
+    if (trimmedName.length > MAX_NAME_LENGTH) throw new Error('name is too long');
+    const normalizedEmail = String(email || '')
+      .trim()
+      .toLowerCase();
+    if (normalizedEmail.length > MAX_EMAIL_LENGTH) throw new Error('email is too long');
+    const currency = String(baseCurrency || 'COP').toUpperCase();
+    if (!/^[A-Z]{3}$/.test(currency)) throw new Error('base currency is invalid');
 
     const owners = existingOwners.map((owner) => String(owner?.ownerId ?? owner)).filter(Boolean);
     let ownerId;
     if (adoptOwnerId) {
-      if (owners.length > 0 && !owners.includes(String(adoptOwnerId))) throw new Error('The chosen owner has no data on this machine');
+      if (owners.length > 0 && !owners.includes(String(adoptOwnerId)))
+        throw new Error('The chosen owner has no data on this machine');
       ownerId = String(adoptOwnerId);
     } else if (owners.length === 1) {
       ownerId = owners[0];
@@ -92,8 +113,8 @@ class LocalAuthStore {
       user: {
         id: ownerId,
         name: trimmedName,
-        email: String(email || '').trim().toLowerCase(),
-        baseCurrency: String(baseCurrency || 'COP').toUpperCase(),
+        email: normalizedEmail,
+        baseCurrency: currency,
         role: 'owner',
       },
       password: hashSecret(password),
@@ -108,6 +129,7 @@ class LocalAuthStore {
 
   login({ password, remember = false }) {
     this.#assertNotLockedOut();
+    this.#assertCredentialLength(password);
     const profile = this.#requireProfile();
     if (!verifySecret(String(password || ''), profile.password)) return this.#rejectAttempt();
     this.failedAttempts = 0;
@@ -115,10 +137,10 @@ class LocalAuthStore {
   }
 
   resume(resumeToken) {
+    if (String(resumeToken || '').length > 512) return null;
     const profile = this.#read();
     if (!profile?.resume || !resumeToken) return null;
     if (!verifySecret(String(resumeToken), profile.resume)) {
-
       this.#write({ ...profile, resume: null });
       return null;
     }
@@ -133,8 +155,10 @@ class LocalAuthStore {
   }
 
   changePassword({ currentPassword, newPassword }) {
+    this.#assertCredentialLength(currentPassword);
     const profile = this.#requireProfile();
-    if (!verifySecret(String(currentPassword || ''), profile.password)) throw new Error('The current password is incorrect');
+    if (!verifySecret(String(currentPassword || ''), profile.password))
+      throw new Error('The current password is incorrect');
     this.#assertPassword(newPassword);
 
     this.#write({ ...profile, password: hashSecret(newPassword), resume: null });
@@ -143,6 +167,7 @@ class LocalAuthStore {
 
   recover({ recoveryCode, newPassword }) {
     this.#assertNotLockedOut();
+    if (String(recoveryCode || '').length > 64) return this.#rejectAttempt();
     const profile = this.#requireProfile();
     if (!verifySecret(normalizeRecoveryCode(recoveryCode), profile.recovery)) return this.#rejectAttempt();
     this.#assertPassword(newPassword);
@@ -162,9 +187,21 @@ class LocalAuthStore {
     const profile = this.#requireProfile();
     if (!this.session) throw new Error('There is no open session');
     const user = { ...profile.user };
-    if (patch.name !== undefined) user.name = String(patch.name).trim() || user.name;
-    if (patch.email !== undefined) user.email = String(patch.email).trim().toLowerCase();
-    if (patch.baseCurrency !== undefined) user.baseCurrency = String(patch.baseCurrency).toUpperCase();
+    if (patch.name !== undefined) {
+      const name = String(patch.name).trim();
+      if (name.length > MAX_NAME_LENGTH) throw new Error('name is too long');
+      user.name = name || user.name;
+    }
+    if (patch.email !== undefined) {
+      const email = String(patch.email).trim().toLowerCase();
+      if (email.length > MAX_EMAIL_LENGTH) throw new Error('email is too long');
+      user.email = email;
+    }
+    if (patch.baseCurrency !== undefined) {
+      const currency = String(patch.baseCurrency).toUpperCase();
+      if (!/^[A-Z]{3}$/.test(currency)) throw new Error('base currency is invalid');
+      user.baseCurrency = currency;
+    }
     this.#write({ ...profile, user });
     this.session = { ...this.session, user };
     return { user };
@@ -188,12 +225,18 @@ class LocalAuthStore {
   }
 
   #assertNotLockedOut() {
-    if (this.lockedUntil > Date.now()) throw new Error(`Too many attempts. Try again in ${Math.ceil((this.lockedUntil - Date.now()) / 1000)}s`);
+    if (this.lockedUntil > Date.now())
+      throw new Error(`Too many attempts. Try again in ${Math.ceil((this.lockedUntil - Date.now()) / 1000)}s`);
   }
 
   #assertPassword(password) {
     const value = String(password || '');
     if (value.length < 8) throw new Error('The password must be at least 8 characters long');
+    if (value.length > MAX_PASSWORD_LENGTH) throw new Error('The password is too long');
+  }
+
+  #assertCredentialLength(value) {
+    if (String(value || '').length > MAX_PASSWORD_LENGTH) throw new Error('The credential is too long');
   }
 
   #requireProfile() {
@@ -204,21 +247,33 @@ class LocalAuthStore {
 
   #read() {
     if (!fs.existsSync(this.profilePath)) return null;
-    if (!this.safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is unavailable; the local profile cannot be unlocked');
+    if (!this.#isSafeStorageUsable())
+      throw new Error('OS encryption is unavailable; the local profile cannot be unlocked');
     try {
       return JSON.parse(this.safeStorage.decryptString(fs.readFileSync(this.profilePath)));
     } catch (error) {
-
       this.logger?.error?.('auth', `the local profile is unreadable: ${error.message}`);
-      throw new Error('The local profile is unreadable on this machine');
+      throw new Error('The local profile is unreadable on this machine', { cause: error });
     }
   }
 
   #write(profile) {
-    if (!this.safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is unavailable; refusing to store an unprotected profile');
+    if (!this.#isSafeStorageUsable())
+      throw new Error('OS encryption is unavailable; refusing to store an unprotected profile');
     fs.mkdirSync(path.dirname(this.profilePath), { recursive: true });
     fs.writeFileSync(this.profilePath, this.safeStorage.encryptString(JSON.stringify(profile)), { mode: 0o600 });
   }
+
+  #isSafeStorageUsable() {
+    return this.safeStorage.isEncryptionAvailable() && this.safeStorage.getSelectedStorageBackend?.() !== 'basic_text';
+  }
 }
 
-module.exports = { LocalAuthStore, newRecoveryCode, normalizeRecoveryCode };
+module.exports = {
+  LocalAuthStore,
+  newRecoveryCode,
+  normalizeRecoveryCode,
+  MAX_PASSWORD_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_EMAIL_LENGTH,
+};

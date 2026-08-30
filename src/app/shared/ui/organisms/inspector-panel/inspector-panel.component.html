@@ -1,12 +1,23 @@
 @if (open()) {
-  <div class="inspector-backdrop" (click)="closed.emit()"></div>
+  <button
+    type="button"
+    class="inspector-backdrop"
+    [attr.aria-label]="i18n.localize('Cerrar', 'Close', 'Fechar')"
+    (click)="closed.emit()"
+  ></button>
   <aside class="inspector" role="dialog" aria-modal="true" [attr.aria-label]="title()">
     <header>
       <div>
         <h2>{{ title() }}</h2>
         <p>{{ subtitle() }}</p>
       </div>
-      <button class="btn btn--ghost btn--icon" (click)="closed.emit()" aria-label="Cerrar">×</button>
+      <button
+        class="btn btn--ghost btn--icon"
+        (click)="closed.emit()"
+        [attr.aria-label]="i18n.localize('Cerrar', 'Close', 'Fechar')"
+      >
+        ×
+      </button>
     </header>
     @for (section of sections(); track section.title) {
       <section>

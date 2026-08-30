@@ -78,7 +78,8 @@
               {{ cell.day }}
             </div>
             @for (ev of cell.events.slice(0, 4); track ev.movement.id) {
-              <div
+              <button
+                type="button"
                 class="cal-event"
                 style="
                   margin-bottom: 3px;
@@ -97,6 +98,7 @@
                 "
                 (click)="openDetail(ev.movement)"
                 [title]="ev.movement.description ?? ev.movement.categoryName ?? ''"
+                [attr.aria-label]="ev.movement.description ?? ev.movement.categoryName ?? ''"
               >
                 <div
                   style="
@@ -112,7 +114,7 @@
                 <div class="mono" style="font-size: var(--fs-3xs); color: var(--fg-3)">
                   − $ {{ ev.movement.amount | number: '1.0-0' }} {{ ev.movement.currency }}
                 </div>
-              </div>
+              </button>
             }
             @if (cell.events.length > 4) {
               <div class="mono cal-more">+{{ cell.events.length - 4 }} {{ i18n.t('calendar.mas') }}</div>

@@ -1,22 +1,22 @@
 <div class="content portfolio">
   @if (showCreate()) {
     <app-modal
-      title="Nueva inversión"
+      [title]="i18n.t('portfolio.new_investment')"
       (closeModal)="showCreate.set(false)"
       (overlayClick)="showCreate.set(false)"
     >
       <form [formGroup]="investmentForm" (ngSubmit)="saveInvestment()">
         <label class="form-label">
-          Nombre
+          {{ i18n.t('portfolio.name') }}
           <input formControlName="name" placeholder="Ej. Fondo global" />
         </label>
         <div class="portfolio-form-row">
           <label class="form-label">
-            Moneda del activo
+            {{ i18n.t('portfolio.asset_currency') }}
             <input formControlName="currency" maxlength="3" placeholder="USD" />
           </label>
           <label class="form-label">
-            Institución
+            {{ i18n.t('portfolio.institution') }}
             <input formControlName="institution" placeholder="Broker o fiduciaria" />
           </label>
         </div>
@@ -24,9 +24,11 @@
           <p class="field-error" role="alert">{{ actionError() }}</p>
         }
         <div class="form-actions">
-          <button type="button" class="btn btn--ghost" (click)="showCreate.set(false)">Cancelar</button>
+          <button type="button" class="btn btn--ghost" (click)="showCreate.set(false)">
+            {{ i18n.t('common.cancel') }}
+          </button>
           <button type="submit" class="btn btn--primary" [disabled]="investmentForm.invalid || saving()">
-            {{ saving() ? 'Guardando…' : 'Crear inversión' }}
+            {{ saving() ? i18n.t('common.saving') : i18n.t('portfolio.create_investment') }}
           </button>
         </div>
       </form>
@@ -34,54 +36,56 @@
   }
   @if (showValuation()) {
     <app-modal
-      [title]="'Valorar ' + (selected()?.name ?? 'inversión')"
+      [title]="i18n.t('portfolio.value') + ' ' + (selected()?.name ?? i18n.t('portfolio.type_investment'))"
       (closeModal)="showValuation.set(false)"
       (overlayClick)="showValuation.set(false)"
     >
       <form [formGroup]="valuationForm" (ngSubmit)="saveValuation()">
         <div class="portfolio-form-row">
           <label class="form-label">
-            Fecha
+            {{ i18n.t('portfolio.date') }}
             <input type="date" formControlName="date" />
           </label>
           <label class="form-label">
-            Valor en moneda del activo
+            {{ i18n.t('portfolio.asset_value') }}
             <input type="number" min="0.000001" step="0.01" formControlName="amount" />
           </label>
         </div>
         <div class="portfolio-form-row">
           <label class="form-label">
-            Moneda de valoración
+            {{ i18n.t('portfolio.valuation_currency') }}
             <input formControlName="currency" maxlength="3" />
           </label>
           <label class="form-label">
-            TRM a {{ data()?.baseCurrency ?? 'moneda base' }}
+            {{ i18n.t('portfolio.exchange_rate') }} ({{ data()?.baseCurrency ?? '—' }})
             <input type="number" min="0.000001" step="0.000001" formControlName="trmApplied" />
           </label>
         </div>
         <div class="portfolio-form-row">
           <label class="form-label">
-            Fuente
+            {{ i18n.t('portfolio.source') }}
             <select formControlName="source">
-              <option value="Manual">Manual</option>
-              <option value="MarketPrice">Precio de mercado</option>
+              <option value="Manual">{{ i18n.t('portfolio.manual') }}</option>
+              <option value="MarketPrice">{{ i18n.t('portfolio.market_price') }}</option>
             </select>
           </label>
           <label class="form-label">
-            Referencia
-            <input formControlName="externalReference" placeholder="Ticker, extracto o nota" />
+            {{ i18n.t('portfolio.reference') }}
+            <input formControlName="externalReference" [placeholder]="i18n.t('portfolio.reference_placeholder')" />
           </label>
         </div>
         <p class="portfolio-form-help">
-          Valor base = valor × TRM. La valoración anterior se conserva para la evolución patrimonial.
+          {{ i18n.t('portfolio.valuation_help') }}
         </p>
         @if (actionError()) {
           <p class="field-error" role="alert">{{ actionError() }}</p>
         }
         <div class="form-actions">
-          <button type="button" class="btn btn--ghost" (click)="showValuation.set(false)">Cancelar</button>
+          <button type="button" class="btn btn--ghost" (click)="showValuation.set(false)">
+            {{ i18n.t('common.cancel') }}
+          </button>
           <button type="submit" class="btn btn--primary" [disabled]="valuationForm.invalid || saving()">
-            {{ saving() ? 'Guardando…' : 'Registrar valoración' }}
+            {{ saving() ? i18n.t('common.saving') : i18n.t('portfolio.register_valuation') }}
           </button>
         </div>
       </form>
@@ -89,47 +93,57 @@
   }
   <header class="content__header">
     <div>
-      <div class="eyebrow">Patrimonio</div>
-      <h1>Activos y pasivos</h1>
+      <div class="eyebrow">{{ i18n.t('portfolio.wealth') }}</div>
+      <h1>{{ i18n.t('portfolio.assets_liabilities') }}</h1>
     </div>
     <div class="portfolio-actions">
       <button class="btn btn--ghost" [disabled]="!canValueSelected()" (click)="openSelectedValuation()">
-        Registrar valoración
+        {{ i18n.t('portfolio.register_valuation') }}
       </button>
-      <button class="btn btn--primary" (click)="openCreateInvestment()">Nueva inversión</button>
+      <button class="btn btn--primary" (click)="openCreateInvestment()">
+        {{ i18n.t('portfolio.new_investment') }}
+      </button>
     </div>
   </header>
   @if (data(); as p) {
     <section class="portfolio-kpis">
       <article>
-        <span>Activos</span><strong>{{ p.totalAssets | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+        <span>{{ i18n.t('portfolio.assets') }}</span
+        ><strong>{{ p.totalAssets | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
       </article>
       <article>
-        <span>Pasivos</span><strong>{{ p.totalLiabilities | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+        <span>{{ i18n.t('portfolio.liabilities') }}</span
+        ><strong>{{ p.totalLiabilities | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
       </article>
       <article>
-        <span>Patrimonio neto</span><strong>{{ p.netWorth | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+        <span>{{ i18n.t('portfolio.net_worth') }}</span
+        ><strong>{{ p.netWorth | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
       </article>
     </section>
   }
   <div class="portfolio-filter">
-    <button class="btn btn--ghost" (click)="filter.set('All')">Todo</button
-    ><button class="btn btn--ghost" (click)="filter.set('Asset')">Activos</button
-    ><button class="btn btn--ghost" (click)="filter.set('Liability')">Pasivos</button>
+    <button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'All'" (click)="filter.set('All')">
+      {{ i18n.t('portfolio.all') }}</button
+    ><button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'Asset'" (click)="filter.set('Asset')">
+      {{ i18n.t('portfolio.assets') }}</button
+    ><button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'Liability'" (click)="filter.set('Liability')">
+      {{ i18n.t('portfolio.liabilities') }}
+    </button>
   </div>
   <app-data-table
-    [columns]="columns"
+    [columns]="columns()"
     [data]="items()"
     [trackBy]="trackById"
+    [pagination]="false"
     [rowClickable]="true"
     [searchable]="true"
     [loading]="loading()"
     [errorMessage]="error()"
-    emptyMessage="No hay entidades patrimoniales"
+    [emptyMessage]="i18n.t('portfolio.no_entities')"
     (rowClick)="selected.set($event)"
   /><app-inspector-panel
     [open]="!!selected()"
-    [title]="selected()?.name ?? 'Detalle'"
+    [title]="selected()?.name ?? i18n.t('portfolio.details')"
     [subtitle]="selected()?.currency ?? ''"
     [sections]="sections()"
     (closed)="selected.set(null)"

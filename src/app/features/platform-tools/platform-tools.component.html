@@ -1,24 +1,29 @@
 <div class="content tools">
   <header class="content__header">
     <div>
-      <div class="eyebrow">Continuidad</div>
-      <h1>Datos y operación</h1>
+      <div class="eyebrow">{{ tr('Continuidad', 'Continuity', 'Continuidade') }}</div>
+      <h1>{{ tr('Datos y operación', 'Data and operations', 'Dados e operação') }}</h1>
     </div>
   </header>
   <p role="status">{{ message() }}</p>
   <section>
-    <h2>Capacidades</h2>
+    <h2>{{ tr('Capacidades', 'Capabilities', 'Capacidades') }}</h2>
     <div class="cap-grid">
       @for (item of platform.capabilities() | keyvalue; track item.key) {
-        <span class="tag" [class.tag--pos]="item.value">{{ item.key }} · {{ item.value ? 'activa' : 'cerrada' }}</span>
+        <span class="tag" [class.tag--pos]="item.value"
+          >{{ item.key }} ·
+          {{ item.value ? tr('activa', 'active', 'ativa') : tr('cerrada', 'disabled', 'desativada') }}</span
+        >
       }
     </div>
   </section>
   <section>
-    <h2>Exportar / importar</h2>
-    <button class="btn btn--primary" (click)="export()">Exportar JSON</button
+    <h2>{{ tr('Exportar / importar', 'Export / import', 'Exportar / importar') }}</h2>
+    <button class="btn btn--primary" (click)="export()">
+      {{ tr('Exportar JSON', 'Export JSON', 'Exportar JSON') }}</button
     ><label class="btn btn--ghost"
-      >Seleccionar JSON o CSV<input
+      >{{ tr('Seleccionar JSON o CSV', 'Select JSON or CSV', 'Selecionar JSON ou CSV')
+      }}<input
         hidden
         type="file"
         [disabled]="importing()"
@@ -26,85 +31,141 @@
         (change)="choose($event)"
     /></label>
     <p class="hint">
-      CSV: id,type,amount,currency,trmApplied,date,description,categoryId,accountId. La TRM es obligatoria y amountBase
-      se recalcula desde amount × trmApplied.
+      CSV: id,type,amount,currency,trmApplied,date,description,categoryId,accountId.
+      {{
+        tr(
+          'La TRM es obligatoria y amountBase se recalcula desde amount × trmApplied.',
+          'The exchange rate is required and amountBase is recalculated from amount × trmApplied.',
+          'A taxa de câmbio é obrigatória e amountBase é recalculado a partir de amount × trmApplied.'
+        )
+      }}
     </p>
     @if (preview(); as p) {
       <p>
-        Formato {{ importFormat.toUpperCase() }} · válidos {{ p.valid }} · inválidos {{ p.invalid }} · nuevos
-        {{ p.newCount }} · ya aplicados {{ p.alreadyApplied }}
+        {{ tr('Formato', 'Format', 'Formato') }} {{ importFormat.toUpperCase() }} ·
+        {{ tr('válidos', 'valid', 'válidos') }} {{ p.valid }} · {{ tr('inválidos', 'invalid', 'inválidos') }}
+        {{ p.invalid }} · {{ tr('nuevos', 'new', 'novos') }} {{ p.newCount }} ·
+        {{ tr('ya aplicados', 'already applied', 'já aplicados') }} {{ p.alreadyApplied }}
       </p>
       @for (issue of p.issues; track issue.index + '-' + issue.code) {
-        <div class="issue">{{ issue.index < 0 ? 'Archivo' : 'Fila ' + issue.index }}: {{ issue.message }}</div>
+        <div class="issue">
+          {{ issue.index < 0 ? tr('Archivo', 'File', 'Arquivo') : tr('Fila', 'Row', 'Linha') + ' ' + issue.index }}:
+          {{ issue.message }}
+        </div>
       }
       <button
         class="btn btn--primary"
         [disabled]="p.invalid > 0 || p.newCount === 0 || importing()"
         (click)="validate(true)"
       >
-        {{ importing() ? 'Aplicando lote…' : 'Aplicar movimientos nuevos' }}
+        {{
+          importing()
+            ? tr('Aplicando lote…', 'Applying batch…', 'Aplicando lote…')
+            : tr('Aplicar movimientos nuevos', 'Apply new movements', 'Aplicar novos movimentos')
+        }}
       </button>
     }
   </section>
   <section class="audit-panel">
     <div class="audit-panel__header">
       <div>
-        <h2>Auditoría de integridad local</h2>
+        <h2>{{ tr('Auditoría de integridad local', 'Local integrity audit', 'Auditoria de integridade local') }}</h2>
         <p class="hint">
-          Escanea relaciones y operaciones en SQLite sin reparar, reescribir ni borrar datos. Los casos ambiguos se
-          incluyen en el reporte para revisión manual.
+          {{
+            tr(
+              'Escanea relaciones y operaciones en SQLite sin reparar, reescribir ni borrar datos. Los casos ambiguos se incluyen en el reporte para revisión manual.',
+              'Scans SQLite relationships and operations without repairing, rewriting, or deleting data. Ambiguous cases are included in the report for manual review.',
+              'Verifica relações e operações no SQLite sem reparar, reescrever ou excluir dados. Casos ambíguos são incluídos no relatório para revisão manual.'
+            )
+          }}
         </p>
       </div>
       <div class="audit-panel__actions">
         <button class="btn btn--primary" [disabled]="auditing()" (click)="runAudit()">
-          {{ auditing() ? 'Escaneando…' : 'Escanear datos locales' }}
+          {{
+            auditing()
+              ? tr('Escaneando…', 'Scanning…', 'Verificando…')
+              : tr('Escanear datos locales', 'Scan local data', 'Verificar dados locais')
+          }}
         </button>
         <button class="btn btn--ghost" [disabled]="!auditReport() || auditing()" (click)="exportAudit()">
-          Exportar reporte JSON
+          {{ tr('Exportar reporte JSON', 'Export JSON report', 'Exportar relatório JSON') }}
         </button>
       </div>
     </div>
     @if (auditReport(); as report) {
-      <div class="audit-summary" aria-label="Resumen de la auditoría">
+      <div
+        class="audit-summary"
+        [attr.aria-label]="tr('Resumen de la auditoría', 'Audit summary', 'Resumo da auditoria')"
+      >
         <div>
-          <span>Total</span>
+          <span>{{ tr('Total', 'Total', 'Total') }}</span>
           <strong>{{ report.summary.total }}</strong>
         </div>
         <div class="audit-summary__critical">
-          <span>Críticos</span>
+          <span>{{ tr('Críticos', 'Critical', 'Críticos') }}</span>
           <strong>{{ report.summary.critical }}</strong>
         </div>
         <div class="audit-summary__error">
-          <span>Errores</span>
+          <span>{{ tr('Errores', 'Errors', 'Erros') }}</span>
           <strong>{{ report.summary.error }}</strong>
         </div>
         <div class="audit-summary__warning">
-          <span>Advertencias</span>
+          <span>{{ tr('Advertencias', 'Warnings', 'Avisos') }}</span>
           <strong>{{ report.summary.warning }}</strong>
         </div>
       </div>
       <p class="audit-scanned">
-        Escaneados: {{ report.scanned.movements }} movimientos · {{ report.scanned.accounts }} cuentas ·
-        {{ report.scanned.categories }} categorías · {{ report.scanned.loans }} préstamos ·
-        {{ report.scanned.installmentPurchases }} planes de cuotas
+        {{ tr('Escaneados', 'Scanned', 'Verificados') }}: {{ report.scanned.movements }}
+        {{ tr('movimientos', 'movements', 'movimentos') }} · {{ report.scanned.accounts }}
+        {{ tr('cuentas', 'accounts', 'contas') }} · {{ report.scanned.categories }}
+        {{ tr('categorías', 'categories', 'categorias') }} · {{ report.scanned.loans }}
+        {{ tr('préstamos', 'loans', 'empréstimos') }} · {{ report.scanned.installmentPurchases }}
+        {{ tr('planes de cuotas', 'installment plans', 'planos de parcelas') }}
       </p>
       @if (report.summary.total === 0) {
-        <div class="audit-clean">No se detectaron inconsistencias en las reglas auditadas.</div>
+        <div class="audit-clean">
+          {{
+            tr(
+              'No se detectaron inconsistencias en las reglas auditadas.',
+              'No inconsistencies were detected by the audited rules.',
+              'Nenhuma inconsistência foi detectada pelas regras auditadas.'
+            )
+          }}
+        </div>
       } @else {
         @if (repairPlan(); as plan) {
           <div class="audit-repair">
             <p class="hint">
-              De {{ plan.summary.findings }} hallazgo(s), <strong>{{ plan.summary.repairable }}</strong> se deducen del
-              propio libro o por aritmética y pueden repararse.
-              <strong>{{ plan.summary.requiresDecision }}</strong> requieren tu decisión y no se tocarán: repararlos
-              exigiría inventar un dato que no está.
+              {{ tr('De', 'Of', 'De') }} {{ plan.summary.findings }} {{ tr('hallazgo(s)', 'finding(s)', 'achado(s)') }},
+              <strong>{{ plan.summary.repairable }}</strong>
+              {{
+                tr(
+                  'se deducen del propio libro o por aritmética y pueden repararse.',
+                  'can be inferred from the ledger or arithmetic and can be repaired.',
+                  'podem ser deduzidos do livro ou por aritmética e podem ser reparados.'
+                )
+              }}
+              <strong>{{ plan.summary.requiresDecision }}</strong>
+              {{
+                tr(
+                  'requieren tu decisión y no se tocarán: repararlos exigiría inventar un dato que no está.',
+                  'require your decision and will not be changed: repairing them would require inventing missing data.',
+                  'exigem sua decisão e não serão alterados: repará-los exigiria inventar dados ausentes.'
+                )
+              }}
             </p>
             @if (plan.changes.length > 0) {
               <ul class="audit-repair__list">
-                @for (change of plan.changes.slice(0, 20); track change.entityKind + ':' + change.entityId + ':' + change.field) {
+                @for (
+                  change of plan.changes.slice(0, 20);
+                  track change.entityKind + ':' + change.entityId + ':' + change.field
+                ) {
                   <li>
                     <code>{{ change.entityKind }} · {{ change.entityId }}</code>
-                    <span>{{ change.field }}: {{ change.before }} → <strong>{{ change.after }}</strong></span>
+                    <span
+                      >{{ change.field }}: {{ change.before }} → <strong>{{ change.after }}</strong></span
+                    >
                     <small>{{ change.reason }}</small>
                   </li>
                 }
@@ -116,10 +177,18 @@
                 [disabled]="repairing() || plan.operations.length === 0"
                 (click)="applyRepair()"
               >
-                {{ repairing() ? 'Reparando…' : 'Reparar ' + plan.summary.repairable + ' caso(s) deducibles' }}
+                {{
+                  repairing()
+                    ? tr('Reparando…', 'Repairing…', 'Reparando…')
+                    : tr('Reparar', 'Repair', 'Reparar') +
+                      ' ' +
+                      plan.summary.repairable +
+                      ' ' +
+                      tr('caso(s) deducibles', 'inferable case(s)', 'caso(s) dedutíveis')
+                }}
               </button>
               <button class="btn btn--ghost" [disabled]="repairing()" (click)="exportRepairPlan()">
-                Exportar plan de reparación
+                {{ tr('Exportar plan de reparación', 'Export repair plan', 'Exportar plano de reparo') }}
               </button>
             </div>
           </div>
@@ -144,36 +213,70 @@
               <p>{{ finding.message }}</p>
               <small>{{ finding.entityKind }} · {{ finding.entityId }}</small>
               @if (finding.relatedIds.length > 0) {
-                <small>Referencias: {{ finding.relatedIds.join(', ') }}</small>
+                <small>{{ tr('Referencias', 'References', 'Referências') }}: {{ finding.relatedIds.join(', ') }}</small>
               }
             </article>
           }
         </div>
         @if (report.findings.length > 50) {
           <p class="hint">
-            Se muestran los primeros 50 hallazgos. El reporte JSON contiene los {{ report.findings.length }} completos.
+            {{
+              tr(
+                'Se muestran los primeros 50 hallazgos. El reporte JSON contiene todos los hallazgos:',
+                'The first 50 findings are shown. The JSON report contains every finding:',
+                'Os primeiros 50 achados são exibidos. O relatório JSON contém todos os achados:'
+              )
+            }}
+            {{ report.findings.length }}.
           </p>
         }
       }
     }
   </section>
   <section>
-    <h2>Backup local cifrado</h2>
-    <input [(ngModel)]="backupPath" placeholder="Destino opcional" /><button
-      class="btn btn--primary"
-      (click)="backup()"
-    >
-      Crear backup</button
-    ><input [(ngModel)]="restorePath" placeholder="Ruta del backup" /><button
-      class="btn btn--ghost"
-      (click)="inspectRestore()"
-    >
-      Previsualizar restauración</button
-    ><button class="btn btn--danger" [disabled]="!restoreRevision" (click)="restore()">Confirmar restauración</button>
+    <h2>{{ tr('Backup local', 'Local backup', 'Backup local') }}</h2>
+    <p class="backup-warning" role="note">
+      {{
+        tr(
+          'La base de datos y sus backups están cifrados con una clave protegida por el sistema operativo. Conserva también una exportación JSON si necesitas trasladar movimientos a otro dispositivo.',
+          'The database and its backups are encrypted with an operating-system-protected key. Also keep a JSON export if you need to move movements to another device.',
+          'O banco de dados e seus backups são criptografados com uma chave protegida pelo sistema operacional. Mantenha também uma exportação JSON se precisar transferir movimentos para outro dispositivo.'
+        )
+      }}
+    </p>
+    <div class="backup-row">
+      <input
+        [(ngModel)]="backupPath"
+        [attr.aria-label]="tr('Destino del backup', 'Backup destination', 'Destino do backup')"
+        [attr.placeholder]="tr('Destino automático', 'Automatic destination', 'Destino automático')"
+      />
+      <button class="btn btn--ghost" type="button" (click)="chooseBackupDestination()">
+        {{ tr('Elegir destino', 'Choose destination', 'Escolher destino') }}
+      </button>
+    </div>
+    <button class="btn btn--primary" (click)="backup()">
+      {{ tr('Crear backup cifrado', 'Create encrypted backup', 'Criar backup criptografado') }}
+    </button>
+    <div class="backup-row">
+      <input
+        [(ngModel)]="restorePath"
+        [attr.aria-label]="tr('Ruta del backup a restaurar', 'Backup path to restore', 'Caminho do backup a restaurar')"
+        [attr.placeholder]="tr('Ruta del backup', 'Backup path', 'Caminho do backup')"
+      />
+      <button class="btn btn--ghost" type="button" (click)="chooseRestoreSource()">
+        {{ tr('Seleccionar backup', 'Select backup', 'Selecionar backup') }}
+      </button>
+    </div>
+    <button class="btn btn--ghost" [disabled]="!restorePath" (click)="inspectRestore()">
+      {{ tr('Validar restauración', 'Validate restore', 'Validar restauração') }}
+    </button>
+    <button class="btn btn--danger" [disabled]="!restoreRevision" (click)="restore()">
+      {{ tr('Confirmar restauración', 'Confirm restore', 'Confirmar restauração') }}
+    </button>
   </section>
   @if (metrics(); as m) {
     <section>
-      <h2>Métricas operativas</h2>
+      <h2>{{ tr('Métricas operativas', 'Operational metrics', 'Métricas operacionais') }}</h2>
       <pre>{{ m | json }}</pre>
     </section>
   }

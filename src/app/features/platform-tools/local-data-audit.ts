@@ -80,9 +80,9 @@ export function auditLocalData(input: LocalDataAuditInput): LocalDataAuditReport
       add,
     );
     if (
-      (text(movement['sourceType']) === 'Loan'
-        || ['LoanReceived', 'LoanGiven'].includes(text(movement['subType']) ?? ''))
-      && !text(movement['loanId'])
+      (text(movement['sourceType']) === 'Loan' ||
+        ['LoanReceived', 'LoanGiven'].includes(text(movement['subType']) ?? '')) &&
+      !text(movement['loanId'])
     ) {
       add({
         severity: 'error',
@@ -238,8 +238,8 @@ export function auditLocalData(input: LocalDataAuditInput): LocalDataAuditReport
       movements
         .filter(
           (movement) =>
-            text(movement['installmentPurchaseId']) === installmentId
-            && text(movement['operationType']) === 'CreditPayment',
+            text(movement['installmentPurchaseId']) === installmentId &&
+            text(movement['operationType']) === 'CreditPayment',
         )
         .map((movement) => text(movement['operationId']))
         .filter((value): value is string => Boolean(value)),

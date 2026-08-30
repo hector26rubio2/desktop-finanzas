@@ -2,15 +2,52 @@
   display: block;
 }
 
-:host .power-filters { display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(130px,1fr)) auto;gap:8px;align-items:end;margin:10px 0 14px;padding:12px;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));border:1px solid var(--line-1);border-radius:var(--radius-card);box-shadow:0 8px 24px color-mix(in oklab,var(--bg-0) 65%,transparent) }
-:host .power-filters__title{display:grid;gap:2px}:host .power-filters__title span{font-size:12px;font-weight:700}:host .power-filters__title small{font-size:9px;color:var(--fg-3)}
-:host .power-filters select{height:32px;border:1px solid var(--line-1);border-radius:var(--radius-button);background:var(--bg-2);color:var(--fg-1);padding:0 9px;font:inherit;font-size:10px}
-@media(max-width:1050px){:host .power-filters{grid-template-columns:repeat(2,minmax(0,1fr))}:host .power-filters__title{grid-column:1/-1}}
+:host .power-filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto;
+  gap: 8px;
+  align-items: end;
+  margin: 10px 0 14px;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--bg-0) 65%, transparent);
+}
+:host .power-filters__title {
+  display: grid;
+  gap: 2px;
+}
+:host .power-filters__title span {
+  font-size: 12px;
+  font-weight: 700;
+}
+:host .power-filters__title small {
+  font-size: var(--fs-3xs);
+  color: var(--fg-3);
+}
+:host .power-filters select {
+  height: 32px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-button);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  padding: 0 9px;
+  font: inherit;
+  font-size: var(--fs-2xs);
+}
+@media (max-width: 1050px) {
+  :host .power-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  :host .power-filters__title {
+    grid-column: 1/-1;
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   :host .stagger > * {
     animation: dash-stagger-in 420ms var(--ease-out) both;
-    will-change: transform, opacity;
   }
 
   :host .stagger > *:nth-child(1) {
@@ -110,7 +147,7 @@
 }
 
 :host .cashflow-title__sub {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
 }
 
@@ -124,7 +161,7 @@
 
 :host .seg-ctrl__btn {
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-family: inherit;
   font-weight: 500;
   background: transparent;
@@ -170,7 +207,7 @@
   border: 1px solid var(--line-1);
   background: var(--bg-2);
   color: var(--fg-2);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-btn),
@@ -217,6 +254,9 @@
   position: fixed;
   inset: 0;
   z-index: 49;
+  padding: 0;
+  border: 0;
+  background: transparent;
   background: transparent;
 }
 
@@ -278,7 +318,7 @@
   border: 0;
   background: transparent;
   color: var(--fg-2);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-btn),
@@ -329,7 +369,7 @@
   gap: 2px;
 }
 :host .dp-day-head__c {
-  font-size: 9px;
+  font-size: var(--fs-3xs);
   font-weight: 600;
   color: var(--fg-3);
   text-align: center;
@@ -427,7 +467,7 @@
   min-height: 24px;
   padding: 3px 10px;
   border-radius: 3px;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
   font-weight: 500;
   background: var(--bg-2);
@@ -486,7 +526,7 @@
 
 :host .filter-tag-select {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   background: var(--bg-2);
   border: 1px solid var(--line-1);
@@ -511,7 +551,7 @@
 }
 :host .source-tag {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   color: var(--fg-3);
   padding: 2px 6px;
   border: 1px solid var(--line-1);

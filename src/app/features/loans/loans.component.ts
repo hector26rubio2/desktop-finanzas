@@ -22,6 +22,10 @@ import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
+import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.component';
+import { ModalComponent } from '@ui/organisms/modal/modal.component';
+import { loanFormFields } from '../../shared/forms/entity-form.schemas';
+import { AuthService } from '../../shared/services/auth/auth.service';
 
 interface AmortRow {
   n: number;
@@ -37,7 +41,17 @@ type AmortTpl = TemplateRef<{ $implicit: AmortRow; row: AmortRow }>;
   selector: 'app-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent, SkeletonComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DataTableComponent,
+    FieldErrorComponent,
+    KpiStripComponent,
+    ConfirmDialogComponent,
+    SkeletonComponent,
+    DynamicFormComponent,
+    ModalComponent,
+  ],
   templateUrl: './loans.component.html',
   styleUrl: './loans.component.css',
 })
@@ -62,6 +76,7 @@ export class LoansComponent implements OnInit {
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);
   private notif = inject(NotificationService);
+  private auth = inject(AuthService);
 
   selected = () => this.loans().find((l) => l.id === this.selectedId()) ?? null;
 
@@ -103,16 +118,25 @@ export class LoansComponent implements OnInit {
 
   form = this.fb.group({
     description: ['', Validators.required],
+    direction: ['Taken'],
+    purpose: ['FreeInvestment'],
     party: [''],
     principal: [null as number | null, [Validators.required, Validators.min(1)]],
     currency: ['ARS', Validators.required],
     trmApplied: [1],
-    interestRateAnnual: [null as number | null, [Validators.required, Validators.min(0)]],
+    interestRateAnnual: [null as number | null, [Validators.required, Validators.min(0), Validators.max(1000)]],
     termMonths: [null as number | null, [Validators.required, Validators.min(1)]],
     loanType: ['French'],
     startDate: ['', Validators.required],
     accountId: [''],
   });
+
+  loanFields = computed(() =>
+    loanFormFields({
+      accounts: this.accounts().map((a) => ({ value: a.id, label: a.name })),
+      baseCurrency: this.auth.baseCurrency(),
+    }),
+  );
 
   paymentForm = this.fb.group({
     sourceAccountId: ['', Validators.required],
@@ -183,7 +207,6 @@ export class LoansComponent implements OnInit {
   }
 
   save() {
-
     if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
@@ -192,6 +215,8 @@ export class LoansComponent implements OnInit {
     this.api
       .createLoan({
         description: v.description!,
+        direction: (v.direction as 'Taken' | 'Given') ?? 'Taken',
+        purpose: (v.purpose as import('../../shared/models/loan.model').LoanPurpose) ?? 'FreeInvestment',
         party: v.party || undefined,
         principal: v.principal!,
         currency: v.currency!,
@@ -209,7 +234,13 @@ export class LoansComponent implements OnInit {
           this.selectLoan(loan.id);
           this.saving.set(false);
           this.showForm = false;
-          this.form.reset({ currency: 'ARS', trmApplied: 1, loanType: 'French' });
+          this.form.reset({
+            currency: 'ARS',
+            trmApplied: 1,
+            loanType: 'French',
+            direction: 'Taken',
+            purpose: 'FreeInvestment',
+          });
         },
         error: () => this.saving.set(false),
       });
@@ -248,6 +279,18 @@ export class LoansComponent implements OnInit {
 
   progressPct(loan: LoanResponse) {
     return Math.min(100, Math.round((loan.paidMonths / loan.termMonths) * 100));
+  }
+
+  purposeLabel(purpose?: string | null): string {
+    const map: Record<string, string> = {
+      FreeInvestment: 'Libre inversión',
+      Mortgage: 'Hipotecario',
+      Vehicle: 'Vehículo',
+      Personal: 'Personal',
+      Education: 'Educativo',
+      Other: 'Otro',
+    };
+    return purpose ? (map[purpose] ?? purpose) : '';
   }
 
   selectLoan(id: string) {

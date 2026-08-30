@@ -149,6 +149,10 @@ export class CmdkComponent implements OnChanges {
     }
   }
 
+  onOverlayClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) this.closeModal.emit();
+  }
+
   select(item: CmdkResult) {
     if (item.kind === 'nav') {
       this.navigateTo.emit(item.id);

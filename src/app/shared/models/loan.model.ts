@@ -1,8 +1,13 @@
+export type LoanPurpose = 'FreeInvestment' | 'Mortgage' | 'Vehicle' | 'Personal' | 'Education' | 'Other';
+export type LoanDirection = 'Taken' | 'Given';
+
 export interface LoanResponse {
   id: string;
   userId: string;
   description: string;
   party: string | null;
+  purpose?: LoanPurpose | null;
+  direction?: LoanDirection;
   principal: number;
   currency: string;
   trmApplied: number;
@@ -22,6 +27,8 @@ export interface LoanResponse {
 export interface LoanRequest {
   description: string;
   party?: string;
+  purpose?: LoanPurpose | null;
+  direction?: LoanDirection;
   principal: number;
   currency: string;
   trmApplied?: number;

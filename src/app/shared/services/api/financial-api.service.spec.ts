@@ -304,13 +304,9 @@ describe('FinancialApiService local analytics', () => {
 
   it('fails explicit portfolio coverage for missing valuations, malformed base amounts, and orphan transactions', async () => {
     documents['portfolioentity'] = [investment('investment-1', 'Fondo')];
-    documents['portfoliovaluation'] = [
-      valuation('bad', 'investment-1', '2026-08-01', 100, 2, Number.NaN),
-    ];
+    documents['portfoliovaluation'] = [valuation('bad', 'investment-1', '2026-08-01', 100, 2, Number.NaN)];
     documents['movement'] = [{ ...movement('bad-movement', 'Expense', Number.NaN, '2026-08-01'), amount: 100 }];
-    documents['investmenttransaction'] = [
-      transaction('orphan', 'investment-1', 'missing-movement', 'Contribution'),
-    ];
+    documents['investmenttransaction'] = [transaction('orphan', 'investment-1', 'missing-movement', 'Contribution')];
 
     const value = await firstValueFrom(service.getReconciliation());
 
@@ -338,15 +334,13 @@ describe('FinancialApiService local analytics', () => {
 });
 
 describe('credit-card debt agrees between the snapshot and the historical series', () => {
-
   let service: FinancialApiService;
   let documents: Record<string, unknown[]>;
   let balances: Record<string, AccountBalance>;
 
   const local = {
     list: async <T>(kind: string) => (documents[kind] ?? []) as T[],
-    accountBalances: async <T>(ids: string[]) =>
-      Object.fromEntries(ids.map((id) => [id, balances[id]])) as T,
+    accountBalances: async <T>(ids: string[]) => Object.fromEntries(ids.map((id) => [id, balances[id]])) as T,
   };
   const token = {
     currentUser: () => ({ id: 'u', email: 'test@finanzas.app', name: 'Test', baseCurrency: 'COP', role: 'User' }),
@@ -358,15 +352,34 @@ describe('credit-card debt agrees between the snapshot and the historical series
 
     documents = {
       movement: [
-        { ...movement('compra', 'Expense', 300, '2026-07-05'), accountId: 'card', sourceType: 'CreditCard', operationType: 'CreditPurchase' },
-        { ...movement('pago', 'Income', 100, '2026-07-20'), accountId: 'card', sourceType: 'CreditCard', operationType: 'CreditPayment' },
+        {
+          ...movement('compra', 'Expense', 300, '2026-07-05'),
+          accountId: 'card',
+          sourceType: 'CreditCard',
+          operationType: 'CreditPurchase',
+        },
+        {
+          ...movement('pago', 'Income', 100, '2026-07-20'),
+          accountId: 'card',
+          sourceType: 'CreditCard',
+          operationType: 'CreditPayment',
+        },
       ],
       account: [account('card', 'Credit', 'COP', 1_000)],
       loan: [],
       installmentpurchase: [],
     };
 
-    balances = { card: { balance: -200, balanceBase: -200, usedInCycle: 300, usedInCycleBase: 300, outstandingDebt: 200, outstandingDebtBase: 200 } as AccountBalance };
+    balances = {
+      card: {
+        balance: -200,
+        balanceBase: -200,
+        usedInCycle: 300,
+        usedInCycleBase: 300,
+        outstandingDebt: 200,
+        outstandingDebtBase: 200,
+      } as AccountBalance,
+    };
     TestBed.configureTestingModule({
       providers: [
         { provide: LocalDataRepository, useValue: local },

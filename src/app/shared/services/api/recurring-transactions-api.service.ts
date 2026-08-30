@@ -22,11 +22,7 @@ const dateOnly = (value: string | Date): string => {
   const month = Number(match[2]);
   const day = Number(match[3]);
   const parsed = new Date(Date.UTC(year, month - 1, day));
-  if (
-    parsed.getUTCFullYear() !== year
-    || parsed.getUTCMonth() !== month - 1
-    || parsed.getUTCDate() !== day
-  ) {
+  if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
     throw new Error('recurring_date_is_invalid');
   }
   return `${match[1]}-${match[2]}-${match[3]}`;
@@ -50,7 +46,11 @@ export function nextRecurringDate(
     const targetMonth = date.getUTCMonth() + interval;
     const targetYear = date.getUTCFullYear() + Math.floor(targetMonth / 12);
     const normalizedMonth = ((targetMonth % 12) + 12) % 12;
-    date.setUTCFullYear(targetYear, normalizedMonth, Math.min(dayOfMonth ?? day, daysInUtcMonth(targetYear, normalizedMonth)));
+    date.setUTCFullYear(
+      targetYear,
+      normalizedMonth,
+      Math.min(dayOfMonth ?? day, daysInUtcMonth(targetYear, normalizedMonth)),
+    );
   }
   if (frequency === 'Yearly') {
     const targetYear = date.getUTCFullYear() + interval;
@@ -131,9 +131,7 @@ export class RecurringTransactionsApiService {
       if (!item.isActive) continue;
       try {
         created += await this.materializeOne(item, referenceDate);
-      } catch {
-
-      }
+      } catch {}
     }
     return created;
   }
@@ -188,11 +186,8 @@ export class RecurringTransactionsApiService {
     account: AccountResponse | null,
     category: CategoryResponse | null,
   ): MovementResponse {
-    const sourceType: MovementResponse['sourceType'] = account?.type === 'Credit'
-      ? 'CreditCard'
-      : account?.type === 'Debit'
-        ? 'OwnAccount'
-        : 'Cash';
+    const sourceType: MovementResponse['sourceType'] =
+      account?.type === 'Credit' ? 'CreditCard' : account?.type === 'Debit' ? 'OwnAccount' : 'Cash';
     return {
       id,
       type: item.type,
@@ -228,14 +223,12 @@ export class RecurringTransactionsApiService {
       throw new Error('recurring_frequency_is_invalid');
     }
     if (!Number.isFinite(req.amount) || req.amount <= 0) throw new Error('recurring_amount_must_be_positive');
-    if (!Number.isFinite(req.trmApplied ?? 1) || (req.trmApplied ?? 1) <= 0) throw new Error('recurring_trm_must_be_positive');
+    if (!Number.isFinite(req.trmApplied ?? 1) || (req.trmApplied ?? 1) <= 0)
+      throw new Error('recurring_trm_must_be_positive');
     if (!Number.isInteger(req.interval) || req.interval <= 0 || req.interval > 3650) {
       throw new Error('recurring_interval_is_invalid');
     }
-    if (
-      req.dayOfMonth != null
-      && (!Number.isInteger(req.dayOfMonth) || req.dayOfMonth < 1 || req.dayOfMonth > 31)
-    ) {
+    if (req.dayOfMonth != null && (!Number.isInteger(req.dayOfMonth) || req.dayOfMonth < 1 || req.dayOfMonth > 31)) {
       throw new Error('recurring_day_of_month_is_invalid');
     }
     dateOnly(req.startDate);

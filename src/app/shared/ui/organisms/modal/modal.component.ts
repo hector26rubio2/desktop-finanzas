@@ -9,6 +9,7 @@ import {
   effect,
   OnDestroy,
 } from '@angular/core';
+import { I18nService } from '../../../i18n/i18n.service';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -21,6 +22,7 @@ const FOCUSABLE_SELECTOR =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModalComponent implements OnDestroy {
+  readonly i18n = inject(I18nService);
   title = input('');
   ariaLabel = input('');
   closeModal = output<void>();

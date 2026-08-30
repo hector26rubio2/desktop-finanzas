@@ -77,7 +77,6 @@ export class InstallmentsComponent implements OnInit {
   }
 
   save() {
-
     if (this.saving()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;

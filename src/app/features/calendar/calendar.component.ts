@@ -97,7 +97,6 @@ export class CalendarComponent implements OnInit {
   ]);
 
   nextEvent = computed(() => {
-
     const viewing = this.currentDate();
     const now = this.today;
     const viewingPast =

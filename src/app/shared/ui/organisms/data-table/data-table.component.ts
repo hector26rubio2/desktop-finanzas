@@ -1,6 +1,16 @@
-import { Component, input, output, signal, computed, ChangeDetectionStrategy, TemplateRef } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  TemplateRef,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../molecules/pagination/pagination.component';
+import { I18nService } from '../../../i18n/i18n.service';
 
 export interface ColumnDef<T> {
   key: keyof T & string;
@@ -22,23 +32,25 @@ export interface ColumnDef<T> {
   styleUrl: './data-table.component.css',
 })
 export class DataTableComponent<T> {
+  readonly i18n = inject(I18nService);
   columns = input.required<ColumnDef<T>[]>();
   data = input.required<T[]>();
   trackBy = input<(item: T) => string>();
-  emptyMessage = input('No results');
+  emptyMessage = input('');
   loading = input(false);
   errorMessage = input('');
   searchable = input(false);
-  searchPlaceholder = input('Buscar');
+  searchPlaceholder = input('');
+  pagination = input(true);
 
   rowClickable = input(false);
 
   rowClass = input<((item: T) => string | null) | undefined>();
 
   page = input(1);
-  totalPages = input(1);
-  totalItems = input(0);
-  itemLabel = input('items');
+  totalPages = input<number | null>(null);
+  totalItems = input<number | null>(null);
+  itemLabel = input('');
   pageSizes = input<number[]>([10, 20, 50]);
   pageSizeValue = input(10);
 
@@ -52,6 +64,13 @@ export class DataTableComponent<T> {
   hiddenColumns = signal<Set<string>>(new Set());
 
   visibleColumns = computed(() => this.columns().filter((x) => !this.hiddenColumns().has(x.key)));
+  resolvedEmptyMessage = computed(() => this.emptyMessage() || this.i18n.t('common.no_results'));
+  resolvedSearchPlaceholder = computed(() => this.searchPlaceholder() || this.i18n.t('common.search'));
+  resolvedItemLabel = computed(() => this.itemLabel() || this.i18n.t('common.items'));
+  resolvedTotalItems = computed(() => this.totalItems() ?? this.sortedData().length);
+  resolvedTotalPages = computed(
+    () => this.totalPages() ?? Math.max(1, Math.ceil(this.resolvedTotalItems() / this.pageSizeValue())),
+  );
 
   sortedData = computed<T[]>(() => {
     const key = this.sortKey();
@@ -105,6 +124,12 @@ export class DataTableComponent<T> {
 
   onRowClick(item: T) {
     if (this.rowClickable()) this.rowClick.emit(item);
+  }
+
+  onRowKeydown(event: KeyboardEvent, item: T) {
+    if (!this.rowClickable() || !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    this.rowClick.emit(item);
   }
 
   onPageChange(p: number) {

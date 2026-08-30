@@ -4,7 +4,15 @@ describe('entity form schema registry', () => {
   const types = Object.keys(ENTITY_FORM_SCHEMAS) as EntityFormType[];
 
   it('exposes a builder for every entity type', () => {
-    expect(types).toEqual(['account', 'loan', 'creditCardTerms', 'installment', 'recurring', 'investment', 'valuation']);
+    expect(types).toEqual([
+      'account',
+      'loan',
+      'creditCardTerms',
+      'installment',
+      'recurring',
+      'investment',
+      'valuation',
+    ]);
   });
 
   it('every builder returns fields with a unique key, a label and a type', () => {
@@ -31,5 +39,14 @@ describe('entity form schema registry', () => {
     const creditLimit = accountFields.find((f) => f.key === 'creditLimit');
     expect(creditLimit?.visibleWhen?.({ type: 'Credit' })).toBe(true);
     expect(creditLimit?.visibleWhen?.({ type: 'Cash' })).toBe(false);
+  });
+
+  it('caps percentage rates before they reach the data layer', () => {
+    const accountRate = ENTITY_FORM_SCHEMAS.account().find((field) => field.key === 'interestRate');
+    const loanRate = ENTITY_FORM_SCHEMAS.loan().find((field) => field.key === 'interestRateAnnual');
+    const installmentRate = ENTITY_FORM_SCHEMAS.installment().find((field) => field.key === 'interestRatePercent');
+    expect(accountRate?.max).toBe(1000);
+    expect(loanRate?.max).toBe(1000);
+    expect(installmentRate?.max).toBe(1000);
   });
 });

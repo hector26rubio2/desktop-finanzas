@@ -114,10 +114,10 @@ export class LoansApiService {
     );
     if (existing.length > 0) {
       if (
-        existing.length === 1
-        && existing[0].operationType === 'LoanPayment'
-        && existing[0].loanId === id
-        && existing[0].accountId === sourceAccountId
+        existing.length === 1 &&
+        existing[0].operationType === 'LoanPayment' &&
+        existing[0].loanId === id &&
+        existing[0].accountId === sourceAccountId
       ) {
         return loan;
       }
@@ -129,7 +129,8 @@ export class LoansApiService {
     if (!Number.isFinite(extraPrincipal) || extraPrincipal < 0) throw new Error('extra_principal_is_invalid');
     const account = await this.local.get<AccountResponse>('account', sourceAccountId);
     if (!account) throw new Error('loan_payment_account_not_found');
-    if (!account.isActive || account.type === 'Credit') throw new Error('loan_payment_requires_an_active_cash_or_debit_account');
+    if (!account.isActive || account.type === 'Credit')
+      throw new Error('loan_payment_requires_an_active_cash_or_debit_account');
     if (account.currency.toUpperCase() !== loan.currency.toUpperCase()) {
       throw new Error('cross_currency_loan_payment_requires_an_exchange_operation');
     }
@@ -209,14 +210,19 @@ export class LoansApiService {
 
   private async validate(req: LoanRequest): Promise<AccountResponse> {
     if (!Number.isFinite(req.principal) || req.principal <= 0) throw new Error('loan_principal_must_be_positive');
-    if (!Number.isFinite(req.trmApplied ?? 1) || (req.trmApplied ?? 1) <= 0) throw new Error('loan_trm_must_be_positive');
-    if (!Number.isFinite(req.interestRateAnnual) || req.interestRateAnnual < 0) throw new Error('loan_interest_is_invalid');
-    if (!Number.isInteger(req.termMonths) || req.termMonths <= 0 || req.termMonths > 600) throw new Error('loan_term_is_invalid');
+    if (!Number.isFinite(req.trmApplied ?? 1) || (req.trmApplied ?? 1) <= 0)
+      throw new Error('loan_trm_must_be_positive');
+    if (!Number.isFinite(req.interestRateAnnual) || req.interestRateAnnual < 0)
+      throw new Error('loan_interest_is_invalid');
+    if (!Number.isInteger(req.termMonths) || req.termMonths <= 0 || req.termMonths > 600)
+      throw new Error('loan_term_is_invalid');
     if (!req.accountId) throw new Error('loan_destination_account_is_required');
     const account = await this.local.get<AccountResponse>('account', req.accountId);
     if (!account) throw new Error('loan_destination_account_not_found');
-    if (!account.isActive || account.type === 'Credit') throw new Error('loan_destination_requires_an_active_cash_or_debit_account');
-    if (account.currency.toUpperCase() !== req.currency.toUpperCase()) throw new Error('loan_account_currency_mismatch');
+    if (!account.isActive || account.type === 'Credit')
+      throw new Error('loan_destination_requires_an_active_cash_or_debit_account');
+    if (account.currency.toUpperCase() !== req.currency.toUpperCase())
+      throw new Error('loan_account_currency_mismatch');
     return account;
   }
 
@@ -283,13 +289,15 @@ export class LoansApiService {
   }
 
   private financialTermsChanged(current: LoanResponse, req: LoanRequest): boolean {
-    return current.principal !== req.principal
-      || current.currency !== req.currency.toUpperCase()
-      || current.trmApplied !== (req.trmApplied ?? 1)
-      || current.interestRateAnnual !== req.interestRateAnnual
-      || current.termMonths !== req.termMonths
-      || current.startDate !== req.startDate
-      || current.loanType !== (req.loanType ?? 'French')
-      || current.accountId !== (req.accountId ?? null);
+    return (
+      current.principal !== req.principal ||
+      current.currency !== req.currency.toUpperCase() ||
+      current.trmApplied !== (req.trmApplied ?? 1) ||
+      current.interestRateAnnual !== req.interestRateAnnual ||
+      current.termMonths !== req.termMonths ||
+      current.startDate !== req.startDate ||
+      current.loanType !== (req.loanType ?? 'French') ||
+      current.accountId !== (req.accountId ?? null)
+    );
   }
 }

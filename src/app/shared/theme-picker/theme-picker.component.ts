@@ -1,10 +1,10 @@
-import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import type { Theme } from '../services/theme.service';
 import { THEME_PRESETS } from '../services/theme.service';
+import { I18nService } from '../i18n/i18n.service';
 
 interface ThemeOption {
   id: Theme;
-  name: string;
   accent: string;
   accent2: string;
   accent3: string;
@@ -13,7 +13,6 @@ interface ThemeOption {
 function buildOptions(): ThemeOption[] {
   return THEME_PRESETS.map((p) => ({
     id: p.id,
-    name: p.name,
     accent: `oklch(${p.isDark ? 72 : 48}% 0.10 ${p.baseHue})`,
     accent2: `oklch(${p.isDark ? 70 : 47}% 0.09 ${(p.baseHue + 120) % 360})`,
     accent3: `oklch(${p.isDark ? 70 : 46}% 0.08 ${(p.baseHue + 240) % 360})`,
@@ -29,7 +28,12 @@ const THEME_OPTIONS: ThemeOption[] = buildOptions();
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="theme-btn-wrap" (mouseenter)="open()" (mouseleave)="close()">
-      <button type="button" class="theme-top-btn" [class.active]="showPicker()" title="Cambiar tema">
+      <button
+        type="button"
+        class="theme-top-btn"
+        [class.active]="showPicker()"
+        [attr.title]="i18n.t('common.change_theme')"
+      >
         <svg
           width="18"
           height="18"
@@ -58,7 +62,7 @@ const THEME_OPTIONS: ThemeOption[] = buildOptions();
                 <span class="theme-swatch__dot" [style.background]="opt.accent3"></span>
               </span>
               <span class="theme-option__txt">
-                <span class="theme-option__name">{{ opt.name }}</span>
+                <span class="theme-option__name">{{ i18n.t('theme.' + opt.id) }}</span>
                 <span class="theme-option__desc">{{ formatLabel()(opt.id) }}</span>
               </span>
             </button>
@@ -69,6 +73,7 @@ const THEME_OPTIONS: ThemeOption[] = buildOptions();
   `,
 })
 export class ThemePickerComponent {
+  readonly i18n = inject(I18nService);
   currentTheme = input<Theme>('purple');
   formatLabel = input<(id: string) => string>((id: string) => id);
   themeChange = output<Theme>();

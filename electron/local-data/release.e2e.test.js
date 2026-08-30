@@ -17,7 +17,13 @@ const logger = { info() {}, warn() {}, error() {} };
 function start(root = fs.mkdtempSync(path.join(os.tmpdir(), 'finanzas-e2e-'))) {
   const databasePath = path.join(root, 'finanzas.sqlite3');
   const app = { getPath: () => root };
-  const db = new LocalDatabase({ app, logger, databasePath });
+  const db = new LocalDatabase({
+    app,
+    logger,
+    databasePath,
+    keyPath: path.join(root, 'finanzas.key'),
+    safeStorage,
+  });
   db.open();
   const auth = new LocalAuthStore({ app, safeStorage, logger, profilePath: path.join(root, 'profile.dat') });
   return { root, databasePath, db, auth };
@@ -25,11 +31,26 @@ function start(root = fs.mkdtempSync(path.join(os.tmpdir(), 'finanzas-e2e-'))) {
 
 test('release journey: local profile owns the ledger across password change and recovery', () => {
   const f = start();
-  const enrollment = f.auth.register({ name: 'Titular', email: 'titular@local', password: 'contrasena1', baseCurrency: 'COP', existingOwners: f.db.owners() });
+  const enrollment = f.auth.register({
+    name: 'Titular',
+    email: 'titular@local',
+    password: 'contrasena1',
+    baseCurrency: 'COP',
+    existingOwners: f.db.owners(),
+  });
   const owner = enrollment.ownerId;
   assert.ok(owner);
 
-  f.db.put('movement', { id: 'e2e-1', type: 'Expense', kind: 'Expense', amount: 120, amountBase: 120, currency: 'COP', trmApplied: 1, date: '2026-07-05' });
+  f.db.put('movement', {
+    id: 'e2e-1',
+    type: 'Expense',
+    kind: 'Expense',
+    amount: 120,
+    amountBase: 120,
+    currency: 'COP',
+    trmApplied: 1,
+    date: '2026-07-05',
+  });
   assert.equal(f.db.list('movement').length, 1);
   f.db.close();
 
@@ -50,8 +71,26 @@ test('release journey: local profile owns the ledger across password change and 
 test('release journey: first start, offline close, backup restore and monthly close', () => {
   const f = start();
   assert.equal(f.db.status().schemaVersion, 1);
-  f.db.put('movement', { id: 'income', type: 'Income', kind: 'Income', amount: 1000, amountBase: 1000, currency: 'COP', trmApplied: 1, date: '2026-07-01' });
-  f.db.put('movement', { id: 'expense', type: 'Expense', kind: 'Expense', amount: 250, amountBase: 250, currency: 'COP', trmApplied: 1, date: '2026-07-15' });
+  f.db.put('movement', {
+    id: 'income',
+    type: 'Income',
+    kind: 'Income',
+    amount: 1000,
+    amountBase: 1000,
+    currency: 'COP',
+    trmApplied: 1,
+    date: '2026-07-01',
+  });
+  f.db.put('movement', {
+    id: 'expense',
+    type: 'Expense',
+    kind: 'Expense',
+    amount: 250,
+    amountBase: 250,
+    currency: 'COP',
+    trmApplied: 1,
+    date: '2026-07-15',
+  });
   const backup = path.join(f.root, 'backup.sqlite3');
   const created = f.db.backup(backup);
   f.db.close();

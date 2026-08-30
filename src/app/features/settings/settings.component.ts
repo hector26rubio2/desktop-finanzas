@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { ThemeService, Theme, THEME_PRESETS, FONT_OPTIONS } from '../../shared/services/theme.service';
 import { PlatformService } from '../../shared/services/platform.service';
@@ -225,12 +225,12 @@ export class SettingsComponent implements OnInit {
     );
   }
 
-  currencies = [
-    { code: 'ARS', name: 'Peso argentino', symbol: '$' },
-    { code: 'USD', name: 'Dólar estadounidense', symbol: 'US$' },
+  currencies = computed(() => [
+    { code: 'ARS', name: this.i18n.localize('Peso argentino', 'Argentine peso', 'Peso argentino'), symbol: '$' },
+    { code: 'USD', name: this.i18n.localize('Dólar estadounidense', 'US dollar', 'Dólar americano'), symbol: 'US$' },
     { code: 'EUR', name: 'Euro', symbol: '€' },
-    { code: 'COP', name: 'Peso colombiano', symbol: 'COP' },
-  ];
+    { code: 'COP', name: this.i18n.localize('Peso colombiano', 'Colombian peso', 'Peso colombiano'), symbol: 'COP' },
+  ]);
 
   shortcutCols = computed<ColumnDef<{ action: string; keys: string }>[]>(() => [
     { key: 'action', header: this.i18n.t('settings.accion'), sortable: true },
@@ -240,16 +240,16 @@ export class SettingsComponent implements OnInit {
   get shortcuts() {
     const m = this.os.mod;
     return [
-      { action: 'Command palette', keys: `${m} K` },
-      { action: 'New transaction', keys: `${m} N` },
-      { action: 'Change theme', keys: `${m} ;` },
-      { action: 'Search', keys: `${m} F` },
-      { action: 'Go to Dashboard', keys: 'g d' },
-      { action: 'Go to Movements', keys: 'g m' },
-      { action: 'Go to Accounts', keys: 'g a' },
-      { action: 'Go to Cards', keys: 'g t' },
-      { action: 'Go to Reports', keys: 'g r' },
-      { action: 'Go to Settings', keys: 'g s' },
+      { action: this.i18n.localize('Paleta de comandos', 'Command palette', 'Paleta de comandos'), keys: `${m} K` },
+      { action: this.i18n.t('cmdk.new_movement'), keys: `${m} N` },
+      { action: this.i18n.t('cmdk.change_theme'), keys: `${m} ;` },
+      { action: this.i18n.t('common.search'), keys: `${m} F` },
+      { action: this.i18n.localize('Ir al Dashboard', 'Go to Dashboard', 'Ir ao Dashboard'), keys: 'g d' },
+      { action: this.i18n.localize('Ir a Movimientos', 'Go to Movements', 'Ir a Movimentos'), keys: 'g m' },
+      { action: this.i18n.localize('Ir a Cuentas', 'Go to Accounts', 'Ir a Contas'), keys: 'g a' },
+      { action: this.i18n.localize('Ir a Tarjetas', 'Go to Cards', 'Ir a Cartões'), keys: 'g t' },
+      { action: this.i18n.localize('Ir a Reportes', 'Go to Reports', 'Ir a Relatórios'), keys: 'g r' },
+      { action: this.i18n.localize('Ir a Ajustes', 'Go to Settings', 'Ir a Ajustes'), keys: 'g s' },
     ];
   }
 
@@ -271,7 +271,6 @@ export class SettingsComponent implements OnInit {
   public updates = inject(UpdateService);
   isElectron = typeof window !== 'undefined' && !!window.electronAPI;
   public os = inject(PlatformService);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
   public i18n = inject(I18nService);
   private destroyRef = inject(DestroyRef);

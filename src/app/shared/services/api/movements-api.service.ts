@@ -50,10 +50,7 @@ export class MovementsApiService {
     return from(this.localTransfer(req, false, idempotencyKey));
   }
 
-  createCreditCardPayment(
-    req: CreditCardPaymentRequest,
-    idempotencyKey: string,
-  ): Observable<TransferResponse> {
+  createCreditCardPayment(req: CreditCardPaymentRequest, idempotencyKey: string): Observable<TransferResponse> {
     return from(
       this.localTransfer(
         {
@@ -122,7 +119,10 @@ export class MovementsApiService {
   private async update(id: string, req: MovementRequest): Promise<MovementResponse> {
     const existing = await this.local.get<MovementResponse>('movement', id);
     if (!existing) throw new Error('movement_not_found');
-    if (existing.operationType && ['Transfer', 'CreditPayment', 'LoanDisbursement', 'LoanPayment'].includes(existing.operationType)) {
+    if (
+      existing.operationType &&
+      ['Transfer', 'CreditPayment', 'LoanDisbursement', 'LoanPayment'].includes(existing.operationType)
+    ) {
       throw new Error('linked_financial_operation_cannot_be_edited');
     }
     const refs = await this.validate(req);
@@ -134,9 +134,7 @@ export class MovementsApiService {
       throw new Error('paid_installment_terms_are_locked');
     }
 
-    const installmentId = wantsInstallment
-      ? (existing.installmentPurchaseId ?? globalThis.crypto.randomUUID())
-      : null;
+    const installmentId = wantsInstallment ? (existing.installmentPurchaseId ?? globalThis.crypto.randomUUID()) : null;
     const movement = {
       ...this.localMovement(req, id, refs, installmentId),
       createdAt: existing.createdAt,
@@ -148,7 +146,14 @@ export class MovementsApiService {
       operations.push({
         action: 'put',
         kind: 'installmentpurchase',
-        value: this.installmentProjection(req, movement, refs.account, installmentId, oldProjection?.paidCount ?? 0, oldProjection?.createdAt),
+        value: this.installmentProjection(
+          req,
+          movement,
+          refs.account,
+          installmentId,
+          oldProjection?.paidCount ?? 0,
+          oldProjection?.createdAt,
+        ),
         operation: 'installment-purchase-update',
       });
     } else if (existing.installmentPurchaseId) {
@@ -169,7 +174,10 @@ export class MovementsApiService {
     if (movement.operationType === 'LoanDisbursement' || movement.operationType === 'LoanPayment') {
       throw new Error('loan_movements_must_be_changed_from_the_loan');
     }
-    if (movement.installmentPurchaseId && (movement.operationType === 'CreditPayment' || movement.operationType === 'CreditInterest')) {
+    if (
+      movement.installmentPurchaseId &&
+      (movement.operationType === 'CreditPayment' || movement.operationType === 'CreditInterest')
+    ) {
       throw new Error('installment_payments_cannot_be_deleted_individually');
     }
     if (movement.operationId && ['Transfer', 'CreditPayment', 'Saving'].includes(movement.operationType ?? '')) {
@@ -187,11 +195,19 @@ export class MovementsApiService {
       return;
     }
     if (movement.installmentPurchaseId) {
-      const projection = await this.local.get<InstallmentResponse>('installmentpurchase', movement.installmentPurchaseId);
+      const projection = await this.local.get<InstallmentResponse>(
+        'installmentpurchase',
+        movement.installmentPurchaseId,
+      );
       if (projection && projection.paidCount > 0) throw new Error('paid_installment_purchase_cannot_be_deleted');
       await this.local.batch([
         { action: 'remove', kind: 'movement', id, operation: 'installment-purchase-remove' },
-        { action: 'remove', kind: 'installmentpurchase', id: movement.installmentPurchaseId, operation: 'installment-purchase-remove' },
+        {
+          action: 'remove',
+          kind: 'installmentpurchase',
+          id: movement.installmentPurchaseId,
+          operation: 'installment-purchase-remove',
+        },
       ]);
       return;
     }
@@ -209,7 +225,8 @@ export class MovementsApiService {
     ]);
     if (req.accountId && !account) throw new Error('movement_account_not_found');
     if (account && !account.isActive) throw new Error('movement_account_is_inactive');
-    if (account && account.currency.toUpperCase() !== req.currency.toUpperCase()) throw new Error('movement_account_currency_mismatch');
+    if (account && account.currency.toUpperCase() !== req.currency.toUpperCase())
+      throw new Error('movement_account_currency_mismatch');
     if (req.categoryId && !category) throw new Error('movement_category_not_found');
     if (category && category.type !== req.type) throw new Error('movement_category_type_mismatch');
     if (req.sourceType === 'CreditCard' && (req.type !== 'Expense' || account?.type !== 'Credit')) {
@@ -293,12 +310,14 @@ export class MovementsApiService {
   }
 
   private installmentTermsChanged(existing: MovementResponse, req: MovementRequest): boolean {
-    return existing.amount !== req.amount
-      || existing.currency !== req.currency.toUpperCase()
-      || existing.trmApplied !== req.trmApplied
-      || existing.accountId !== (req.accountId ?? null)
-      || existing.loanInstallments !== (req.loanInstallments ?? null)
-      || existing.loanInterestRate !== (req.loanInterestRate ?? null);
+    return (
+      existing.amount !== req.amount ||
+      existing.currency !== req.currency.toUpperCase() ||
+      existing.trmApplied !== req.trmApplied ||
+      existing.accountId !== (req.accountId ?? null) ||
+      existing.loanInstallments !== (req.loanInstallments ?? null) ||
+      existing.loanInterestRate !== (req.loanInterestRate ?? null)
+    );
   }
 
   private async localTransfer(
@@ -318,7 +337,9 @@ export class MovementsApiService {
     if (!sourceAccount.isActive || !destinationAccount.isActive) throw new Error('transfer_account_is_inactive');
     if (sourceAccount.type === 'Credit') throw new Error('transfer_source_must_be_cash_or_debit');
     if (cardPayment ? destinationAccount.type !== 'Credit' : destinationAccount.type === 'Credit') {
-      throw new Error(cardPayment ? 'card_payment_requires_a_credit_destination' : 'use_card_payment_for_credit_accounts');
+      throw new Error(
+        cardPayment ? 'card_payment_requires_a_credit_destination' : 'use_card_payment_for_credit_accounts',
+      );
     }
     const currency = req.currency.toUpperCase();
     if (sourceAccount.currency.toUpperCase() !== currency || destinationAccount.currency.toUpperCase() !== currency) {
@@ -379,11 +400,11 @@ export class MovementsApiService {
       const persistedSource = existing.find((item) => item.id === sourceMovementId);
       const persistedDestination = existing.find((item) => item.id === destinationMovementId);
       if (
-        existing.length === 2
-        && persistedSource
-        && persistedDestination
-        && this.sameTransferLeg(persistedSource, source)
-        && this.sameTransferLeg(persistedDestination, destination)
+        existing.length === 2 &&
+        persistedSource &&
+        persistedDestination &&
+        this.sameTransferLeg(persistedSource, source) &&
+        this.sameTransferLeg(persistedDestination, destination)
       ) {
         return this.transferResponse(req, operationId, sourceMovementId, destinationMovementId);
       }
@@ -418,14 +439,16 @@ export class MovementsApiService {
   }
 
   private sameTransferLeg(persisted: MovementResponse, expected: MovementResponse): boolean {
-    return persisted.type === expected.type
-      && persisted.accountId === expected.accountId
-      && persisted.operationType === expected.operationType
-      && persisted.amount === expected.amount
-      && persisted.currency === expected.currency
-      && persisted.trmApplied === expected.trmApplied
-      && persisted.amountBase === expected.amountBase
-      && persisted.date === expected.date
-      && persisted.description === expected.description;
+    return (
+      persisted.type === expected.type &&
+      persisted.accountId === expected.accountId &&
+      persisted.operationType === expected.operationType &&
+      persisted.amount === expected.amount &&
+      persisted.currency === expected.currency &&
+      persisted.trmApplied === expected.trmApplied &&
+      persisted.amountBase === expected.amountBase &&
+      persisted.date === expected.date &&
+      persisted.description === expected.description
+    );
   }
 }

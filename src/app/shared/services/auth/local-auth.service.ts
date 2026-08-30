@@ -4,7 +4,12 @@ import type { LocalAuthEnrollment, LocalAuthSession, LocalAuthStatus, UserInfo }
 
 interface AuthBridge {
   status(): Promise<LocalAuthStatus>;
-  register(payload: { name: string; email: string; password: string; baseCurrency: string }): Promise<LocalAuthEnrollment>;
+  register(payload: {
+    name: string;
+    email: string;
+    password: string;
+    baseCurrency: string;
+  }): Promise<LocalAuthEnrollment>;
   login(payload: { password: string; remember: boolean }): Promise<LocalAuthSession>;
   resume(resumeToken: string): Promise<LocalAuthSession | null>;
   logout(): Promise<{ ok: boolean }>;
@@ -27,7 +32,14 @@ export class LocalAuthService {
   status(): Promise<LocalAuthStatus> {
     const api = bridge();
 
-    if (!api) return Promise.resolve({ hasProfile: false, suggestedName: '', unlocked: false, lockedUntil: 0, orphanOwners: [] });
+    if (!api)
+      return Promise.resolve({
+        hasProfile: false,
+        suggestedName: '',
+        unlocked: false,
+        lockedUntil: 0,
+        orphanOwners: [],
+      });
     return api.status();
   }
 

@@ -100,7 +100,6 @@ export class AuthService {
     if (!resumeToken) return;
     const session = await this.local.resume(resumeToken).catch(() => null);
     if (!session) {
-
       this.session.clear();
       return;
     }
@@ -113,8 +112,6 @@ export class AuthService {
       await new Promise<void>((resolve) => {
         this.recurring.materializeDue().subscribe({ next: () => resolve(), error: () => resolve() });
       });
-    } catch {
-
-    }
+    } catch {}
   }
 }

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../../i18n/i18n.service';
 export interface InspectorSection {
   title: string;
   rows: Array<{ label: string; value: string }>;
@@ -18,6 +19,7 @@ export interface InspectorAction {
   styleUrl: './inspector-panel.component.css',
 })
 export class InspectorPanelComponent {
+  readonly i18n = inject(I18nService);
   open = input(false);
   title = input('Detalle');
   subtitle = input('');

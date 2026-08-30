@@ -12,19 +12,28 @@ import { I18nService } from '../../shared/i18n/i18n.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { toDateKey } from '../../shared/utils/date';
 import { ModalComponent } from '@ui/organisms/modal/modal.component';
-import { FieldErrorComponent } from '@ui/atoms/field-error/field-error.component';
 import { KpiStripComponent, type KpiStripItem } from '@ui/molecules/kpi-strip/kpi-strip.component';
 import { forkJoin } from 'rxjs';
 import { resolveViewLoadState } from '../../shared/utils/view-load-state';
 import { ConfirmDialogComponent } from '@ui/molecules/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { SkeletonComponent } from '@ui/atoms/skeleton/skeleton.component';
+import { DynamicFormComponent } from '@ui/organisms/dynamic-form/dynamic-form.component';
+import { recurringFormFields } from '../../shared/forms/entity-form.schemas';
 
 @Component({
   selector: 'app-recurring',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, KpiStripComponent, ConfirmDialogComponent, SkeletonComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ModalComponent,
+    KpiStripComponent,
+    ConfirmDialogComponent,
+    SkeletonComponent,
+    DynamicFormComponent,
+  ],
   templateUrl: './recurring.component.html',
   styleUrl: './recurring.component.css',
 })
@@ -50,6 +59,7 @@ export class RecurringComponent implements OnInit {
 
   form = this.fb.group({
     type: ['Expense' as 'Income' | 'Expense', Validators.required],
+    recurringType: ['FixedExpense'],
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ['COP', Validators.required],
     trmApplied: [1],
@@ -59,9 +69,18 @@ export class RecurringComponent implements OnInit {
     frequency: ['Monthly' as 'Daily' | 'Weekly' | 'Monthly' | 'Yearly', Validators.required],
     interval: [1, [Validators.required, Validators.min(1)]],
     dayOfMonth: [null as number | null, [Validators.min(1), Validators.max(31)]],
+    dayOfWeek: [null as number | null, [Validators.min(0), Validators.max(6)]],
     startDate: ['', Validators.required],
     endDate: [''],
   });
+
+  recurringFields = computed(() =>
+    recurringFormFields({
+      categories: this.categories().map((c) => ({ value: c.id, label: c.name })),
+      accounts: this.accounts().map((a) => ({ value: a.id, label: a.name })),
+      baseCurrency: this.auth.baseCurrency(),
+    }),
+  );
 
   ngOnInit() {
     this.reload();
@@ -99,6 +118,7 @@ export class RecurringComponent implements OnInit {
     this.editingId.set(null);
     this.form.reset({
       type: 'Expense',
+      recurringType: 'FixedExpense',
       amount: null,
       currency: this.auth.baseCurrency(),
       trmApplied: 1,
@@ -108,6 +128,7 @@ export class RecurringComponent implements OnInit {
       frequency: 'Monthly',
       interval: 1,
       dayOfMonth: new Date().getDate(),
+      dayOfWeek: null,
       startDate: today,
       endDate: '',
     });
@@ -128,6 +149,7 @@ export class RecurringComponent implements OnInit {
     this.editingId.set(item.id);
     this.form.reset({
       type: item.type,
+      recurringType: item.recurringType ?? 'FixedExpense',
       amount: item.amount,
       currency: item.currency,
       trmApplied: item.trmApplied,
@@ -137,6 +159,7 @@ export class RecurringComponent implements OnInit {
       frequency: item.frequency,
       interval: item.interval,
       dayOfMonth: item.dayOfMonth,
+      dayOfWeek: item.dayOfWeek,
       startDate: item.startDate,
       endDate: item.endDate ?? '',
     });
@@ -151,6 +174,8 @@ export class RecurringComponent implements OnInit {
     const v = this.form.value;
     const req = {
       type: v.type!,
+      recurringType:
+        (v.recurringType as import('../../shared/models/recurring-transaction.model').RecurringType) ?? 'Other',
       amount: v.amount!,
       currency: v.currency!,
       trmApplied: v.trmApplied ?? 1,
@@ -160,6 +185,7 @@ export class RecurringComponent implements OnInit {
       frequency: v.frequency!,
       interval: v.interval ?? 1,
       dayOfMonth: v.frequency === 'Monthly' ? (v.dayOfMonth ?? undefined) : undefined,
+      dayOfWeek: v.frequency === 'Weekly' ? (v.dayOfWeek ?? undefined) : undefined,
       startDate: v.startDate!,
       endDate: v.endDate || undefined,
     };

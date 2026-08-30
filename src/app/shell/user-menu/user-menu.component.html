@@ -1,4 +1,9 @@
-<div class="user-menu-backdrop" (click)="closeMenu.emit()"></div>
+<button
+  type="button"
+  class="user-menu-backdrop"
+  [attr.aria-label]="i18n.t('common.cancel')"
+  (click)="closeMenu.emit()"
+></button>
 <div class="user-menu" role="menu">
   <div class="user-menu__header">
     <div class="user-menu__avatar">{{ userInitials() }}</div>

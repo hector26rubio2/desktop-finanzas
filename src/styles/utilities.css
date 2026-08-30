@@ -13,7 +13,7 @@ table th.num {
 
 .eyebrow {
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -106,20 +106,34 @@ table th.num {
   min-width: 200px;
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-2) transparent;
-}
 *::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--line-2);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 75%, transparent);
+  border-radius: 999px;
+  min-height: 32px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+*::-webkit-scrollbar:window-inactive {
+  opacity: 0;
 }
 
 @keyframes fadeIn {
@@ -192,18 +206,6 @@ table th.num {
 }
 .stagger > *:nth-child(8) {
   animation-delay: 280ms;
-}
-
-::-webkit-scrollbar {
-  display: none;
-}
-
-* {
-  scrollbar-width: none;
-}
-
-* {
-  -ms-overflow-style: none;
 }
 
 .flex {
@@ -335,7 +337,7 @@ table th.num {
 }
 .section-title {
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-3);

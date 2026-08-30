@@ -1,5 +1,4 @@
 <div class="settings-layout">
-
   <nav class="settings-nav">
     @for (s of sections; track s.id) {
       <button
@@ -106,7 +105,7 @@
             <div class="pref-row">
               <div class="pref-row__label">{{ i18n.t('settings.moneda_base') }}</div>
               <div class="currency-grid">
-                @for (curr of currencies; track curr.code) {
+                @for (curr of currencies(); track curr.code) {
                   <button
                     class="currency-chip"
                     [class.currency-chip--active]="curr.code === baseCurrency()"
@@ -133,7 +132,9 @@
                   "
                   [class.pref-hint--success]="currencyChangeStatus() === 'changed'"
                   [attr.role]="
-                    currencyChangeStatus() === 'blocked' || currencyChangeStatus() === 'unavailable' ? 'alert' : 'status'
+                    currencyChangeStatus() === 'blocked' || currencyChangeStatus() === 'unavailable'
+                      ? 'alert'
+                      : 'status'
                   "
                 >
                   {{ i18n.t(messageKey) }}
@@ -151,7 +152,6 @@
 
         <div class="appearance-grid">
           <div class="appearance-col">
-
             <div class="appearance-block">
               <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.tema') }}</div>
               <div class="preset-list" #presetListRef>
@@ -207,8 +207,12 @@
                   @for (ct of theme.customThemes(); track ct.name) {
                     <div
                       class="saved-theme"
+                      role="button"
+                      tabindex="0"
                       [class.saved-theme--active]="theme.theme() === 'custom' && activeCustomName() === ct.name"
                       (click)="theme.activateCustomTheme(ct.name)"
+                      (keydown.enter)="theme.activateCustomTheme(ct.name)"
+                      (keydown.space)="$event.preventDefault(); theme.activateCustomTheme(ct.name)"
                     >
                       <div class="saved-theme__swatches">
                         <span [style.background]="ct.bg"></span>
@@ -248,7 +252,6 @@
         </div>
 
         <div class="appearance-row">
-
           <div class="appearance-stack">
             <div class="appearance-block">
               <div class="eyebrow" style="margin-bottom: 10px">{{ i18n.t('settings.densidad') }}</div>
@@ -353,7 +356,7 @@
           <p class="about-desc">{{ i18n.t('settings.app_descripcion') }}</p>
           <div class="about-stack">
             <span class="tag">{{ i18n.t('settings.tech_angular') }}</span>
-            <span class="tag">{{ i18n.t('settings.tech_dotnet') }}</span>
+            <span class="tag">{{ i18n.t('settings.tech_storage') }}</span>
           </div>
           @if (isElectron) {
             <div class="about-updates">

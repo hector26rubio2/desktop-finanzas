@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import type { Locale, TranslationKey } from './locale.types';
 import type { CategoryTranslations } from '../models/category.model';
 import es from './translations/es-CO';
@@ -14,11 +14,19 @@ export class I18nService {
     'pt-BR': pt,
   };
 
-  currentLocale = signal<Locale>((localStorage.getItem(this.STORAGE_KEY) as Locale) || 'es-CO');
+  private readonly supported = new Set<Locale>(['es-CO', 'en-US', 'pt-BR']);
+  currentLocale = signal<Locale>(this.initialLocale());
 
   private translations = computed(() => this.locales[this.currentLocale()]);
 
+  constructor() {
+    effect(() => {
+      document.documentElement.lang = this.currentLocale();
+    });
+  }
+
   setLocale(locale: Locale): void {
+    if (!this.supported.has(locale)) return;
     this.currentLocale.set(locale);
     localStorage.setItem(this.STORAGE_KEY, locale);
   }
@@ -29,9 +37,18 @@ export class I18nService {
     return this.translations()[key] ?? this.locales['es-CO'][key] ?? key;
   }
 
+  localize(es: string, en: string, pt: string): string {
+    return { 'es-CO': es, 'en-US': en, 'pt-BR': pt }[this.currentLocale()];
+  }
+
   catName(name: string, translations: CategoryTranslations | null | undefined): string {
     if (!translations) return name;
     const locale = this.currentLocale();
     return translations[locale] ?? translations['es-CO'] ?? name;
+  }
+
+  private initialLocale(): Locale {
+    const stored = localStorage.getItem(this.STORAGE_KEY) as Locale | null;
+    return stored && this.supported.has(stored) ? stored : 'es-CO';
   }
 }

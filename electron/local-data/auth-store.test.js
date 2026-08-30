@@ -71,7 +71,10 @@ test('with no previous data the profile mints its own owner id', () => {
 
 test('with several owners it refuses to guess whose the data is', () => {
   const { store } = fixture();
-  const existingOwners = [{ ownerId: 'owner-a', documents: 40 }, { ownerId: 'owner-b', documents: 5 }];
+  const existingOwners = [
+    { ownerId: 'owner-a', documents: 40 },
+    { ownerId: 'owner-b', documents: 5 },
+  ];
 
   assert.throws(() => store.register({ ...CREDENTIALS, existingOwners }), /more than one owner/);
   assert.equal(store.status(existingOwners).hasProfile, false);
@@ -146,15 +149,24 @@ test('the recovery code restores access once and is replaced by a new one', () =
   const { store } = fixture();
   const enrollment = store.register(CREDENTIALS);
 
-  assert.throws(() => store.recover({ recoveryCode: 'AAAAA-AAAAA-AAAAA-AAAAA-AAAAA', newPassword: 'nueva12345' }), /Incorrect credentials/);
+  assert.throws(
+    () => store.recover({ recoveryCode: 'AAAAA-AAAAA-AAAAA-AAAAA-AAAAA', newPassword: 'nueva12345' }),
+    /Incorrect credentials/,
+  );
 
-  const recovered = store.recover({ recoveryCode: enrollment.recoveryCode.toLowerCase().replace(/-/g, ' '), newPassword: 'nueva12345' });
+  const recovered = store.recover({
+    recoveryCode: enrollment.recoveryCode.toLowerCase().replace(/-/g, ' '),
+    newPassword: 'nueva12345',
+  });
   assert.equal(recovered.ownerId, enrollment.ownerId);
   assert.notEqual(recovered.recoveryCode, enrollment.recoveryCode);
 
   assert.equal(store.login({ password: 'nueva12345' }).ownerId, enrollment.ownerId);
 
-  assert.throws(() => store.recover({ recoveryCode: enrollment.recoveryCode, newPassword: 'otra12345' }), /Incorrect credentials/);
+  assert.throws(
+    () => store.recover({ recoveryCode: enrollment.recoveryCode, newPassword: 'otra12345' }),
+    /Incorrect credentials/,
+  );
 });
 
 test('an unreadable profile fails closed instead of offering a fresh signup', () => {
@@ -169,6 +181,13 @@ test('an unreadable profile fails closed instead of offering a fresh signup', ()
 test('without OS encryption nothing is stored unprotected', () => {
   const unavailable = { ...safeStorage, isEncryptionAvailable: () => false };
   const { store, profilePath } = fixture({ safeStorage: unavailable });
+  assert.throws(() => store.register(CREDENTIALS), /OS encryption is unavailable/);
+  assert.equal(fs.existsSync(profilePath), false);
+});
+
+test('the insecure Linux basic_text backend is rejected', () => {
+  const insecure = { ...safeStorage, getSelectedStorageBackend: () => 'basic_text' };
+  const { store, profilePath } = fixture({ safeStorage: insecure });
   assert.throws(() => store.register(CREDENTIALS), /OS encryption is unavailable/);
   assert.equal(fs.existsSync(profilePath), false);
 });

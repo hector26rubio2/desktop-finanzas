@@ -9,6 +9,7 @@ describe('application navigation catalog', () => {
     expect(APP_NAVIGATION_BY_ID.has('portfolio')).toBe(true);
     expect(APP_NAVIGATION_BY_ID.has('platform-tools')).toBe(true);
     expect(APP_NAVIGATION_BY_ID.has('recurring')).toBe(true);
+    expect(APP_NAVIGATION_BY_ID.has('installments')).toBe(true);
     expect(APP_NAVIGATION_BY_ID.has('admin')).toBe(false);
   });
 

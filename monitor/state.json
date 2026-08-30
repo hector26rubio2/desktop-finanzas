@@ -1,0 +1,91 @@
+{
+  "project": "Finanzas Desktop",
+  "updatedAt": "2026-08-16T10:45:00Z",
+  "orchestrator": {
+    "id": "orchestrator",
+    "name": "Orquestador",
+    "status": "running",
+    "note": "Coordina los agentes y reparte tareas del backlog."
+  },
+  "agents": [
+    { "id": "explore",  "name": "Explore",  "role": "Búsqueda de código",        "status": "done",    "currentTask": null },
+    { "id": "plan",     "name": "Plan",     "role": "Arquitectura / diseño",     "status": "running", "currentTask": "t-3" },
+    { "id": "coder",    "name": "Coder",    "role": "Implementación",            "status": "running", "currentTask": "t-5" },
+    { "id": "reviewer", "name": "Reviewer", "role": "Code review",               "status": "queued",  "currentTask": null },
+    { "id": "tester",   "name": "Tester",   "role": "Pruebas / QA",              "status": "idle",    "currentTask": null },
+    { "id": "i18n",     "name": "i18n",     "role": "Traducciones (es/en/pt)",   "status": "done",    "currentTask": null },
+    { "id": "db",       "name": "DB",       "role": "Esquema Drizzle / datos",   "status": "done",    "currentTask": null }
+  ],
+  "columns": [
+    { "id": "backlog", "title": "Backlog" },
+    { "id": "todo",    "title": "Planeadas" },
+    { "id": "doing",   "title": "En ejecución" },
+    { "id": "done",    "title": "Hechas" }
+  ],
+  "tasks": [
+    { "id": "t-1", "title": "Rediseño relacional de la BD (Drizzle)", "status": "done", "agent": "db", "priority": "high", "points": 8,
+      "comments": [{ "author": "Hector", "text": "Ya está en main (commit 3705b92).", "at": "2026-08-15T18:00:00Z" }],
+      "steps": [
+        { "name": "Analizar esquema actual", "status": "done", "at": "2026-08-15T15:00:00Z" },
+        { "name": "Diseñar modelo relacional", "status": "done", "at": "2026-08-15T16:10:00Z" },
+        { "name": "Migraciones Drizzle", "status": "done", "at": "2026-08-15T17:20:00Z" },
+        { "name": "Verificar datos", "status": "done", "at": "2026-08-15T17:55:00Z" }
+      ]
+    },
+    { "id": "t-2", "title": "Capa de datos local (electron/local-data)", "status": "done", "agent": "db", "priority": "high", "points": 5,
+      "comments": [],
+      "steps": [
+        { "name": "API de acceso", "status": "done", "at": "2026-08-15T18:30:00Z" },
+        { "name": "Adaptadores por entidad", "status": "done", "at": "2026-08-15T19:15:00Z" }
+      ]
+    },
+    { "id": "t-3", "title": "Diseñar módulo de préstamos (loans) relacional", "status": "doing", "agent": "plan", "priority": "high", "points": 5,
+      "comments": [{ "author": "Hector", "text": "Revisar loan.model.ts antes de tocar la vista.", "at": "2026-08-16T09:30:00Z" }],
+      "startedAt": "2026-08-16T09:50:00Z",
+      "steps": [
+        { "name": "Leer loan.model.ts", "status": "done", "at": "2026-08-16T09:55:00Z" },
+        { "name": "Mapear relaciones cuenta/pago", "status": "done", "at": "2026-08-16T10:20:00Z" },
+        { "name": "Definir esquema de amortización", "status": "running", "at": "2026-08-16T10:40:00Z" },
+        { "name": "Contrato del formulario", "status": "pending", "at": null }
+      ]
+    },
+    { "id": "t-4", "title": "Formateo de dinero robusto ante valores no finitos", "status": "done", "agent": "coder", "priority": "medium", "points": 2,
+      "comments": [],
+      "steps": [
+        { "name": "Reproducir NaN/Infinity", "status": "done", "at": "2026-08-15T20:00:00Z" },
+        { "name": "Guardas de formateo", "status": "done", "at": "2026-08-15T20:25:00Z" }
+      ]
+    },
+    { "id": "t-5", "title": "Data-table: ordenamiento y filtros", "status": "doing", "agent": "coder", "priority": "medium", "points": 5,
+      "comments": [],
+      "startedAt": "2026-08-16T10:05:00Z",
+      "steps": [
+        { "name": "Sort por columna", "status": "done", "at": "2026-08-16T10:15:00Z" },
+        { "name": "Filtro de texto", "status": "running", "at": "2026-08-16T10:35:00Z" },
+        { "name": "Persistir preferencias", "status": "pending", "at": null },
+        { "name": "Pruebas de la tabla", "status": "pending", "at": null }
+      ]
+    },
+    { "id": "t-6", "title": "Dynamic-form: validaciones de esquema", "status": "todo", "agent": "coder", "priority": "medium", "points": 3,
+      "comments": [],
+      "steps": [
+        { "name": "Definir schema por entidad", "status": "pending", "at": null },
+        { "name": "Mensajes de error", "status": "pending", "at": null }
+      ]
+    },
+    { "id": "t-7", "title": "Transacciones recurrentes: edición y recurrencia", "status": "todo", "agent": "plan", "priority": "medium", "points": 5,
+      "comments": [], "steps": [] },
+    { "id": "t-8", "title": "Insights financieros del dashboard", "status": "todo", "agent": "coder", "priority": "low", "points": 3,
+      "comments": [], "steps": [] },
+    { "id": "t-9", "title": "Traducciones es-CO / en-US / pt-BR al día", "status": "done", "agent": "i18n", "priority": "low", "points": 2,
+      "comments": [],
+      "steps": [
+        { "name": "Claves faltantes", "status": "done", "at": "2026-08-15T21:00:00Z" },
+        { "name": "Revisión es/en/pt", "status": "done", "at": "2026-08-15T21:40:00Z" }
+      ]
+    },
+    { "id": "t-10", "title": "Icon-picker: buscador de íconos", "status": "backlog", "agent": "coder", "priority": "low", "points": 2, "comments": [], "steps": [] },
+    { "id": "t-11", "title": "Cobertura de pruebas de la capa de datos", "status": "backlog", "agent": "tester", "priority": "medium", "points": 5, "comments": [], "steps": [] },
+    { "id": "t-12", "title": "Code review del rediseño de BD antes de release", "status": "backlog", "agent": "reviewer", "priority": "high", "points": 3, "comments": [], "steps": [] }
+  ]
+}

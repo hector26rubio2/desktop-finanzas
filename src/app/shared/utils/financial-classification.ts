@@ -1,11 +1,6 @@
 import type { MovementResponse } from '../models/movement.model';
 
-const NON_OPERATING_OPERATIONS = new Set([
-  'Transfer',
-  'Saving',
-  'CreditPayment',
-  'LoanDisbursement',
-]);
+const NON_OPERATING_OPERATIONS = new Set(['Transfer', 'Saving', 'CreditPayment', 'LoanDisbursement']);
 
 const NON_OPERATING_SUBTYPES = new Set(['LoanReceived', 'LoanGiven', 'Saving']);
 
@@ -27,8 +22,8 @@ export function financialFlowContribution(movement: MovementResponse): Financial
     return { income: 0, expense: movement.type === 'Expense' ? interestBase : 0 };
   }
   if (
-    NON_OPERATING_OPERATIONS.has(movement.operationType ?? '')
-    || NON_OPERATING_SUBTYPES.has(movement.subType ?? '')
+    NON_OPERATING_OPERATIONS.has(movement.operationType ?? '') ||
+    NON_OPERATING_SUBTYPES.has(movement.subType ?? '')
   ) {
     return { income: 0, expense: 0 };
   }

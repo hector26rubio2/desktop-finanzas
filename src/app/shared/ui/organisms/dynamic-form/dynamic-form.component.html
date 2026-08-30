@@ -1,39 +1,42 @@
 <form class="dynamic-form" [formGroup]="form()" (ngSubmit)="submit()">
   @for (field of visibleFields(); track field.key) {
-    <label class="dynamic-field"
-      ><span>{{ field.label }}</span>
+    <label class="dynamic-field" [class.dynamic-field--full]="field.fullWidth" [attr.for]="'dynamic-field-' + field.key"
+      ><span class="dynamic-field__label">{{ field.label }}</span>
       @switch (field.type) {
         @case ('select') {
-          <select [formControlName]="field.key">
+          <select [id]="'dynamic-field-' + field.key" [formControlName]="field.key">
             @for (o of field.options ?? []; track o.value) {
               <option [value]="o.value">{{ o.label }}</option>
             }
           </select>
         }
         @case ('checkbox') {
-          <input type="checkbox" [formControlName]="field.key" />
+          <input [id]="'dynamic-field-' + field.key" type="checkbox" [formControlName]="field.key" />
         }
         @default {
           <input
+            [id]="'dynamic-field-' + field.key"
             [type]="field.type"
             [formControlName]="field.key"
             [placeholder]="field.placeholder ?? ''"
+            [attr.inputmode]="field.type === 'number' ? 'decimal' : null"
             [min]="field.min ?? null"
             [max]="field.max ?? null"
             [step]="field.step ?? null"
+            (keydown)="blockInvalidNumber(field, $event)"
           />
         }
       }
       @if (field.hint) {
-        <small>{{ field.hint }}</small>
+        <small class="dynamic-field__hint">{{ field.hint }}</small>
       }
-      @if (form().get(field.key)?.touched && form().get(field.key)?.invalid) {
-        <small class="dynamic-error" role="alert">Revisa este campo.</small>
+      @if (errorFor(field); as message) {
+        <small class="dynamic-error" role="alert">{{ message }}</small>
       }
     </label>
   }
   <div class="dynamic-actions">
-    <button type="button" class="btn btn--ghost" (click)="cancelled.emit()">Cancelar</button
-    ><button class="btn btn--primary" [disabled]="busy()">{{ submitLabel() }}</button>
+    <button type="button" class="btn btn--ghost" (click)="cancelled.emit()">{{ i18n.t('common.cancel') }}</button
+    ><button class="btn btn--primary" [disabled]="busy()">{{ resolvedSubmitLabel() }}</button>
   </div>
 </form>

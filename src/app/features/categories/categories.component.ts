@@ -81,25 +81,37 @@ export class CategoriesComponent implements OnInit {
   iconCell = viewChild<CatTpl>('iconCell');
   nameCell = viewChild<CatTpl>('nameCell');
   typeCell = viewChild<CatTpl>('typeCell');
+  estadoCell = viewChild<CatTpl>('estadoCell');
   actionsCell = viewChild<CatTpl>('actionsCell');
 
   trackById = (c: CategoryResponse) => c.id;
+  rowClass = (c: CategoryResponse) => (c.isActive === false ? 'cat-row-disabled' : null);
 
   cols = computed<ColumnDef<CategoryResponse>[]>(() => [
     { key: 'icon', header: '', width: '36px', cellTpl: this.iconCell() },
     { key: 'name', header: this.i18n.t('categories.nombre'), cellTpl: this.nameCell() },
     { key: 'type', header: this.i18n.t('categories.tipo'), width: '80px', cellTpl: this.typeCell() },
+    { key: 'isActive', header: 'Estado', width: '120px', cellTpl: this.estadoCell() },
     { key: 'id', header: '', width: '60px', cellTpl: this.actionsCell() },
   ]);
+
+  toggleActive(cat: CategoryResponse) {
+    this.api
+      .setCategoryActive(cat.id, !cat.isActive)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => this.categories.update((list) => list.map((c) => (c.id === updated.id ? updated : c))),
+      });
+  }
 
   form = this.fb.group({
     name: ['', Validators.required],
     color: ['#6366f1'],
     icon: ['tag'],
     type: ['Expense' as 'Income' | 'Expense'],
-    nameEs: [''],
-    nameEn: [''],
-    namePt: [''],
+    nameEs: ['', Validators.required],
+    nameEn: ['', Validators.required],
+    namePt: ['', Validators.required],
   });
 
   catName(cat: CategoryResponse): string {

@@ -11,6 +11,8 @@ import {
 } from '../../shared/ui/organisms/inspector-panel/inspector-panel.component';
 import { ModalComponent } from '../../shared/ui/organisms/modal/modal.component';
 import { formatAmount, formatMoney } from '../../shared/utils/money';
+import { I18nService } from '../../shared/i18n/i18n.service';
+import type { TranslationKey } from '../../shared/i18n/locale.types';
 @Component({
   selector: 'app-portfolio',
   standalone: true,
@@ -23,6 +25,7 @@ export class PortfolioComponent {
   private api = inject(PortfolioApiService);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  readonly i18n = inject(I18nService);
   data = signal<PortfolioOverview | null>(null);
   loading = signal(true);
   error = signal('');
@@ -33,19 +36,19 @@ export class PortfolioComponent {
   selected = signal<PortfolioItem | null>(null);
   filter = signal<'All' | 'Asset' | 'Liability'>('All');
   trackById = (x: PortfolioItem) => x.id;
-  columns: ColumnDef<PortfolioItem>[] = [
-    { key: 'name', header: 'Entidad', sortable: true },
-    { key: 'kind', header: 'Clase', sortable: true },
-    { key: 'type', header: 'Tipo', sortable: true },
-    { key: 'institution', header: 'Institución' },
+  columns = computed<ColumnDef<PortfolioItem>[]>(() => [
+    { key: 'name', header: this.i18n.t('portfolio.entity'), sortable: true },
+    { key: 'kind', header: this.i18n.t('portfolio.class'), sortable: true, format: (v) => this.kindLabel(String(v)) },
+    { key: 'type', header: this.i18n.t('portfolio.type'), sortable: true, format: (v) => this.typeLabel(String(v)) },
+    { key: 'institution', header: this.i18n.t('portfolio.institution') },
     {
       key: 'valueBase',
-      header: 'Valor base',
+      header: this.i18n.t('portfolio.base_value'),
       numeric: true,
       sortable: true,
-      format: (v) => (v == null ? 'Sin valoración' : formatAmount(Number(v))),
+      format: (v) => (v == null ? this.i18n.t('portfolio.no_valuation') : formatAmount(Number(v))),
     },
-  ];
+  ]);
   items = computed(() => this.data()?.items.filter((x) => this.filter() === 'All' || x.kind === this.filter()) ?? []);
   canValueSelected = computed(() => this.selected()?.type === 'Investment');
   investmentForm = this.fb.nonNullable.group({
@@ -66,23 +69,28 @@ export class PortfolioComponent {
     return x
       ? [
           {
-            title: 'Identidad',
+            title: this.i18n.t('portfolio.identity'),
             rows: [
-              { label: 'Clase', value: x.kind },
-              { label: 'Tipo', value: x.type },
-              { label: 'Institución', value: x.institution ?? '—' },
+              { label: this.i18n.t('portfolio.class'), value: this.kindLabel(x.kind) },
+              { label: this.i18n.t('portfolio.type'), value: this.typeLabel(x.type) },
+              { label: this.i18n.t('portfolio.institution'), value: x.institution ?? '—' },
             ],
           },
           {
-            title: 'Valoración',
+            title: this.i18n.t('portfolio.valuation'),
             rows: [
               {
-                label: 'Valor base',
+                label: this.i18n.t('portfolio.base_value'),
                 value:
-                  x.valueBase == null ? 'Sin datos' : formatMoney(x.valueBase, this.data()?.baseCurrency ?? '').trim(),
+                  x.valueBase == null
+                    ? this.i18n.t('portfolio.no_data')
+                    : formatMoney(x.valueBase, this.data()?.baseCurrency ?? '').trim(),
               },
-              { label: 'Fecha', value: x.valuationDate ?? 'Sin datos' },
-              { label: 'Fuente', value: x.valuationSource ?? 'Sin datos' },
+              { label: this.i18n.t('portfolio.date'), value: x.valuationDate ?? this.i18n.t('portfolio.no_data') },
+              {
+                label: this.i18n.t('portfolio.source'),
+                value: x.valuationSource ? this.sourceLabel(x.valuationSource) : this.i18n.t('portfolio.no_data'),
+              },
             ],
           },
         ]
@@ -106,7 +114,7 @@ export class PortfolioComponent {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('No fue posible cargar el patrimonio.');
+          this.error.set(this.i18n.t('portfolio.load_error'));
           this.loading.set(false);
         },
       });
@@ -139,7 +147,7 @@ export class PortfolioComponent {
         },
         error: () => {
           this.saving.set(false);
-          this.actionError.set('No fue posible crear la inversión. Revisa los datos.');
+          this.actionError.set(this.i18n.t('portfolio.create_error'));
         },
       });
   }
@@ -176,7 +184,7 @@ export class PortfolioComponent {
         },
         error: () => {
           this.saving.set(false);
-          this.actionError.set('No fue posible registrar la valoración. Revisa monto, moneda y TRM.');
+          this.actionError.set(this.i18n.t('portfolio.valuation_error'));
         },
       });
   }
@@ -184,5 +192,32 @@ export class PortfolioComponent {
   private today(): string {
     const date = new Date();
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  private kindLabel(value: string): string {
+    return this.i18n.t(value === 'Liability' ? 'portfolio.kind_liability' : 'portfolio.kind_asset');
+  }
+
+  private typeLabel(value: string): string {
+    const keys: Record<string, TranslationKey> = {
+      Cash: 'portfolio.type_cash',
+      BankAccount: 'portfolio.type_bank_account',
+      CreditCard: 'portfolio.type_credit_card',
+      Loan: 'portfolio.type_loan',
+      Investment: 'portfolio.type_investment',
+      OtherAsset: 'portfolio.type_other_asset',
+      OtherLiability: 'portfolio.type_other_liability',
+    };
+    return keys[value] ? this.i18n.t(keys[value]) : value;
+  }
+
+  private sourceLabel(value: string): string {
+    const keys: Record<string, TranslationKey> = {
+      MovementLedger: 'portfolio.source_movement_ledger',
+      ContractBalance: 'portfolio.source_contract_balance',
+      MarketPrice: 'portfolio.source_market_price',
+      Manual: 'portfolio.source_manual',
+    };
+    return keys[value] ? this.i18n.t(keys[value]) : value;
   }
 }

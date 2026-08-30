@@ -12,7 +12,6 @@ export const routes: Routes = [
     loadComponent: () => import('@auth/register').then((m) => m.RegisterComponent),
   },
   {
-
     path: 'recover',
     loadComponent: () => import('@auth/recover').then((m) => m.RecoverComponent),
   },
@@ -46,6 +45,11 @@ export const routes: Routes = [
     path: 'cards',
     canActivate: [authGuard],
     loadComponent: () => import('./features/cards/cards.component').then((m) => m.CardsComponent),
+  },
+  {
+    path: 'installments',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/installments/installments.component').then((m) => m.InstallmentsComponent),
   },
   {
     path: 'loans',

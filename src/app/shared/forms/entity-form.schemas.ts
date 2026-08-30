@@ -27,7 +27,7 @@ const trmField = (baseCurrency = 'COP'): DynamicField => ({
 export function accountFormFields(): DynamicField[] {
   const isCredit = (v: Record<string, unknown>) => v['type'] === 'Credit';
   return [
-    { key: 'name', label: 'Nombre', type: 'text' },
+    { key: 'name', label: 'Nombre', type: 'text', fullWidth: true },
     {
       key: 'type',
       label: 'Tipo',
@@ -44,14 +44,22 @@ export function accountFormFields(): DynamicField[] {
     { key: 'creditLimit', label: 'Cupo', type: 'number', min: 0, visibleWhen: isCredit },
     { key: 'billingDay', label: 'Día de corte', type: 'number', min: 1, max: 31, visibleWhen: isCredit },
     { key: 'paymentDay', label: 'Día de pago', type: 'number', min: 1, max: 31, visibleWhen: isCredit },
-    { key: 'interestRate', label: 'Tasa de interés (%)', type: 'number', min: 0, visibleWhen: isCredit },
+    {
+      key: 'interestRate',
+      label: 'Tasa de interés (%)',
+      type: 'number',
+      min: 0,
+      max: 1000,
+      step: 0.01,
+      visibleWhen: isCredit,
+    },
     { key: 'isDefault', label: 'Cuenta por defecto', type: 'checkbox' },
   ];
 }
 
 export function loanFormFields(o: EntityFormOptions = {}): DynamicField[] {
   return [
-    { key: 'description', label: 'Descripción', type: 'text' },
+    { key: 'description', label: 'Descripción', type: 'text', fullWidth: true },
     {
       key: 'direction',
       label: 'Dirección',
@@ -78,7 +86,7 @@ export function loanFormFields(o: EntityFormOptions = {}): DynamicField[] {
     { key: 'principal', label: 'Capital', type: 'number', min: 0.01, step: 0.01 },
     currencyField(),
     trmField(o.baseCurrency),
-    { key: 'interestRateAnnual', label: 'Tasa anual (%)', type: 'number', min: 0, step: 0.01 },
+    { key: 'interestRateAnnual', label: 'Tasa anual (%)', type: 'number', min: 0, max: 1000, step: 0.01 },
     { key: 'termMonths', label: 'Plazo (meses)', type: 'number', min: 1, max: 600 },
     { key: 'startDate', label: 'Fecha de inicio', type: 'date' },
     {
@@ -91,16 +99,21 @@ export function loanFormFields(o: EntityFormOptions = {}): DynamicField[] {
         { value: 'American', label: 'Americano' },
       ],
     },
-    { key: 'accountId', label: 'Cuenta destino', type: 'select', options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])] },
+    {
+      key: 'accountId',
+      label: 'Cuenta destino',
+      type: 'select',
+      options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])],
+    },
   ];
 }
 
 export function creditCardTermsFormFields(o: EntityFormOptions = {}): DynamicField[] {
   return [
     { key: 'accountId', label: 'Tarjeta', type: 'select', options: o.creditAccounts ?? [] },
-    { key: 'purchaseApr', label: 'Interés compras (% E.A.)', type: 'number', min: 0, step: 0.01 },
-    { key: 'cashAdvanceApr', label: 'Interés avances (% E.A.)', type: 'number', min: 0, step: 0.01 },
-    { key: 'intlPurchaseApr', label: 'Interés internacional (% E.A.)', type: 'number', min: 0, step: 0.01 },
+    { key: 'purchaseApr', label: 'Interés compras (% E.A.)', type: 'number', min: 0, max: 1000, step: 0.01 },
+    { key: 'cashAdvanceApr', label: 'Interés avances (% E.A.)', type: 'number', min: 0, max: 1000, step: 0.01 },
+    { key: 'intlPurchaseApr', label: 'Interés internacional (% E.A.)', type: 'number', min: 0, max: 1000, step: 0.01 },
     { key: 'minPaymentPct', label: 'Pago mínimo (%)', type: 'number', min: 0, max: 100, step: 0.1 },
     { key: 'gracePeriodDays', label: 'Días de gracia', type: 'number', min: 0, max: 60 },
     { key: 'notes', label: 'Notas', type: 'text' },
@@ -110,12 +123,17 @@ export function creditCardTermsFormFields(o: EntityFormOptions = {}): DynamicFie
 export function installmentFormFields(o: EntityFormOptions = {}): DynamicField[] {
   return [
     { key: 'description', label: 'Descripción', type: 'text' },
-    { key: 'accountId', label: 'Tarjeta/Cuenta', type: 'select', options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])] },
+    {
+      key: 'accountId',
+      label: 'Tarjeta/Cuenta',
+      type: 'select',
+      options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])],
+    },
     { key: 'totalAmount', label: 'Monto total', type: 'number', min: 0.01, step: 0.01 },
     currencyField(),
     trmField(o.baseCurrency),
     { key: 'installmentsCount', label: 'Número de cuotas', type: 'number', min: 1, max: 60 },
-    { key: 'interestRatePercent', label: 'Interés por cuota (%)', type: 'number', min: 0, step: 0.01 },
+    { key: 'interestRatePercent', label: 'Interés por cuota (%)', type: 'number', min: 0, max: 1000, step: 0.01 },
     { key: 'startDate', label: 'Fecha de compra', type: 'date' },
   ];
 }
@@ -149,8 +167,18 @@ export function recurringFormFields(o: EntityFormOptions = {}): DynamicField[] {
     { key: 'amount', label: 'Monto', type: 'number', min: 0.01, step: 0.01 },
     currencyField(),
     trmField(o.baseCurrency),
-    { key: 'categoryId', label: 'Categoría', type: 'select', options: [{ value: '', label: 'Sin categoría' }, ...(o.categories ?? [])] },
-    { key: 'accountId', label: 'Cuenta', type: 'select', options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])] },
+    {
+      key: 'categoryId',
+      label: 'Categoría',
+      type: 'select',
+      options: [{ value: '', label: 'Sin categoría' }, ...(o.categories ?? [])],
+    },
+    {
+      key: 'accountId',
+      label: 'Cuenta',
+      type: 'select',
+      options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])],
+    },
     { key: 'description', label: 'Concepto', type: 'text' },
     {
       key: 'frequency',
@@ -208,7 +236,13 @@ export function valuationFormFields(o: EntityFormOptions = {}): DynamicField[] {
     { key: 'date', label: 'Fecha', type: 'date' },
     { key: 'amount', label: 'Valor (moneda del activo)', type: 'number', min: 0.000001, step: 0.01 },
     currencyField(),
-    { key: 'trmApplied', label: `TRM a ${o.baseCurrency ?? 'moneda base'}`, type: 'number', min: 0.000001, step: 0.000001 },
+    {
+      key: 'trmApplied',
+      label: `TRM a ${o.baseCurrency ?? 'moneda base'}`,
+      type: 'number',
+      min: 0.000001,
+      step: 0.000001,
+    },
     {
       key: 'source',
       label: 'Fuente',

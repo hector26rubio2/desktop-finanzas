@@ -1,5 +1,6 @@
-import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import type { Locale } from '../i18n/locale.types';
+import { I18nService } from '../i18n/i18n.service';
 
 interface LangOption {
   id: Locale;
@@ -24,7 +25,7 @@ const LANG_OPTIONS: LangOptionExt[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="auth-btn-wrap" (mouseenter)="open()" (mouseleave)="close()">
-      <button type="button" class="lang-btn" [class.active]="showPicker()" title="Idioma">
+      <button type="button" class="lang-btn" [class.active]="showPicker()" [attr.title]="i18n.t('settings.language')">
         {{ currentLang().flag }}
       </button>
       @if (showPicker()) {
@@ -44,6 +45,7 @@ const LANG_OPTIONS: LangOptionExt[] = [
   `,
 })
 export class LangPickerComponent {
+  readonly i18n = inject(I18nService);
   currentLocale = input<Locale>('es-CO');
   localeChange = output<Locale>();
 

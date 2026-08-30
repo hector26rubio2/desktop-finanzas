@@ -12,5 +12,6 @@ export interface CategoryResponse {
   type: 'Income' | 'Expense';
   translations: CategoryTranslations | null;
   isDefault: boolean;
+  isActive: boolean;
   createdAt: string;
 }

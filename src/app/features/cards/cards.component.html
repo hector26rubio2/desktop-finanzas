@@ -88,7 +88,11 @@
         <button type="button" class="btn btn--ghost" (click)="closePaymentModal()">
           {{ i18n.t('common.cancel') }}
         </button>
-        <button type="submit" class="btn btn--primary" [disabled]="paymentSaving() || paymentFundingAccounts().length === 0">
+        <button
+          type="submit"
+          class="btn btn--primary"
+          [disabled]="paymentSaving() || paymentFundingAccounts().length === 0"
+        >
           {{ paymentSaving() ? i18n.t('common.saving') : i18n.t('cards.pagar') }}
         </button>
       </div>
