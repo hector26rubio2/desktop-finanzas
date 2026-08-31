@@ -20,6 +20,42 @@
   gap: 8px;
 }
 
+.mov-recurring-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--space-3);
+  gap: var(--space-3);
+}
+
+@container app-view (max-width: 640px) {
+  .mov-toolbar,
+  .mov-toolbar-left,
+  .mov-toolbar-right,
+  .mov-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mov-toolbar-left > *,
+  .mov-toolbar-right > *,
+  .mov-search,
+  .mov-filter-sm,
+  .mov-filter-md,
+  .mov-month {
+    width: 100%;
+  }
+
+  .mov-recurring-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mov-footer-left,
+  .mov-footer-right {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
 .mov-cuota-badge {
   display: inline-block;
   margin-left: 6px;

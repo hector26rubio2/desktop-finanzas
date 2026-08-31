@@ -38,6 +38,8 @@ async function createWindow({ BrowserWindow, session, isDev, nonce, logger, trus
   const window = new BrowserWindow({
     width: 1280,
     height: 800,
+    minWidth: 360,
+    minHeight: 600,
     show: false,
     backgroundColor: '#0f172a',
     webPreferences: {

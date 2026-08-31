@@ -37,13 +37,32 @@ export class PortfolioComponent {
   filter = signal<'All' | 'Asset' | 'Liability'>('All');
   trackById = (x: PortfolioItem) => x.id;
   columns = computed<ColumnDef<PortfolioItem>[]>(() => [
-    { key: 'name', header: this.i18n.t('portfolio.entity'), sortable: true },
-    { key: 'kind', header: this.i18n.t('portfolio.class'), sortable: true, format: (v) => this.kindLabel(String(v)) },
-    { key: 'type', header: this.i18n.t('portfolio.type'), sortable: true, format: (v) => this.typeLabel(String(v)) },
-    { key: 'institution', header: this.i18n.t('portfolio.institution') },
+    { key: 'name', header: this.i18n.t('portfolio.entity'), minWidth: '190px', sortable: true },
+    {
+      key: 'kind',
+      header: this.i18n.t('portfolio.class'),
+      width: '120px',
+      sortable: true,
+      format: (v) => this.kindLabel(String(v)),
+    },
+    {
+      key: 'type',
+      header: this.i18n.t('portfolio.type'),
+      width: '150px',
+      priority: 'medium',
+      sortable: true,
+      format: (v) => this.typeLabel(String(v)),
+    },
+    {
+      key: 'institution',
+      header: this.i18n.t('portfolio.institution'),
+      minWidth: '170px',
+      priority: 'low',
+    },
     {
       key: 'valueBase',
       header: this.i18n.t('portfolio.base_value'),
+      width: '170px',
       numeric: true,
       sortable: true,
       format: (v) => (v == null ? this.i18n.t('portfolio.no_valuation') : formatAmount(Number(v))),

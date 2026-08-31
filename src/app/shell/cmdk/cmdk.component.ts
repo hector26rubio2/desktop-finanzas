@@ -9,6 +9,7 @@ import {
   signal,
   ChangeDetectionStrategy,
   DestroyRef,
+  ElementRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -53,10 +54,14 @@ export class CmdkComponent implements OnChanges {
   public i18n = inject(I18nService);
   private api = inject(ApiService);
   private destroyRef = inject(DestroyRef);
+  private host: ElementRef<HTMLElement> = inject(ElementRef);
+  private previouslyFocused: HTMLElement | null = null;
 
   ngOnChanges() {
     if (this.visible) {
+      this.previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       this.activeIndex.set(0);
+      setTimeout(() => this.host.nativeElement.querySelector<HTMLInputElement>('.cmdk__input')?.focus());
       if (!this.dataLoaded) {
         this.dataLoaded = true;
         this.api
@@ -68,6 +73,9 @@ export class CmdkComponent implements OnChanges {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({ next: (c) => this.categories.set(c), error: () => {} });
       }
+    } else {
+      this.previouslyFocused?.focus({ preventScroll: true });
+      this.previouslyFocused = null;
     }
   }
 
@@ -150,7 +158,37 @@ export class CmdkComponent implements OnChanges {
   }
 
   onOverlayClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) this.closeModal.emit();
+    if (event.target === event.currentTarget) this.requestClose();
+  }
+
+  onDialogKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.requestClose();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const focusable = Array.from(
+      this.host.nativeElement.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  requestClose() {
+    this.closeModal.emit();
   }
 
   select(item: CmdkResult) {
@@ -167,7 +205,7 @@ export class CmdkComponent implements OnChanges {
     } else if (item.id === 'logout') {
       this.auth.logout();
     }
-    this.closeModal.emit();
+    this.requestClose();
     this.query.set('');
     this.activeIndex.set(0);
   }

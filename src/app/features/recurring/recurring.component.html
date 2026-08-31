@@ -1,11 +1,11 @@
-<div class="view">
-  <div class="row-flex" style="justify-content: flex-end">
-    <span class="eyebrow" style="margin-right: auto">{{ i18n.t('recurring.create_hint') }}</span>
+<div class="view recurring-view">
+  <div class="rec-toolbar">
+    <span class="eyebrow">{{ i18n.t('recurring.create_hint') }}</span>
     <button class="btn btn--primary" (click)="openCreate()">{{ i18n.t('recurring.new') }}</button>
   </div>
 
   @if (showForm()) {
-    <app-modal [title]="i18n.t('recurring.new')" (closeModal)="showForm.set(false)">
+    <app-modal size="lg" [title]="i18n.t('recurring.new')" (closeModal)="showForm.set(false)">
       <app-dynamic-form
         [form]="form"
         [fields]="recurringFields()"
@@ -33,38 +33,38 @@
   } @else {
     <app-kpi-strip [items]="kpiItems()" />
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--gutter)">
+    <div class="rec-grid">
       @for (r of items(); track r.id) {
-        <div class="card" style="padding: 16px" [class.rec-paused]="!r.isActive">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px">
-            <div>
-              <div style="font-weight: 500; color: var(--fg-0)">
-                {{ r.description || i18n.t('recurring.untitled') }}
-              </div>
-              <div class="mono subtle" style="font-size: var(--fs-xs); margin-top: 2px">
-                <span [style.color]="r.type === 'Income' ? 'var(--positive)' : 'var(--negative)'">
+        <article class="card rec-card" [class.rec-card--paused]="!r.isActive">
+          <header class="rec-card__header">
+            <div class="rec-card__identity">
+              <h2 class="rec-card__title">{{ r.description || i18n.t('recurring.untitled') }}</h2>
+              <div class="rec-card__schedule">
+                <span
+                  class="rec-card__amount mono"
+                  [class.rec-card__amount--income]="r.type === 'Income'"
+                  [class.rec-card__amount--expense]="r.type !== 'Income'"
+                >
                   {{ r.type === 'Income' ? '+' : '−' }}{{ r.amount | number: '1.0-0' }} {{ r.currency }}
                 </span>
-                · {{ i18n.t('recurring.every') }} {{ r.interval }} {{ freqLabel(r.frequency) }}
+                <span>{{ i18n.t('recurring.every') }} {{ r.interval }} {{ freqLabel(r.frequency) }}</span>
               </div>
             </div>
-            <span class="tag" [class]="r.isActive ? 'tag--pos' : 'tag--neg'" style="font-size: var(--fs-2xs)">
+            <span class="tag rec-card__status" [class.tag--pos]="r.isActive" [class.tag--neg]="!r.isActive">
               {{ r.isActive ? i18n.t('recurring.active') : i18n.t('recurring.paused') }}
             </span>
-          </div>
-          <div class="mono subtle" style="font-size: var(--fs-2xs); margin-bottom: 10px">
-            {{ i18n.t('recurring.next_run') }}: {{ r.nextRunAt }}
-          </div>
-          <div style="display: flex; gap: 6px; justify-content: flex-end">
+          </header>
+          <p class="rec-card__next mono">{{ i18n.t('recurring.next_run') }}: {{ r.nextRunAt }}</p>
+          <footer class="rec-card__actions">
             <button class="btn btn--ghost btn--sm" (click)="toggle(r)">
               {{ r.isActive ? i18n.t('recurring.pause') : i18n.t('recurring.resume') }}
             </button>
             <button class="btn btn--ghost btn--sm" (click)="openEdit(r)">{{ i18n.t('recurring.edit') }}</button>
-            <button class="btn btn--ghost btn--sm" style="color: var(--negative)" (click)="askDelete(r)">
+            <button class="btn btn--ghost btn--sm rec-card__delete" (click)="askDelete(r)">
               {{ i18n.t('common.delete') }}
             </button>
-          </div>
-        </div>
+          </footer>
+        </article>
       }
     </div>
   }

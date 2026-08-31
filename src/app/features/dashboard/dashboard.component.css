@@ -4,19 +4,20 @@
 
 :host .power-filters {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
   align-items: end;
-  margin: 10px 0 14px;
-  padding: 12px;
-  background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+  margin: 0;
+  padding: 14px;
+  background: var(--bg-1);
   border: 1px solid var(--line-1);
   border-radius: var(--radius-card);
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--bg-0) 65%, transparent);
+  box-shadow: var(--shadow-1);
 }
 :host .power-filters__title {
   display: grid;
   gap: 2px;
+  min-width: 210px;
 }
 :host .power-filters__title span {
   font-size: 12px;
@@ -27,7 +28,8 @@
   color: var(--fg-3);
 }
 :host .power-filters select {
-  height: 32px;
+  width: 100%;
+  height: var(--control-h);
   border: 1px solid var(--line-1);
   border-radius: var(--radius-button);
   background: var(--bg-2);
@@ -35,14 +37,6 @@
   padding: 0 9px;
   font: inherit;
   font-size: var(--fs-2xs);
-}
-@media (max-width: 1050px) {
-  :host .power-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  :host .power-filters__title {
-    grid-column: 1/-1;
-  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -72,11 +66,9 @@
 
 @keyframes dash-stagger-in {
   from {
-    opacity: 0;
     transform: translateY(8px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -111,7 +103,7 @@
 
 :host .donut-wrap {
   width: 100%;
-  max-width: 260px;
+  max-width: clamp(240px, 28cqi, 340px);
   margin: auto;
   position: relative;
 }
@@ -123,13 +115,15 @@
 :host .chart-grid .card {
   display: flex;
   flex-direction: column;
+  min-height: clamp(320px, 36vh, 420px);
+  max-height: none;
 }
 
 :host .chart-wrap {
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: 180px;
+  min-height: clamp(230px, 30vh, 340px);
   padding: 8px 16px 12px;
 }
 
@@ -455,7 +449,7 @@
 
 :host .filter-tags {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   padding: 0;
@@ -578,4 +572,46 @@
   text-align: center;
   color: var(--fg-2);
   font-size: 14px;
+}
+
+@container app-view (max-width: 940px) {
+  :host .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  :host .power-filters__title {
+    grid-column: 1 / -1;
+  }
+}
+
+@container app-view (max-width: 620px) {
+  :host .dash-nav {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  :host .seg-ctrl,
+  :host .period-nav {
+    width: 100%;
+  }
+
+  :host .seg-ctrl__btn,
+  :host .period-picker-wrap,
+  :host .period-nav__label--btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  :host .power-filters {
+    grid-template-columns: 1fr;
+  }
+
+  :host .power-filters .btn {
+    width: 100%;
+  }
+
+  :host .legend-inline {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }

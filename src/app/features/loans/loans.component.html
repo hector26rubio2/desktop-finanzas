@@ -1,5 +1,5 @@
 <div class="view">
-  <div class="row-flex" style="justify-content: flex-end">
+  <div class="loan-page-actions">
     <button class="btn btn--primary" (click)="showForm = !showForm">{{ i18n.t('loans.nuevo') }}</button>
   </div>
 
@@ -30,8 +30,8 @@
       <button type="button" class="btn btn--primary" (click)="showForm = true">{{ i18n.t('loans.nuevo') }}</button>
     </div>
   } @else {
-    <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--gutter); align-items: start">
-      <div style="display: flex; flex-direction: column; gap: 8px">
+    <div class="loans-layout">
+      <div class="loan-list">
         @for (loan of loans(); track loan.id) {
           <div
             class="card"
@@ -75,19 +75,19 @@
 
       @if (selected()) {
         @let loan = selected()!;
-        <div>
-          <app-kpi-strip [items]="loanKpis(loan)" style="margin-bottom: var(--gutter); display: block" />
+        <div class="loan-detail">
+          <app-kpi-strip class="loan-kpis" [items]="loanKpis(loan)" />
 
-          <div style="display: flex; justify-content: flex-end; margin-bottom: var(--gutter)">
+          <div class="loan-detail__actions">
             <button class="btn btn--primary" [disabled]="!loan.isActive" (click)="openPayment(loan)">
               {{ i18n.t('transactions.payment') }}
             </button>
           </div>
 
           @if (showPayment()) {
-            <div class="card" style="padding: var(--pad-x); margin-bottom: var(--gutter)">
+            <div class="card loan-payment-card">
               <form [formGroup]="paymentForm" (ngSubmit)="savePayment(loan)">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                <div class="loan-payment-grid">
                   <label>
                     {{ i18n.t('transactions.origin') }}
                     <select formControlName="sourceAccountId">
@@ -104,7 +104,7 @@
                     <input type="number" min="0" step="0.01" formControlName="extraPrincipal" />
                   </label>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px">
+                <div class="loan-form-actions">
                   <button type="button" class="btn btn--ghost" (click)="closePayment()">
                     {{ i18n.t('common.cancel') }}
                   </button>
@@ -116,7 +116,7 @@
             </div>
           }
 
-          <div class="card" style="padding: 0; overflow: hidden">
+          <div class="card loan-amortization">
             <div class="card__h">
               <span class="card__title">{{ i18n.t('loans.cuadro_amortizacion') }} {{ loan.loanType }}</span>
               <button class="btn btn--ghost btn--icon" style="color: var(--negative)" (click)="askDelete(loan)">
@@ -133,7 +133,7 @@
                 </svg>
               </button>
             </div>
-            <div style="max-height: 400px; overflow-y: auto">
+            <div>
               <ng-template #amortNCell let-row>
                 <span class="mono" style="font-size: var(--fs-xs); color: var(--fg-2)">{{ row.n }}</span>
               </ng-template>
@@ -155,6 +155,9 @@
                 [trackBy]="trackByN"
                 [rowClass]="amortRowClass(loan)"
                 [totalPages]="0"
+                [caption]="i18n.t('loans.cuadro_amortizacion')"
+                minTableWidth="620px"
+                maxBodyHeight="400px"
                 [emptyMessage]="i18n.t('common.no_results')"
               />
             </div>

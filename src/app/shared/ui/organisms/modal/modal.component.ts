@@ -6,8 +6,9 @@ import {
   HostListener,
   ElementRef,
   inject,
-  effect,
+  afterNextRender,
   OnDestroy,
+  viewChild,
 } from '@angular/core';
 import { I18nService } from '../../../i18n/i18n.service';
 
@@ -25,26 +26,42 @@ export class ModalComponent implements OnDestroy {
   readonly i18n = inject(I18nService);
   title = input('');
   ariaLabel = input('');
+  size = input<'md' | 'lg'>('md');
   closeModal = output<void>();
   overlayClick = output<void>();
+  readonly titleId = `app-modal-title-${ModalComponent.nextId++}`;
+  private static nextId = 0;
 
   private el = inject(ElementRef);
+  private dialog = viewChild<ElementRef<HTMLDialogElement>>('dialog');
   private previouslyFocused: HTMLElement | null =
     document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   constructor() {
-    effect(() => {
-      this.el.nativeElement.querySelector('.overlay')?.focus();
+    afterNextRender(() => {
+      const dialog = this.dialog()?.nativeElement;
+      if (dialog && !dialog.open) dialog.showModal();
+      const host = this.el.nativeElement as HTMLElement;
+      const firstControl = host.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      (firstControl ?? host.querySelector<HTMLElement>('.overlay'))?.focus();
     });
   }
 
   ngOnDestroy(): void {
+    const dialog = this.dialog()?.nativeElement;
+    if (dialog?.open) dialog.close();
     this.previouslyFocused?.focus();
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape() {
+  onEscape(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
     this.closeModal.emit();
+  }
+
+  onOverlayClick(event: MouseEvent) {
+    if (event.target !== event.currentTarget) return;
+    this.overlayClick.emit();
   }
 
   @HostListener('document:keydown.tab', ['$event'])

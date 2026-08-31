@@ -1,17 +1,33 @@
 :host {
   display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .dt-wrap {
   border-radius: var(--radius-card);
   overflow: hidden;
-  border: 1px solid var(--line);
-  background: var(--bg-0);
+  border: 1px solid var(--line-1);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
 }
 
 .dt-scroll {
-  overflow-x: auto;
-  overflow-y: visible;
+  position: relative;
+  overflow: auto;
+  max-block-size: var(--dt-max-height);
+  overscroll-behavior: contain;
+  background: var(--bg-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+.dt-scroll:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .dt-scroll .table thead th {
@@ -21,11 +37,15 @@
 }
 
 .dt-row {
-  transition: background 0.1s;
+  transition: background var(--duration-fast) var(--ease-btn);
 }
 
 .dt-row--clickable {
   cursor: pointer;
+}
+
+.dt-row--clickable:active td {
+  background: var(--selected);
 }
 
 .dt-row:hover td {
@@ -53,6 +73,7 @@
   font-weight: inherit;
   text-align: inherit;
   cursor: pointer;
+  min-height: 30px;
 }
 
 .dt-sort-button:focus-visible {
@@ -73,16 +94,77 @@
 }
 .dt-tools {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-1);
 }
 .dt-tools details {
   position: relative;
+  flex: 0 0 auto;
 }
-.dt-tools details label {
-  display: block;
-  padding: var(--space-1);
+.dt-columns-trigger {
+  min-height: var(--control-h);
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-button);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.dt-columns-trigger::-webkit-details-marker {
+  display: none;
+}
+.dt-columns-trigger::after {
+  content: '⌄';
+  margin-left: 8px;
+  color: var(--fg-3);
+}
+details[open] .dt-columns-trigger {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.dt-column-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 8;
+  width: max-content;
+  min-width: 190px;
+  max-width: min(300px, calc(100vw - 32px));
+  max-height: 300px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-popover);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-2);
+}
+.dt-column-menu label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font-size: var(--fs-xs);
+}
+.dt-column-menu label:hover {
+  background: var(--hover);
+}
+.dt-column-menu input {
+  width: 16px;
+  min-height: 16px;
+  margin: 0;
 }
 .dt-status {
   padding: var(--space-4);
@@ -93,11 +175,52 @@
   background: var(--negative-soft);
 }
 
+.dt-skeleton {
+  padding: var(--space-3);
+}
+
+.dt-loading-overlay {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 100%;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.dt-loading-pill {
+  position: relative;
+  top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-tag);
+  background: color-mix(in srgb, var(--bg-1) 90%, transparent);
+  box-shadow: var(--shadow-1);
+  backdrop-filter: blur(8px);
+  color: var(--fg-1);
+  font-size: var(--fs-xs);
+}
+
+.dt-loading-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 900ms ease-in-out infinite;
+}
+
 .dt-tools input {
   flex: 1;
   min-width: 200px;
   max-width: 320px;
-  background: var(--bg-0);
+  min-height: var(--control-h);
+  background: var(--bg-2);
   border: 1px solid var(--line-2);
   border-radius: var(--radius-input, 6px);
   padding: 6px 10px;
@@ -107,4 +230,38 @@
 .dt-tools input:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.dt-col--wrap {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+@container app-view (max-width: 620px) {
+  .dt-tools {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .dt-tools input {
+    max-width: none;
+    min-width: min(200px, 100%);
+  }
+
+  .dt-col--priority-low {
+    display: none;
+  }
+}
+
+@container app-view (max-width: 470px) {
+  .dt-col--priority-medium {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-loading-dot {
+    animation: none;
+  }
 }

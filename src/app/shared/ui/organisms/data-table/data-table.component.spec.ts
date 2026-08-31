@@ -41,4 +41,32 @@ describe('data table', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-pagination')).toBeNull();
   });
+
+  it('renders a structural skeleton during the initial load', async () => {
+    await TestBed.configureTestingModule({ imports: [DataTableComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(DataTableComponent<Row>);
+    fixture.componentRef.setInput('columns', [{ key: 'name', header: 'Nombre' }]);
+    fixture.componentRef.setInput('data', []);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.dt-skeleton app-skeleton')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('table')).toBeNull();
+  });
+
+  it('keeps at least one column visible', async () => {
+    await TestBed.configureTestingModule({ imports: [DataTableComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(DataTableComponent<Row>);
+    fixture.componentRef.setInput('columns', [
+      { key: 'id', header: 'ID' },
+      { key: 'name', header: 'Nombre' },
+    ] satisfies ColumnDef<Row>[]);
+    fixture.componentRef.setInput('data', []);
+    fixture.detectChanges();
+
+    fixture.componentInstance.toggleColumn('id');
+    fixture.componentInstance.toggleColumn('name');
+
+    expect(fixture.componentInstance.visibleColumns().map((column) => column.key)).toEqual(['name']);
+  });
 });

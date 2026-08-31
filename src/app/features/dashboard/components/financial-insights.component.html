@@ -109,7 +109,7 @@
   }
 
   @if (loading()) {
-    <p class="state" role="status">{{ copy().calculating }}</p>
+    <app-skeleton variant="cards" [count]="4" [label]="copy().calculating" />
   }
   @if (error(); as message) {
     <p class="state state--error" role="alert">{{ message }}</p>
@@ -117,40 +117,40 @@
 
   @if (!loading() && kpis(); as k) {
     @if (isVisible('kpis')) {
-      <article class="panel" [style.order]="widgetOrder('kpis')">
+      <article class="panel panel--kpis" [style.order]="widgetOrder('kpis')">
         <h3>{{ copy().periodKpis }}</h3>
         <div class="kpi-grid">
-          <button class="kpi" (click)="drill('Income')">
+          <button class="kpi kpi--income" (click)="drill('Income')">
             <span>{{ copy().income }}</span
             ><strong>{{ money(k.income) }}</strong
             ><small>MoM {{ percent(k.incomeMomPercent) }} · YoY {{ percent(k.incomeYoyPercent) }}</small>
           </button>
-          <button class="kpi" (click)="drill('Expense')">
+          <button class="kpi kpi--expense" (click)="drill('Expense')">
             <span>{{ copy().expenses }}</span
             ><strong>{{ money(k.expense) }}</strong
             ><small>MoM {{ percent(k.expenseMomPercent) }} · YoY {{ percent(k.expenseYoyPercent) }}</small>
           </button>
-          <div class="kpi">
+          <div class="kpi kpi--net">
             <span>{{ copy().net }}</span
             ><strong>{{ money(k.net) }}</strong
             ><small>{{ copy().netFormula }}</small>
           </div>
-          <div class="kpi">
+          <div class="kpi kpi--savings">
             <span>{{ copy().savings }}</span
             ><strong>{{ percent(k.savingsRate) }}</strong
             ><small>{{ money(k.savings) }}</small>
           </div>
-          <div class="kpi">
+          <div class="kpi kpi--debt">
             <span>{{ copy().totalDebt }}</span
             ><strong>{{ money(k.totalDebt) }}</strong
             ><small>{{ copy().service }}: {{ money(k.monthlyDebtService) }}</small>
           </div>
-          <div class="kpi">
+          <div class="kpi kpi--burden">
             <span>{{ copy().burden }}</span
             ><strong [class.alert]="k.financialBurdenPercent > 35">{{ percent(k.financialBurdenPercent) }}</strong
             ><small>{{ copy().alert35 }}</small>
           </div>
-          <div class="kpi">
+          <div class="kpi kpi--cards">
             <span>{{ copy().cardUse }}</span
             ><strong [class.alert]="k.creditUtilizationPercent > 70">{{ percent(k.creditUtilizationPercent) }}</strong>
             @if (k.creditCardsExcluded > 0) {
@@ -162,15 +162,15 @@
               <small>{{ copy().alert70 }}</small>
             }
           </div>
-          <div class="kpi">
+          <div class="kpi kpi--runway">
             <span>Runway</span><strong>{{ k.runwayMonths | number: '1.0-2' }} {{ copy().months }}</strong
             ><small>{{ copy().runwayShort }}</small>
           </div>
         </div>
         <h4>{{ copy().expenseCategories }}</h4>
-        <div class="bars" role="img" [attr.aria-label]="copy().expenseDistribution">
+        <div class="bars" role="group" [attr.aria-label]="copy().expenseDistribution">
           @for (cat of k.topExpenseCategories; track cat.categoryId ?? cat.name) {
-            <button class="bar-row" (click)="drill('Expense', cat.categoryId)">
+            <button class="bar-row bar-row--expense" (click)="drill('Expense', cat.categoryId)">
               <span>{{ cat.name }}</span
               ><span class="bar-track"><i [style.width.%]="cat.sharePercent"></i></span>
               <strong>{{ percent(cat.sharePercent) }}</strong
@@ -185,12 +185,12 @@
   @if (!loading() && portfolio(); as p) {
     <div class="panel-grid">
       @if (isVisible('composition')) {
-        <article class="panel" [style.order]="widgetOrder('composition')">
+        <article class="panel panel--composition" [style.order]="widgetOrder('composition')">
           <h3>{{ copy().wealthComposition }}</h3>
           <p class="currency">{{ copy().baseCurrency }}: {{ p.baseCurrency }}</p>
-          <div class="bars" role="img" [attr.aria-label]="copy().assetComposition">
+          <div class="bars" role="group" [attr.aria-label]="copy().assetComposition">
             @for (item of p.composition; track item.type) {
-              <button type="button" class="bar-row" (click)="drillPortfolioType(item.type)">
+              <button type="button" class="bar-row bar-row--composition" (click)="drillPortfolioType(item.type)">
                 <span>{{ item.type }}</span
                 ><span class="bar-track"><i [style.width.%]="(item.valueBase / maxComposition()) * 100"></i></span
                 ><strong>{{ percent(item.percentOfAssets) }}</strong
@@ -220,7 +220,7 @@
         </article>
       }
       @if (isVisible('investments')) {
-        <article class="panel" [style.order]="widgetOrder('investments')">
+        <article class="panel panel--investments" [style.order]="widgetOrder('investments')">
           <h3>{{ copy().investments }}</h3>
           @if (!p.investments.length) {
             <p class="state">{{ copy().noData }}</p>
@@ -248,7 +248,7 @@
 
   @if (!loading() && overview(); as o) {
     @if (isVisible('risks')) {
-      <article class="panel" [style.order]="widgetOrder('risks')">
+      <article class="panel panel--risks" [style.order]="widgetOrder('risks')">
         <h3>{{ copy().riskTitle }}</h3>
         <p class="currency">{{ copy().riskSubtitle }}</p>
         <div class="risk-grid">

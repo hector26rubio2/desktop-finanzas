@@ -1,5 +1,10 @@
 <form class="dynamic-form" [formGroup]="form()" (ngSubmit)="submit()">
   @for (field of visibleFields(); track field.key) {
+    @if (startsSection(field, $index)) {
+      <div class="dynamic-section" [class.dynamic-section--first]="$first">
+        <span>{{ field.section }}</span>
+      </div>
+    }
     <label class="dynamic-field" [class.dynamic-field--full]="field.fullWidth" [attr.for]="'dynamic-field-' + field.key"
       ><span class="dynamic-field__label">{{ field.label }}</span>
       @switch (field.type) {

@@ -137,9 +137,9 @@
   </section>
 
   @if (ds.loading()) {
-    <app-skeleton variant="kpis" [count]="4" [label]="i18n.t('common.loading')" />
+    <app-skeleton variant="kpis" [count]="6" [label]="i18n.t('common.loading')" />
     <app-skeleton variant="chart" />
-    <app-skeleton [count]="1" [height]="200" />
+    <app-skeleton variant="table" [count]="5" />
   } @else if (ds.error(); as err) {
     <div class="error-card" role="alert">
       <p>{{ err }}</p>
@@ -266,6 +266,9 @@
           [data]="ds.recentMovements()"
           [trackBy]="trackById"
           [totalPages]="0"
+          [caption]="i18n.t('dashboard.movimientos_recientes')"
+          minTableWidth="640px"
+          maxBodyHeight="360px"
           [emptyMessage]="i18n.t('dashboard.sin_movimientos')"
         />
       </div>

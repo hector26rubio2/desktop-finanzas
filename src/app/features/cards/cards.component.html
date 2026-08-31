@@ -131,7 +131,12 @@
           [ngModel]="searchQuery()"
           (ngModelChange)="searchQuery.set($event)"
         />
-        <select class="cards-filter" [ngModel]="filterCcy()" (ngModelChange)="filterCcy.set($event)">
+        <select
+          class="cards-filter"
+          [attr.aria-label]="i18n.t('cards.all_currencies')"
+          [ngModel]="filterCcy()"
+          (ngModelChange)="filterCcy.set($event)"
+        >
           @if (uniqueCurrencies().length <= 1) {
             <option value="">{{ i18n.t('cards.all_currencies') }}</option>
           }
@@ -139,14 +144,19 @@
             <option [value]="ccy">{{ ccy }}</option>
           }
         </select>
-        <select class="cards-filter" [ngModel]="filterBank()" (ngModelChange)="filterBank.set($event)">
+        <select
+          class="cards-filter"
+          [attr.aria-label]="i18n.t('cards.filter_bank')"
+          [ngModel]="filterBank()"
+          (ngModelChange)="filterBank.set($event)"
+        >
           <option value="">{{ i18n.t('cards.all_banks') }}</option>
           @for (bank of uniqueBanks(); track bank) {
             <option [value]="bank">{{ bank }}</option>
           }
         </select>
       </div>
-      <app-kpi-strip [items]="summaryItems()" align="end" />
+      <app-kpi-strip class="cards-summary-strip" [items]="summaryItems()" align="end" />
     </div>
 
     <div class="cards-top-row">
@@ -408,6 +418,9 @@
                 [trackBy]="trackById"
                 [rowClickable]="true"
                 (rowClick)="openDetail($event)"
+                [caption]="card.name + ' · ' + i18n.t('cards.compras_ciclo')"
+                minTableWidth="680px"
+                maxBodyHeight="420px"
                 [emptyMessage]="i18n.t('common.no_results')"
                 [page]="currentPage()"
                 [totalPages]="totalPages()"

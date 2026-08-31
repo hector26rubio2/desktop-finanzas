@@ -68,11 +68,12 @@ export class PieChartComponent implements OnDestroy {
     const colors = cats.map((c) => c.color ?? palette[cats.indexOf(c) % palette.length]);
     const total = cats.reduce((s, c) => s + c.total, 0);
     const ccy = this.currency();
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
     const opts: ChartOptions<'doughnut'> = {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 600 },
+      animation: reduceMotion ? false : { duration: 240, easing: 'easeOutQuart' },
       cutout: '68%',
       plugins: {
         legend: {

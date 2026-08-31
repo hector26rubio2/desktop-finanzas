@@ -2,7 +2,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 0;
+  min-height: calc(var(--header-h) + 12px);
+  padding: 12px var(--page-gutter);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-0) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.content__header > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .content__h-right {
@@ -15,6 +25,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: var(--control-h);
   padding: 5px 12px;
   background: var(--bg-2);
   border: 1px solid var(--line-1);

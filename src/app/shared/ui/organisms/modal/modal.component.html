@@ -1,7 +1,17 @@
-<div class="overlay" role="dialog" aria-modal="true" [attr.aria-label]="ariaLabel()" tabindex="-1">
-  <div class="modal">
+<dialog
+  #dialog
+  class="overlay"
+  aria-modal="true"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-labelledby]="!ariaLabel() && title() ? titleId : null"
+  tabindex="-1"
+  (click)="onOverlayClick($event)"
+  (keydown.escape)="onEscape($event)"
+  (cancel)="onEscape($event)"
+>
+  <div class="modal" [class.modal--lg]="size() === 'lg'">
     <div class="modal__h">
-      <span class="modal__title">{{ title() }}</span>
+      <span class="modal__title" [id]="titleId">{{ title() }}</span>
       <button
         class="btn btn--ghost btn--icon"
         (click)="closeModal.emit()"
@@ -24,4 +34,4 @@
       <ng-content />
     </div>
   </div>
-</div>
+</dialog>

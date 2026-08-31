@@ -9,35 +9,66 @@
     @case ('kpis') {
       <div class="skel__kpis">
         @for (piece of pieces(); track piece) {
-          <div class="skel__bar skel__bar--card skel__bar--kpi"></div>
+          <div class="skel__surface skel__kpi">
+            <div class="skel__bar skel__line skel__line--label"></div>
+            <div class="skel__bar skel__line skel__line--value"></div>
+            <div class="skel__bar skel__line skel__line--short"></div>
+          </div>
         }
       </div>
     }
     @case ('table') {
       <div class="skel__table">
-        <div class="skel__bar skel__bar--head"></div>
+        <div class="skel__table-row skel__table-head">
+          @for (cell of [0, 1, 2, 3]; track cell) {
+            <div class="skel__bar skel__line"></div>
+          }
+        </div>
         @for (piece of pieces(); track piece) {
-          <div class="skel__bar skel__bar--row"></div>
+          <div class="skel__table-row">
+            <div class="skel__bar skel__line skel__line--medium"></div>
+            <div class="skel__bar skel__line"></div>
+            <div class="skel__bar skel__line skel__line--short"></div>
+            <div class="skel__bar skel__line skel__line--medium"></div>
+          </div>
         }
       </div>
     }
     @case ('cards') {
       <div class="skel__cards">
         @for (piece of pieces(); track piece) {
-          <div class="skel__bar skel__bar--card skel__bar--tile"></div>
+          <div class="skel__surface skel__tile">
+            <div class="skel__bar skel__line skel__line--label"></div>
+            <div class="skel__bar skel__line skel__line--value"></div>
+            <div class="skel__bar skel__block"></div>
+          </div>
         }
       </div>
     }
     @case ('chart') {
       <div class="skel__chart">
-        <div class="skel__bar skel__bar--card skel__bar--plot"></div>
-        <div class="skel__bar skel__bar--card skel__bar--legend"></div>
+        <div class="skel__surface skel__chart-card">
+          <div class="skel__bar skel__line skel__line--medium"></div>
+          <div class="skel__plot">
+            @for (bar of [42, 68, 50, 82, 62, 74, 56]; track $index) {
+              <span class="skel__bar" [style.height.%]="bar"></span>
+            }
+          </div>
+        </div>
+        <div class="skel__surface skel__chart-card">
+          <div class="skel__bar skel__line skel__line--medium"></div>
+          <div class="skel__donut skel__bar"></div>
+          <div class="skel__legend-lines">
+            <div class="skel__bar skel__line"></div>
+            <div class="skel__bar skel__line skel__line--medium"></div>
+          </div>
+        </div>
       </div>
     }
     @default {
       <div class="skel__stack">
         @for (piece of pieces(); track piece) {
-          <div class="skel__bar skel__bar--card" [style.height.px]="height()"></div>
+          <div class="skel__bar skel__surface" [style.height.px]="height()"></div>
         }
       </div>
     }

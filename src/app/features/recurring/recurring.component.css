@@ -2,6 +2,125 @@
   display: block;
 }
 
-.rec-paused {
-  opacity: 0.6;
+.recurring-view {
+  max-width: 1440px;
+  min-height: auto;
+  margin-inline: auto;
+}
+
+.rec-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 360px));
+  gap: var(--section-gap);
+  justify-content: start;
+}
+
+.rec-card {
+  min-width: 0;
+  min-height: 186px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-color: var(--line-1);
+}
+
+.rec-card:hover {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-1);
+}
+
+.rec-card--paused {
+  background: color-mix(in srgb, var(--bg-1) 82%, var(--bg-0));
+  border-style: dashed;
+}
+
+.rec-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.rec-card__identity {
+  min-width: 0;
+}
+
+.rec-card__title {
+  overflow: hidden;
+  color: var(--fg-0);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-card__schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-2);
+  margin-top: var(--space-1);
+  color: var(--fg-2);
+  font-size: var(--fs-xs);
+}
+
+.rec-card__amount {
+  font-weight: 700;
+}
+
+.rec-card__amount--income {
+  color: var(--positive);
+}
+
+.rec-card__amount--expense,
+.rec-card__delete {
+  color: var(--negative);
+}
+
+.rec-card__status {
+  flex: 0 0 auto;
+  font-size: var(--fs-2xs);
+}
+
+.rec-card__next {
+  color: var(--fg-2);
+  font-size: var(--fs-2xs);
+  line-height: 1.45;
+}
+
+.rec-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+@container app-view (max-width: 520px) {
+  .rec-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rec-toolbar .btn {
+    width: 100%;
+  }
+
+  .rec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rec-card__actions .btn {
+    flex: 1;
+  }
 }

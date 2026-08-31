@@ -1,8 +1,8 @@
-<div class="view" [attr.aria-busy]="loading()">
+<div class="view calendar-view" [attr.aria-busy]="loading()">
   <app-movement-detail-modal [movement]="selectedMovement()" (closeModal)="closeDetail()" />
 
-  <div class="row-flex">
-    <div class="row-flex__item">
+  <div class="calendar-toolbar">
+    <div class="calendar-period">
       <button class="btn btn--ghost btn--icon" [attr.aria-label]="i18n.t('common.mes_anterior')" (click)="prevMonth()">
         <svg
           width="12"
@@ -16,9 +16,7 @@
           <path d="M10 3L5 8l5 5" />
         </svg>
       </button>
-      <h3 class="serif" style="font-size: 24px; font-weight: 400; min-width: 240px; text-align: center">
-        {{ monthName() }} {{ year() }}
-      </h3>
+      <h2 class="calendar-title">{{ monthName() }} {{ year() }}</h2>
       <button class="btn btn--ghost btn--icon" [attr.aria-label]="i18n.t('common.mes_siguiente')" (click)="nextMonth()">
         <svg
           width="12"
@@ -33,95 +31,66 @@
         </svg>
       </button>
     </div>
-    <div style="margin: auto">
-      <button class="btn btn--ghost" style="font-size: var(--fs-xs)" (click)="goToToday()">
+    <div class="calendar-today">
+      <button class="btn btn--ghost btn--sm" (click)="goToToday()">
         {{ i18n.t('calendar.hoy') }}
       </button>
     </div>
   </div>
 
-  <div class="card" style="padding: 0; overflow: hidden">
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line)">
-      @for (d of days; track d) {
-        <div
-          style="
-            padding: 8px;
-            text-align: center;
-            font-family: var(--font-mono);
-            font-size: var(--fs-2xs);
-            letter-spacing: 0.08em;
-            color: var(--fg-3);
-          "
-        >
-          {{ d }}
-        </div>
-      }
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr)">
-      @for (cell of calendarCells(); track $index) {
-        <div
-          style="
-            min-height: 100px;
-            padding: 8px;
-            border-right: 1px solid var(--line);
-            border-bottom: 1px solid var(--line);
-          "
-          [style.background]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent-soft)' : ''"
-          [style.opacity]="cell.day === 0 ? '0' : '1'"
-        >
-          @if (cell.day > 0) {
-            <div
-              class="mono"
-              style="font-size: var(--fs-sm); margin-bottom: 4px"
-              [style.color]="cell.day === today.getDate() && isCurrentMonth() ? 'var(--accent)' : 'var(--fg-2)'"
-            >
-              {{ cell.day }}
-            </div>
-            @for (ev of cell.events.slice(0, 4); track ev.movement.id) {
-              <button
-                type="button"
-                class="cal-event"
-                style="
-                  margin-bottom: 3px;
-                  padding: 2px 5px;
-                  border-radius: var(--radius-sm);
-                  background: var(--bg-2);
-                  border-left: 2px solid;
-                  cursor: pointer;
-                "
-                [style.border-left-color]="
-                  kindFromMovement(ev.movement) === 'card'
-                    ? 'var(--accent)'
-                    : kindFromMovement(ev.movement) === 'loan'
-                      ? 'var(--info)'
-                      : 'var(--negative)'
-                "
-                (click)="openDetail(ev.movement)"
-                [title]="ev.movement.description ?? ev.movement.categoryName ?? ''"
-                [attr.aria-label]="ev.movement.description ?? ev.movement.categoryName ?? ''"
+  <div class="calendar-scroll" role="region" [attr.aria-label]="monthName() + ' ' + year()" tabindex="0">
+    <div class="card calendar-shell">
+      <div class="calendar-weekdays">
+        @for (d of days; track d) {
+          <div class="calendar-weekday">
+            {{ d }}
+          </div>
+        }
+      </div>
+      <div class="calendar-grid">
+        @for (cell of calendarCells(); track $index) {
+          <div
+            class="calendar-cell"
+            [class.calendar-cell--empty]="cell.day === 0"
+            [class.calendar-cell--today]="cell.day === today.getDate() && isCurrentMonth()"
+          >
+            @if (cell.day > 0) {
+              <div
+                class="mono calendar-day"
+                [class.calendar-day--today]="cell.day === today.getDate() && isCurrentMonth()"
               >
-                <div
-                  style="
-                    font-size: var(--fs-2xs);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    color: var(--fg-0);
+                {{ cell.day }}
+              </div>
+              @for (ev of cell.events.slice(0, 4); track ev.movement.id) {
+                <button
+                  type="button"
+                  class="cal-event"
+                  [style.border-left-color]="
+                    kindFromMovement(ev.movement) === 'card'
+                      ? 'var(--accent)'
+                      : kindFromMovement(ev.movement) === 'loan'
+                        ? 'var(--info)'
+                        : 'var(--negative)'
                   "
+                  (click)="openDetail(ev.movement)"
+                  [title]="ev.movement.description ?? ev.movement.categoryName ?? ''"
+                  [attr.aria-label]="ev.movement.description ?? ev.movement.categoryName ?? ''"
                 >
-                  {{ ev.movement.description ?? ev.movement.categoryName ?? '—' }}
-                </div>
-                <div class="mono" style="font-size: var(--fs-3xs); color: var(--fg-3)">
-                  − $ {{ ev.movement.amount | number: '1.0-0' }} {{ ev.movement.currency }}
-                </div>
-              </button>
+                  <div class="cal-event__name">
+                    {{ ev.movement.description ?? ev.movement.categoryName ?? '—' }}
+                  </div>
+                  <div class="mono cal-event__amount">
+                    − $ {{ ev.movement.amount | number: '1.0-0' }} {{ ev.movement.currency }}
+                  </div>
+                </button>
+              }
+              @if (cell.events.length > 4) {
+                <div class="mono cal-more">+{{ cell.events.length - 4 }} {{ i18n.t('calendar.mas') }}</div>
+              }
             }
-            @if (cell.events.length > 4) {
-              <div class="mono cal-more">+{{ cell.events.length - 4 }} {{ i18n.t('calendar.mas') }}</div>
-            }
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     </div>
   </div>
 </div>

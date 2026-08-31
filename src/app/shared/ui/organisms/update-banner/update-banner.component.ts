@@ -43,20 +43,27 @@ import { UpdateService } from '../../../services/update/update.service';
         align-items: center;
         justify-content: center;
         gap: 12px;
-        padding: 8px 16px;
-        background: var(--accent);
-        color: var(--fg-0);
-        font-size: 13px;
-        animation: slide-down 0.3s ease-out;
+        min-height: 38px;
+        padding: 6px var(--page-gutter);
+        border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+        background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+        color: var(--accent);
+        font-size: var(--fs-xs);
+        animation: slide-down var(--duration-normal) var(--ease-out);
       }
       .update-banner.downloading {
         background: var(--bg-2);
+        color: var(--fg-0);
       }
       .update-banner.ready {
-        background: var(--positive);
+        border-bottom-color: color-mix(in srgb, var(--positive) 32%, var(--line));
+        background: var(--positive-soft);
+        color: var(--positive);
       }
       .update-banner.error {
-        background: var(--negative);
+        border-bottom-color: color-mix(in srgb, var(--negative) 32%, var(--line));
+        background: var(--negative-soft);
+        color: var(--negative);
       }
       .progress-bar {
         width: 120px;
@@ -75,18 +82,19 @@ import { UpdateService } from '../../../services/update/update.service';
         font-weight: 500;
       }
       button {
-        padding: 4px 14px;
-        border: 1px solid var(--fg-0);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--fg-0);
+        min-height: 28px;
+        padding: 3px 12px;
+        border: 1px solid currentColor;
+        border-radius: var(--radius-button);
+        background: color-mix(in srgb, currentColor 8%, transparent);
+        color: inherit;
         cursor: pointer;
         font-size: 12px;
         font-weight: 600;
         transition: background 0.15s;
       }
       button:hover {
-        background: rgba(255, 255, 255, 0.15);
+        background: color-mix(in srgb, currentColor 14%, transparent);
       }
       button:disabled {
         opacity: 0.5;
@@ -100,6 +108,11 @@ import { UpdateService } from '../../../services/update/update.service';
         to {
           transform: translateY(0);
           opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .update-banner {
+          animation: none;
         }
       }
     `,

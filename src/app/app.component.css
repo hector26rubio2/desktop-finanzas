@@ -10,6 +10,34 @@
   justify-items: center;
 }
 
+.route-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 90;
+  height: 3px;
+  overflow: hidden;
+  background: var(--accent-soft);
+  pointer-events: none;
+}
+
+.route-progress::after {
+  content: '';
+  display: block;
+  width: 42%;
+  height: 100%;
+  background: var(--accent);
+  animation: route-progress 900ms var(--ease-in-out) infinite;
+}
+
+@keyframes route-progress {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
 .toast {
   background: var(--bg-2);
   color: var(--fg-0);
@@ -37,5 +65,10 @@
 @media (prefers-reduced-motion: reduce) {
   .toast {
     animation: none;
+  }
+
+  .route-progress::after {
+    animation: none;
+    width: 100%;
   }
 }

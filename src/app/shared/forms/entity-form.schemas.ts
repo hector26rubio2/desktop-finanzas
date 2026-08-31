@@ -24,6 +24,58 @@ const trmField = (baseCurrency = 'COP'): DynamicField => ({
   visibleWhen: (v) => v['currency'] !== baseCurrency,
 });
 
+export interface TransactionCoreFormOptions extends EntityFormOptions {
+  includeSource?: boolean;
+  includeDate?: boolean;
+}
+
+export function transactionCoreFormFields(o: TransactionCoreFormOptions = {}): DynamicField[] {
+  return [
+    {
+      key: 'type',
+      label: 'Tipo',
+      type: 'select',
+      section: 'Movimiento',
+      options: [
+        { value: 'Expense', label: 'Gasto' },
+        { value: 'Income', label: 'Ingreso' },
+      ],
+    },
+    ...(o.includeSource
+      ? [
+          {
+            key: 'sourceType',
+            label: 'Origen',
+            type: 'select' as const,
+            options: [
+              { value: 'Cash', label: 'Efectivo' },
+              { value: 'OwnAccount', label: 'Cuenta propia' },
+              { value: 'CreditCard', label: 'Tarjeta de crédito' },
+            ],
+            visibleWhen: (v: Record<string, unknown>) => v['type'] === 'Expense' || v['sourceType'] !== 'CreditCard',
+          },
+        ]
+      : []),
+    { key: 'amount', label: 'Monto', type: 'number', min: 0.01, step: 0.01 },
+    currencyField(),
+    trmField(o.baseCurrency),
+    ...(o.includeDate ? [{ key: 'date', label: 'Fecha', type: 'datetime-local' as const }] : []),
+    {
+      key: 'categoryId',
+      label: 'Categoría',
+      type: 'select',
+      options: [{ value: '', label: 'Sin categoría' }, ...(o.categories ?? [])],
+    },
+    {
+      key: 'accountId',
+      label: 'Cuenta',
+      type: 'select',
+      options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])],
+    },
+    { key: 'description', label: 'Concepto', type: 'text', fullWidth: true },
+  ];
+}
+
 export function accountFormFields(): DynamicField[] {
   const isCredit = (v: Record<string, unknown>) => v['type'] === 'Credit';
   return [
@@ -141,16 +193,9 @@ export function installmentFormFields(o: EntityFormOptions = {}): DynamicField[]
 export function recurringFormFields(o: EntityFormOptions = {}): DynamicField[] {
   const isMonthly = (v: Record<string, unknown>) => v['frequency'] === 'Monthly';
   const isWeekly = (v: Record<string, unknown>) => v['frequency'] === 'Weekly';
+  const [typeField, ...transactionFields] = transactionCoreFormFields(o);
   return [
-    {
-      key: 'type',
-      label: 'Tipo',
-      type: 'select',
-      options: [
-        { value: 'Expense', label: 'Gasto' },
-        { value: 'Income', label: 'Ingreso' },
-      ],
-    },
+    typeField,
     {
       key: 'recurringType',
       label: 'Clase',
@@ -164,26 +209,12 @@ export function recurringFormFields(o: EntityFormOptions = {}): DynamicField[] {
         { value: 'Other', label: 'Otro' },
       ],
     },
-    { key: 'amount', label: 'Monto', type: 'number', min: 0.01, step: 0.01 },
-    currencyField(),
-    trmField(o.baseCurrency),
-    {
-      key: 'categoryId',
-      label: 'Categoría',
-      type: 'select',
-      options: [{ value: '', label: 'Sin categoría' }, ...(o.categories ?? [])],
-    },
-    {
-      key: 'accountId',
-      label: 'Cuenta',
-      type: 'select',
-      options: [{ value: '', label: 'Sin cuenta' }, ...(o.accounts ?? [])],
-    },
-    { key: 'description', label: 'Concepto', type: 'text' },
+    ...transactionFields,
     {
       key: 'frequency',
       label: 'Frecuencia',
       type: 'select',
+      section: 'Programación',
       options: [
         { value: 'Daily', label: 'Diaria' },
         { value: 'Weekly', label: 'Semanal' },

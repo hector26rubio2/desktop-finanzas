@@ -1,8 +1,14 @@
 import { Component, computed, HostListener, signal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import {
+  Router,
+  RouterOutlet,
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+} from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { filter } from 'rxjs/operators';
 import { AuthService } from './shared/services/auth/auth.service';
 import { I18nService } from './shared/i18n/i18n.service';
 import { SidebarComponent } from './shell/sidebar/sidebar.component';
@@ -24,6 +30,7 @@ import { NotificationService } from './core/services/notification.service';
 export class AppComponent {
   showCmdk = signal(false);
   sidebarCollapsed = signal(localStorage.getItem('sidebar-collapsed') === '1');
+  routeLoading = signal(false);
 
   public auth = inject(AuthService);
   public router = inject(Router);
@@ -31,6 +38,7 @@ export class AppComponent {
   public update = inject(UpdateService);
   public notif = inject(NotificationService);
   private destroyRef = inject(DestroyRef);
+  private routeLoadingTimer: ReturnType<typeof setTimeout> | undefined;
 
   private currentUrl = signal(this.router.url || '/login');
 
@@ -55,14 +63,40 @@ export class AppComponent {
 
   constructor() {
     this.update.init();
-    this.router.events
-      .pipe(
-        filter((e) => e instanceof NavigationEnd),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((e) => {
-        this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
-      });
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        clearTimeout(this.routeLoadingTimer);
+        this.routeLoadingTimer = setTimeout(() => this.routeLoading.set(true), 140);
+        return;
+      }
+
+      if (event instanceof NavigationEnd) {
+        this.currentUrl.set(event.urlAfterRedirects);
+        this.finishNavigation(true);
+        return;
+      }
+
+      if (event instanceof NavigationCancel || event instanceof NavigationError) {
+        this.finishNavigation(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => clearTimeout(this.routeLoadingTimer));
+  }
+
+  private finishNavigation(resetViewport: boolean) {
+    clearTimeout(this.routeLoadingTimer);
+    this.routeLoading.set(false);
+    if (!resetViewport) return;
+
+    queueMicrotask(() => {
+      const viewport = document.querySelector<HTMLElement>('.content__body');
+      if (viewport) {
+        viewport.scrollTop = 0;
+        viewport.scrollLeft = 0;
+      }
+      document.querySelector<HTMLElement>('.content__title-h')?.focus({ preventScroll: true });
+    });
   }
 
   toggleSidebar() {

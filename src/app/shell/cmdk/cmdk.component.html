@@ -2,7 +2,7 @@
   <div
     class="overlay"
     (click)="onOverlayClick($event)"
-    (keydown.escape)="closeModal.emit()"
+    (keydown)="onDialogKeydown($event)"
     tabindex="-1"
     role="dialog"
     aria-modal="true"
@@ -38,7 +38,7 @@
         <button
           type="button"
           class="kbd cmdk__close"
-          (click)="closeModal.emit()"
+          (click)="requestClose()"
           [attr.aria-label]="i18n.t('common.cancel')"
         >
           ESC

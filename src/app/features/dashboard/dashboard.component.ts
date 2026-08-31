@@ -93,11 +93,34 @@ export class DashboardComponent implements OnInit {
   trackById = (m: MovementResponse) => m.id;
 
   recentCols = computed<ColumnDef<MovementResponse>[]>(() => [
-    { key: 'date', header: this.i18n.t('dashboard.fecha'), cellTpl: this.recentDateCell() },
-    { key: 'description', header: this.i18n.t('dashboard.concepto'), format: (v) => (v as string | null) ?? '—' },
-    { key: 'type', header: this.i18n.t('dashboard.tipo'), cellTpl: this.recentTypeCell() },
-    { key: 'sourceType', header: this.i18n.t('transactions.source'), cellTpl: this.recentSourceCell() },
-    { key: 'amount', header: this.i18n.t('dashboard.monto'), numeric: true, cellTpl: this.recentAmountCell() },
+    { key: 'date', header: this.i18n.t('dashboard.fecha'), width: '148px', cellTpl: this.recentDateCell() },
+    {
+      key: 'description',
+      header: this.i18n.t('dashboard.concepto'),
+      minWidth: '180px',
+      format: (v) => (v as string | null) ?? '—',
+    },
+    {
+      key: 'type',
+      header: this.i18n.t('dashboard.tipo'),
+      width: '100px',
+      priority: 'medium',
+      cellTpl: this.recentTypeCell(),
+    },
+    {
+      key: 'sourceType',
+      header: this.i18n.t('transactions.source'),
+      width: '118px',
+      priority: 'low',
+      cellTpl: this.recentSourceCell(),
+    },
+    {
+      key: 'amount',
+      header: this.i18n.t('dashboard.monto'),
+      width: '160px',
+      numeric: true,
+      cellTpl: this.recentAmountCell(),
+    },
   ]);
 
   granularities: { key: Granularity; keyLabel: string }[] = [

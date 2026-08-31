@@ -16,12 +16,15 @@
   }
 
   <main [class]="isAuthPage() ? '' : 'content'">
+    @if (!isAuthPage() && routeLoading()) {
+      <div class="route-progress" role="progressbar" [attr.aria-label]="i18n.t('common.loading')"></div>
+    }
     @if (!isAuthPage()) {
       <app-update-banner />
       <app-shell-header [headerTitle]="headerTitle()" [headerSub]="headerSub()" (openCmdk)="showCmdk.set(true)" />
     }
 
-    <div [class]="isAuthPage() ? '' : 'content__body'">
+    <div [class]="isAuthPage() ? '' : 'content__body'" [attr.aria-busy]="routeLoading() || null">
       <router-outlet />
     </div>
   </main>

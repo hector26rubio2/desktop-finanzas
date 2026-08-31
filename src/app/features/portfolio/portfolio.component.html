@@ -1,4 +1,4 @@
-<div class="content portfolio">
+<div class="view portfolio">
   @if (showCreate()) {
     <app-modal
       [title]="i18n.t('portfolio.new_investment')"
@@ -91,8 +91,8 @@
       </form>
     </app-modal>
   }
-  <header class="content__header">
-    <div>
+  <header class="portfolio-toolbar">
+    <div class="portfolio-toolbar__copy">
       <div class="eyebrow">{{ i18n.t('portfolio.wealth') }}</div>
       <h1>{{ i18n.t('portfolio.assets_liabilities') }}</h1>
     </div>
@@ -106,37 +106,48 @@
     </div>
   </header>
   @if (data(); as p) {
-    <section class="portfolio-kpis">
-      <article>
-        <span>{{ i18n.t('portfolio.assets') }}</span
-        ><strong>{{ p.totalAssets | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+    <section class="portfolio-kpis" [attr.aria-label]="i18n.t('portfolio.wealth')">
+      <article class="portfolio-kpi portfolio-kpi--assets">
+        <span class="portfolio-kpi__label">{{ i18n.t('portfolio.assets') }}</span>
+        <strong>{{ p.totalAssets | number: '1.2-2' }}</strong>
+        <small>{{ p.baseCurrency }}</small>
       </article>
-      <article>
-        <span>{{ i18n.t('portfolio.liabilities') }}</span
-        ><strong>{{ p.totalLiabilities | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+      <article class="portfolio-kpi portfolio-kpi--liabilities">
+        <span class="portfolio-kpi__label">{{ i18n.t('portfolio.liabilities') }}</span>
+        <strong>{{ p.totalLiabilities | number: '1.2-2' }}</strong>
+        <small>{{ p.baseCurrency }}</small>
       </article>
-      <article>
-        <span>{{ i18n.t('portfolio.net_worth') }}</span
-        ><strong>{{ p.netWorth | number: '1.2-2' }} {{ p.baseCurrency }}</strong>
+      <article class="portfolio-kpi portfolio-kpi--net" [class.portfolio-kpi--negative]="p.netWorth < 0">
+        <span class="portfolio-kpi__label">{{ i18n.t('portfolio.net_worth') }}</span>
+        <strong>{{ p.netWorth | number: '1.2-2' }}</strong>
+        <small>{{ p.baseCurrency }}</small>
       </article>
     </section>
   }
-  <div class="portfolio-filter">
-    <button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'All'" (click)="filter.set('All')">
+  <nav class="portfolio-filter" [attr.aria-label]="i18n.t('portfolio.assets_liabilities')">
+    <button class="portfolio-filter__button" [attr.aria-pressed]="filter() === 'All'" (click)="filter.set('All')">
       {{ i18n.t('portfolio.all') }}</button
-    ><button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'Asset'" (click)="filter.set('Asset')">
+    ><button class="portfolio-filter__button" [attr.aria-pressed]="filter() === 'Asset'" (click)="filter.set('Asset')">
       {{ i18n.t('portfolio.assets') }}</button
-    ><button class="btn btn--ghost" [attr.aria-pressed]="filter() === 'Liability'" (click)="filter.set('Liability')">
+    ><button
+      class="portfolio-filter__button"
+      [attr.aria-pressed]="filter() === 'Liability'"
+      (click)="filter.set('Liability')"
+    >
       {{ i18n.t('portfolio.liabilities') }}
     </button>
-  </div>
+  </nav>
   <app-data-table
+    class="portfolio-table"
     [columns]="columns()"
     [data]="items()"
     [trackBy]="trackById"
     [pagination]="false"
     [rowClickable]="true"
     [searchable]="true"
+    [caption]="i18n.t('portfolio.assets_liabilities')"
+    minTableWidth="720px"
+    maxBodyHeight="480px"
     [loading]="loading()"
     [errorMessage]="error()"
     [emptyMessage]="i18n.t('portfolio.no_entities')"

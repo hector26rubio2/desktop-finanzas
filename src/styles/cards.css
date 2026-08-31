@@ -1,30 +1,15 @@
 .card {
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
+  background: var(--surface-panel);
+  border: var(--border-default);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow: var(--shadow-1);
   position: relative;
+  min-width: 0;
 }
 
 .card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1.5px;
-  background: linear-gradient(90deg, var(--accent-soft) 0%, var(--accent) 50%, var(--accent-soft) 100%);
-  opacity: 0.6;
-  z-index: 1;
-}
-
-.card:nth-child(2n)::before {
-  background: linear-gradient(90deg, var(--accent-2-soft) 0%, var(--accent-2) 50%, var(--accent-2-soft) 100%);
-}
-
-.card:nth-child(3n)::before {
-  background: linear-gradient(90deg, var(--accent-3-soft) 0%, var(--accent-3) 50%, var(--accent-3-soft) 100%);
+  display: none;
 }
 
 .card--elevated {
@@ -40,13 +25,15 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--pad-y) var(--pad-x);
-  border-bottom: 1px solid var(--line);
+  min-height: 48px;
+  border-bottom: var(--border-subtle);
 }
 
 .card__title {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--fs-sm);
+  font-weight: 650;
   color: var(--fg-0);
+  letter-spacing: -0.01em;
 }
 
 .card__h-right {

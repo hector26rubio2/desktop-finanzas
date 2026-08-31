@@ -1,5 +1,5 @@
 <div class="view">
-  <div class="row-flex" style="justify-content: flex-end">
+  <div class="installments-actions">
     <button class="btn btn--primary" (click)="createPurchase()">{{ i18n.t('installments.nueva_compra') }}</button>
   </div>
 
@@ -10,8 +10,8 @@
       (overlayClick)="showForm.set(false)"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-          <label style="grid-column: 1/-1">
+        <div class="installment-form-grid">
+          <label class="installment-form-wide">
             {{ i18n.t('installments.descripcion') }}
             <input formControlName="description" [placeholder]="i18n.t('installments.descripcion_placeholder')" />
             <app-field-error [control]="form.get('description')" />
@@ -58,7 +58,7 @@
             </select>
           </label>
         </div>
-        <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end">
+        <div class="installments-actions installment-form-actions">
           <button type="button" class="btn btn--ghost" (click)="showForm.set(false)">
             {{ i18n.t('common.cancel') }}
           </button>
@@ -83,9 +83,9 @@
   } @else {
     <app-kpi-strip [items]="kpiItems()" />
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--gutter)">
+    <div class="installment-grid">
       @for (inst of installments(); track inst.id) {
-        <div class="card inst-card" style="padding: 16px">
+        <div class="card inst-card">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px">
             <div>
               <div style="font-weight: 500; color: var(--fg-0)">{{ inst.description }}</div>

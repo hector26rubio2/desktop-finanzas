@@ -258,7 +258,7 @@ export class ThemeService {
     buildScale(h2, secondaryChroma, 'secondary');
     buildScale(h3, tertiaryChroma, 'tertiary');
 
-    const nL = [98, 93, 85, 75, 63, 51, 39, 29, 19, 11, 7];
+    const nL = [99, 96, 90, 80, 68, 54, 42, 32, 23, 15, 10];
     const nC = [0.003, 0.004, 0.005, 0.005, 0.005, 0.006, 0.006, 0.006, 0.006, 0.005, 0.004];
     for (let i = 0; i < 11; i++) {
       root.style.setProperty(`--color-neutral-${steps[i]}`, `oklch(${nL[i]}% ${nC[i]} ${neutralHue})`);
@@ -276,8 +276,8 @@ export class ThemeService {
     sem('danger', 44, 0.16, 20);
     sem('info', 46, 0.14, 245);
 
-    const accentStep = isDark ? 300 : 500;
-    const accentStepDeep = isDark ? 500 : 600;
+    const accentStep = isDark ? 300 : 600;
+    const accentStepDeep = isDark ? 200 : 700;
 
     root.style.setProperty('--color-primary', `var(--color-primary-${accentStep})`);
     root.style.setProperty('--color-secondary', `var(--color-secondary-${accentStep})`);

@@ -15,6 +15,7 @@ import {
   FinancialBarChartComponent,
   type FinancialBarDatum,
 } from '../../../shared/ui/organisms/financial-bar-chart/financial-bar-chart.component';
+import { SkeletonComponent } from '../../../shared/ui/atoms/skeleton/skeleton.component';
 
 type WidgetId = 'kpis' | 'risks' | 'composition' | 'investments' | 'reconciliation';
 const DEFAULT_WIDGETS: WidgetId[] = ['kpis', 'risks', 'composition', 'investments', 'reconciliation'];
@@ -222,7 +223,7 @@ const COPY = {
 @Component({
   selector: 'app-financial-insights',
   standalone: true,
-  imports: [CommonModule, FinancialBarChartComponent],
+  imports: [CommonModule, FinancialBarChartComponent, SkeletonComponent],
   templateUrl: './financial-insights.component.html',
   styleUrl: './financial-insights.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

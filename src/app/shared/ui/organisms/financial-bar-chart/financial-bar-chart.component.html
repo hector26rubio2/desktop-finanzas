@@ -1,4 +1,4 @@
-<div class="financial-bars" role="img" [attr.aria-label]="accessibleSummary()">
+<div class="financial-bars" role="group" [attr.aria-label]="accessibleSummary()">
   @for (item of data(); track item.key) {
     <button type="button" class="financial-bar" (click)="selected.emit(item)">
       <span>{{ item.label }}</span

@@ -7,7 +7,8 @@ textarea {
   border: 1px solid var(--line-1);
   border-radius: var(--radius-input);
   color: var(--fg-0);
-  padding: 7px 10px;
+  min-height: var(--control-h);
+  padding: 7px 11px;
   outline: none;
   transition:
     border-color 0.15s,
@@ -20,6 +21,20 @@ select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+input:hover:not(:disabled):not(:focus),
+select:hover:not(:disabled):not(:focus),
+textarea:hover:not(:disabled):not(:focus) {
+  border-color: var(--line-2);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+input[readonly] {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 input::placeholder {

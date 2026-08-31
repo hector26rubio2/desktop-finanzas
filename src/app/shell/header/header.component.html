@@ -1,7 +1,7 @@
 <header class="content__header">
   <div>
     <div class="eyebrow">{{ headerSub() }}</div>
-    <h1 class="content__title-h" style="margin-top: 2px">{{ headerTitle() }}</h1>
+    <h1 class="content__title-h" tabindex="-1">{{ headerTitle() }}</h1>
   </div>
   <div class="content__h-right">
     <button type="button" class="header-search-btn" (click)="openCmdk.emit()" [attr.title]="i18n.t('common.search')">

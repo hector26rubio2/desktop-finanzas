@@ -114,12 +114,12 @@ table th.num {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--accent) 75%, transparent);
+  background: color-mix(in srgb, var(--fg-3) 42%, transparent);
   border-radius: 999px;
   min-height: 32px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--fg-2) 62%, transparent);
 }
 *::-webkit-scrollbar-corner {
   background: transparent;
@@ -353,8 +353,23 @@ input[type='number'] {
 }
 .card--hoverable:hover {
   border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-1);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.content__body > router-outlet + *:not(.ng-animating) {
+  width: 100%;
+  min-width: 0;
+  animation: view-enter var(--duration-normal) var(--ease-out) both;
+}
+
+@keyframes view-enter {
+  from {
+    transform: translateY(6px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .sr-only {

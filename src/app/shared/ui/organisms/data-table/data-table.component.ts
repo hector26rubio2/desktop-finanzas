@@ -10,14 +10,19 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../molecules/pagination/pagination.component';
+import { SkeletonComponent } from '../../atoms/skeleton/skeleton.component';
 import { I18nService } from '../../../i18n/i18n.service';
 
 export interface ColumnDef<T> {
   key: keyof T & string;
   header: string;
   width?: string;
+  minWidth?: string;
+  maxWidth?: string;
   numeric?: boolean;
   sortable?: boolean;
+  wrap?: boolean;
+  priority?: 'high' | 'medium' | 'low';
 
   format?: (value: unknown, row: T) => string;
   cellTpl?: TemplateRef<{ $implicit: T; row: T }>;
@@ -26,7 +31,7 @@ export interface ColumnDef<T> {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, PaginationComponent],
+  imports: [CommonModule, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.css',
@@ -42,6 +47,9 @@ export class DataTableComponent<T> {
   searchable = input(false);
   searchPlaceholder = input('');
   pagination = input(true);
+  caption = input('');
+  minTableWidth = input('720px');
+  maxBodyHeight = input('clamp(240px, 48vh, 560px)');
 
   rowClickable = input(false);
 
@@ -113,13 +121,30 @@ export class DataTableComponent<T> {
   toggleColumn(key: string) {
     const next = new Set(this.hiddenColumns());
     if (next.has(key)) next.delete(key);
-    else next.add(key);
+    else {
+      if (this.visibleColumns().length <= 1) return;
+      next.add(key);
+    }
     this.hiddenColumns.set(next);
   }
 
   cellValue(item: T, col: ColumnDef<T>): unknown {
     const raw = (item as Record<string, unknown>)[col.key];
     return col.format ? col.format(raw, item) : raw;
+  }
+
+  cellTitle(item: T, col: ColumnDef<T>): string | null {
+    if (col.cellTpl) return null;
+    const value = this.cellValue(item, col);
+    return value == null ? null : String(value);
+  }
+
+  columnClasses(col: ColumnDef<T>): Record<string, boolean> {
+    return {
+      'dt-col--wrap': !!col.wrap,
+      'dt-col--priority-medium': col.priority === 'medium',
+      'dt-col--priority-low': col.priority === 'low',
+    };
   }
 
   onRowClick(item: T) {

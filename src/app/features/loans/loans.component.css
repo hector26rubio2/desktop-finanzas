@@ -1,0 +1,80 @@
+.loan-page-actions,
+.loan-detail__actions,
+.loan-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.loans-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--section-gap);
+}
+
+.loan-list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.loan-detail {
+  min-width: 0;
+}
+
+.loan-kpis {
+  display: block;
+  margin-bottom: var(--section-gap);
+}
+
+.loan-detail__actions {
+  margin-bottom: var(--section-gap);
+}
+
+.loan-payment-card {
+  margin-bottom: var(--section-gap);
+  padding: var(--pad-x);
+}
+
+.loan-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.loan-form-actions {
+  margin-top: var(--space-4);
+}
+
+.loan-amortization {
+  padding: 0;
+  overflow: hidden;
+}
+
+@container app-view (max-width: 780px) {
+  .loans-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .loan-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  }
+}
+
+@container app-view (max-width: 520px) {
+  .loan-payment-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .loan-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .loan-form-actions .btn {
+    width: 100%;
+  }
+}

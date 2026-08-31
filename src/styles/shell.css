@@ -107,11 +107,12 @@
 
 .sidebar__brand-name {
   font-family: var(--font-family);
-  font-style: italic;
+  font-style: normal;
   font-size: 18px;
   color: var(--fg-0);
   letter-spacing: -0.01em;
   flex: 1;
+  font-weight: 650;
 }
 
 .sidebar__brand-ver {
@@ -201,7 +202,6 @@
     background var(--duration-fast) var(--ease-btn),
     color var(--duration-fast) var(--ease-btn),
     transform var(--duration-fast) var(--ease-out);
-  will-change: transform;
   text-align: left;
   position: relative;
 }
@@ -395,12 +395,14 @@
   z-index: 1;
   min-width: 0;
   width: 100%;
+  container-type: inline-size;
+  container-name: app-view;
 }
 
 .content__header {
   min-height: calc(var(--header-h) + 12px);
   flex-shrink: 0;
-  padding: 14px var(--gutter) 14px calc(var(--gutter) + 4px);
+  padding: 14px var(--page-gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -411,12 +413,12 @@
 
 .content__title-h {
   font-family: var(--font-family);
-  font-style: italic;
-  font-size: 26px;
+  font-style: normal;
+  font-size: clamp(22px, 2vw, 28px);
   letter-spacing: -0.02em;
-  font-weight: 400;
+  font-weight: 680;
   color: var(--fg-0);
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .content__h-right {
@@ -432,7 +434,9 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 
 .user-menu-wrap {

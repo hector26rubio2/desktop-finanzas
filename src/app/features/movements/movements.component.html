@@ -1,6 +1,7 @@
 <div class="view" [attr.aria-busy]="page() === null">
   @if (showModal()) {
     <app-modal
+      size="lg"
       [title]="editingMovement() ? i18n.t('common.edit') : i18n.t('transactions.nuevo_title')"
       (closeModal)="closeModal()"
       (overlayClick)="closeModal()"
@@ -253,7 +254,7 @@
             </label>
 
             @if (movForm.value.isRecurring) {
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px">
+              <div class="mov-recurring-grid">
                 <label class="form-label">
                   {{ i18n.t('recurring.frequency') }}
                   <select formControlName="recFrequency">

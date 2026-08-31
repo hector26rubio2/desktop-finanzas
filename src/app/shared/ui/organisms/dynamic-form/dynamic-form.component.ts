@@ -14,6 +14,7 @@ export interface DynamicField {
   max?: number;
   step?: number;
   fullWidth?: boolean;
+  section?: string;
   visibleWhen?: (value: Record<string, unknown>) => boolean;
 }
 @Component({
@@ -35,6 +36,12 @@ export class DynamicFormComponent {
 
   visibleFields() {
     return this.fields().filter((f) => !f.visibleWhen || f.visibleWhen(this.form().getRawValue()));
+  }
+
+  startsSection(field: DynamicField, index: number): boolean {
+    if (!field.section) return false;
+    if (index === 0) return true;
+    return this.visibleFields()[index - 1]?.section !== field.section;
   }
 
   errorFor(field: DynamicField): string | null {
