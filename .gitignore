@@ -29,6 +29,17 @@ opencode.json
 npm-debug.log*
 .agents
 
+# .NET (backend apps/api)
+bin/
+obj/
+*.user
+# Bases locales de desarrollo: nunca versionar datos financieros
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Artefactos generados (regenerables, no se versionan)
 graphify-out/
 .shots/

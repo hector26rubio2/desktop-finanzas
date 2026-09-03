@@ -1,0 +1,13 @@
+{
+  "name": "finanzas-web-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve --port 4300",
+    "build": "ng build",
+    "test": "ng test --watch=false",
+    "lint": "eslint src --config eslint.config.cjs",
+    "format:check": "prettier --check src",
+    "test:ui": "node scripts/visual-test.mjs"
+  }
+}

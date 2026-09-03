@@ -1,5 +1,11 @@
 # Plan maestro — Rediseño de `finanzas-desktop`
 
+> Documento histórico. Para nuevas implementaciones prevalece
+> [`PLAN_REDISENO_UX_MULTIAGENTE.md`](PLAN_REDISENO_UX_MULTIAGENTE.md).
+> La propuesta de reiniciar la base de datos y eliminar datos de este documento
+> queda sustituida por migraciones compatibles y no destructivas. No ejecutar
+> sus fases antiguas como instrucciones vigentes.
+
 Une el **rediseño de base de datos** (ver [`DISENO_BD.md`](DISENO_BD.md)) con la **nueva arquitectura de UI**
 (4 módulos + un formulario único) y el **rediseño de experiencia**. Se ejecuta **por fases con checkpoints**,
 empezando por la base de datos.
@@ -14,20 +20,20 @@ de datos (desde cero) · quitar sync/API, HTTP/environment y entidades sin uso �
 
 Revisión de las 12 vistas actuales (código; verificación en runtime pendiente en la fase de UI):
 
-| Vista | Estado | ¿Usable? | Qué mejorar |
-|-------|--------|----------|-------------|
-| **dashboard** | Completa: granularidad, filtros globales, KPIs, cashflow, dona categorías, recientes, insights | Sí | Textos fijos en español (i18n), solapa con reports |
-| **movements** | Muy completa (748/553 líneas), tabla + formulario propio con schema dinámico | Sí | Es la base del **formulario único**; extenderlo al resto |
-| **reports** | 3 pestañas (general/categorías/mes a mes) + export CSV | Sí | **Estilos inline**, solapa con dashboard → volverlo módulo de analítica profunda |
-| **portfolio** | Activos/pasivos, patrimonio neto, tabla, inspector | Sí | **Formularios bespoke** (nueva inversión, valorar) → mover al form único; falta posiciones/riesgo |
-| **accounts** | Gestión de cuentas + saldos | Sí | Formulario propio → unificar |
-| **cards** | Tarjetas + cuotas (529/423 líneas) | Sí | Formulario propio; reglas por tarjeta y extracto simulado (nuevo) |
-| **loans** | Préstamos + amortización | Sí | Formulario propio; propósito/dirección (nuevo) |
-| **recurring** | Recurrentes | Sí | Formulario propio; tipos (gasto fijo/suscripción/arriendo) |
-| **installments** | Compras a cuotas | Parcial | Se integra dentro de Patrimonio/Movimientos, no como vista suelta |
-| **calendar** | Vista calendario de movimientos | Sí | Integrar como vista dentro de Movimientos |
-| **categories** | Gestión de categorías | Sí | Mover a Ajustes |
-| **platform-tools** | Backup/restore/import/reparación | Sí | Mover a Ajustes |
+| Vista              | Estado                                                                                         | ¿Usable? | Qué mejorar                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
+| **dashboard**      | Completa: granularidad, filtros globales, KPIs, cashflow, dona categorías, recientes, insights | Sí       | Textos fijos en español (i18n), solapa con reports                                                |
+| **movements**      | Muy completa (748/553 líneas), tabla + formulario propio con schema dinámico                   | Sí       | Es la base del **formulario único**; extenderlo al resto                                          |
+| **reports**        | 3 pestañas (general/categorías/mes a mes) + export CSV                                         | Sí       | **Estilos inline**, solapa con dashboard → volverlo módulo de analítica profunda                  |
+| **portfolio**      | Activos/pasivos, patrimonio neto, tabla, inspector                                             | Sí       | **Formularios bespoke** (nueva inversión, valorar) → mover al form único; falta posiciones/riesgo |
+| **accounts**       | Gestión de cuentas + saldos                                                                    | Sí       | Formulario propio → unificar                                                                      |
+| **cards**          | Tarjetas + cuotas (529/423 líneas)                                                             | Sí       | Formulario propio; reglas por tarjeta y extracto simulado (nuevo)                                 |
+| **loans**          | Préstamos + amortización                                                                       | Sí       | Formulario propio; propósito/dirección (nuevo)                                                    |
+| **recurring**      | Recurrentes                                                                                    | Sí       | Formulario propio; tipos (gasto fijo/suscripción/arriendo)                                        |
+| **installments**   | Compras a cuotas                                                                               | Parcial  | Se integra dentro de Patrimonio/Movimientos, no como vista suelta                                 |
+| **calendar**       | Vista calendario de movimientos                                                                | Sí       | Integrar como vista dentro de Movimientos                                                         |
+| **categories**     | Gestión de categorías                                                                          | Sí       | Mover a Ajustes                                                                                   |
+| **platform-tools** | Backup/restore/import/reparación                                                               | Sí       | Mover a Ajustes                                                                                   |
 
 **Patrón transversal a corregir:** cada vista trae su propio formulario en un `<app-modal>` → el objetivo es
 **un único `DynamicFormComponent`** que los reemplace a todos.
@@ -36,13 +42,13 @@ Revisión de las 12 vistas actuales (código; verificación en runtime pendiente
 
 ## 2. Arquitectura destino: 4 módulos + Ajustes
 
-| Módulo | Contenido | Absorbe de hoy |
-|--------|-----------|----------------|
-| **1. Dashboard** | Vistazo: KPIs, cashflow, categorías, recientes, insights | dashboard + financial-insights |
-| **2. Movimientos** | Libro mayor + **formulario único** de creación + vista calendario + recurrentes | movements + recurring + calendar |
-| **3. Patrimonio** | Cuentas, tarjetas (con reglas + extracto), préstamos, inversiones (posiciones/riesgo), patrimonio neto e histórico | accounts + cards + loans + portfolio + installments |
-| **4. Reportes/Estadísticas** | Analítica profunda: comparativos, categorías, evolución, posiciones/riesgo, export | reports (ampliado) |
-| *Ajustes (secundario)* | Categorías, herramientas locales (backup/import), tema/idioma/preferencias | categories + platform-tools + settings |
+| Módulo                       | Contenido                                                                                                          | Absorbe de hoy                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| **1. Dashboard**             | Vistazo: KPIs, cashflow, categorías, recientes, insights                                                           | dashboard + financial-insights                      |
+| **2. Movimientos**           | Libro mayor + **formulario único** de creación + vista calendario + recurrentes                                    | movements + recurring + calendar                    |
+| **3. Patrimonio**            | Cuentas, tarjetas (con reglas + extracto), préstamos, inversiones (posiciones/riesgo), patrimonio neto e histórico | accounts + cards + loans + portfolio + installments |
+| **4. Reportes/Estadísticas** | Analítica profunda: comparativos, categorías, evolución, posiciones/riesgo, export                                 | reports (ampliado)                                  |
+| _Ajustes (secundario)_       | Categorías, herramientas locales (backup/import), tema/idioma/preferencias                                         | categories + platform-tools + settings              |
 
 Se **eliminan como rutas propias**: installments, calendar, categories, platform-tools (pasan a ser vistas
 internas de un módulo). Navegación (sidebar) pasa de ~12 ítems a **4 + Ajustes**.

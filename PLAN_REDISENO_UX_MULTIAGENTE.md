@@ -8,6 +8,8 @@
 
 ## 1. Propósito
 
+Este documento prevalece sobre `PLAN_MAESTRO.md` en caso de conflicto. No está autorizado reiniciar la base de datos, eliminar históricos ni publicar un release por el mero hecho de ejecutar este plan. La preparación de .NET 10 no implica que su migración esté completada.
+
 Rediseñar integralmente Finanzas Desktop para convertirla en una aplicación financiera personal clara, estilizada, consistente, accesible y agradable de usar. Se permite rehacer por completo una vista cuando la jerarquía actual no pueda corregirse con cambios locales.
 
 La aplicación debe sentirse como un **estudio financiero personal**, no como un panel administrativo genérico. El objetivo no es ocultar datos, sino mostrar primero lo importante y revelar el detalle de forma progresiva.
@@ -81,6 +83,8 @@ Toda operación con impacto en dinero debe quedar representada o enlazada con un
 Las valoraciones de inversión no son flujo de caja y se conservarán como serie separada, enlazada a la entidad de portafolio. Las vistas especializadas son proyecciones del ledger de movimientos, no implementaciones financieras paralelas.
 
 Un préstamo es una proyección sobre movimientos enlazados, no un saldo editable aislado. El principal, los intereses, los abonos y los ajustes conservan su propio movimiento y trazabilidad. Un abono nunca modifica retroactivamente el importe original.
+
+Crear un contrato, calcular una liquidación o marcar un préstamo saldado no produce por sí solo un ingreso o gasto adicional. Registrar el efecto económico una sola vez: distinguir movimientos monetarios, devengos y metadatos del contrato. El importe adeudado al emisor de una tarjeta sigue siendo responsabilidad del titular aunque exista una cuenta por cobrar a otra persona; no descontarla automáticamente de la deuda bancaria ni dar su cobro futuro por garantizado.
 
 ### 4.2 Formulario dinámico único
 
@@ -602,11 +606,13 @@ Dinero
 ├── Movimientos
 ├── Cuentas
 ├── Tarjetas
+├── Personas y deudas
 └── Recurrentes
 
 Análisis
 ├── Calendario
 ├── Patrimonio
+├── Planificación y simuladores
 └── Reportes
 
 Sistema
@@ -678,6 +684,14 @@ Los demás agentes proponen cambios a estos contratos, pero no los modifican sin
 - integración final.
 
 ### 8.5 Flujo de ramas y worktrees
+
+#### Asignación adicional de W11–W13
+
+- Codex: contratos de dominio, persistencia, asignación de abonos, pruebas de invariantes y puertos hacia .NET 10. Ownership exclusivo de `electron/local-data/**`, contratos/modelos compartidos y futuros proyectos .NET hasta transferencia explícita.
+- Claude: experiencia de Personas y deudas y adaptadores del formulario único, después de recibir los contratos de W11. Las modificaciones del formulario compartido se solicitan al integrador.
+- OpenCode: interfaz de planificación, metas y comparación de escenarios de W12; consume el motor determinista sin duplicar fórmulas.
+- Antes de crear archivos nuevos, registrar sus rutas exactas y propietario en el handoff. Las asignaciones son propuestas; no prueban que Claude u OpenCode estén ejecutando trabajo.
+- Prohibido que dos backends escriban simultáneamente en una base durante la transición. Cada perfil tiene un único escritor activo; cambiarlo requiere cerrar conexiones y validar el estado.
 
 - Crear una rama o worktree por lane.
 - Prefijo recomendado: `codex/`, `claude/` y `opencode/`.
@@ -756,6 +770,20 @@ No iniciar rediseños masivos antes de congelar estos contratos.
 - Build, tests y empaquetado.
 - Validación del ejecutable empaquetado.
 
+### Etapa 5 — Funcionalidad financiera adicional
+
+1. Acordar contratos y casos de prueba de W11 antes de crear pantallas o migraciones.
+2. Integrar compras asignadas, obligaciones, abonos y reversos; verificar que saldos y deuda bancaria no se duplican ni compensan indebidamente.
+3. Integrar liquidaciones por persona y reportes relacionados.
+4. Publicar contrato del motor W12 y casos de cálculo verificables.
+5. Integrar simuladores y metas; mantener escenarios separados de operaciones reales.
+6. Ampliar fixtures con compras compartidas, abonos parciales, sobrepagos, reversos y metas inviables.
+7. Repetir QA visual, pruebas de dominio y compatibilidad de backups.
+
+### Etapa 6 — Migración W13 por cortes verticales
+
+La extracción de puertos y las pruebas contractuales pueden prepararse desde Foundation. La sustitución del backend ocurre por cortes pequeños, después de la paridad del motor y del ledger, sin bloquear el rediseño visual ni mezclar una reescritura con cambios cosméticos. Cada corte incluye pruebas, estrategia de retorno con copia compatible y un registro del backend activo. La migración completa requiere su propio cierre de aceptación; preparar contratos no equivale a terminarla.
+
 ## 10. Matriz mínima de validación
 
 ### Resoluciones
@@ -801,7 +829,7 @@ No iniciar rediseños masivos antes de congelar estos contratos.
 
 El repositorio ya define Graphify como fuente del grafo de conocimiento en `graphify-out/graph.html`. Antes de crear worktrees:
 
-1. regenerar el grafo con el comando documentado en `CLAUDE.md` y ejecutar sus herramientas Python aisladas mediante `uv` o `pipx`;
+1. localizar la instalación y consultar su ayuda para registrar versión y comando reproducible; `CLAUDE.md` solo indica la salida, no documenta un comando de ejecución. Usar `uv` o `pipx` para sus herramientas Python; no inventar parámetros;
 2. no editar manualmente los artefactos generados;
 3. localizar dependencias de Movimientos, Préstamos, Cuotas, Tarjetas, Reportes, auditoría y recuperación;
 4. adjuntar a cada handoff los módulos afectados y dependencias compartidas detectadas;
@@ -809,6 +837,8 @@ El repositorio ya define Graphify como fuente del grafo de conocimiento en `grap
 6. usar el grafo como análisis de impacto, no como sustituto de pruebas ni revisión.
 
 Graphify es obligatorio antes de retirar rutas heredadas, cambiar modelos financieros, extraer código hacia .NET 10 o repartir ownership, para evitar romper reportes, backups o integridad referencial.
+
+Si Graphify no está disponible, registrar el bloqueo de esas operaciones estructurales y continuar únicamente tareas independientes y verificables. No enviar código, bases de datos, secretos o datos personales a un servicio externo para construir el grafo sin revisar su comportamiento y obtener autorización cuando corresponda.
 
 ```powershell
 pnpm format:check
