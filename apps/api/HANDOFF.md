@@ -178,3 +178,29 @@ espejo o como propio del transporte.
 - No hay todavía tipos de transporte para escenarios y simuladores (§W12): se
   añadirán cuando el dominio los tenga.
 - `Finanzas.Application` sigue vacío salvo el marcador de proyecto.
+
+## 6. Reparto de tareas con el agente de frontend (2026-09-04)
+
+Hay dos agentes trabajando a la vez sobre el mismo *checkout*. Ninguno
+necesita esperar al otro si respeta esta división.
+
+| Zona                        | Propietario activo | Estado                                  |
+| --------------------------- | ------------------ | --------------------------------------- |
+| `apps/api/**`               | Agente backend     | Dominio y contratos hechos              |
+| `apps/web/**`               | Agente frontend    | En ejecución, no se toca desde el backend |
+| `docs/agents/**`            | Punto neutral      | Se **añaden** entradas, no se reescriben |
+| `src/**`, `electron/**`     | Aplicación heredada | Solo lectura en esta fase               |
+| Planes y archivos de la raíz | El humano          | No se editan sin encargo explícito       |
+
+**Canal.** `docs/agents/CONTRACT_HANDOFF.md`. Los dos agentes escriben ahí
+añadiendo una entrada al final, con el formato que ese archivo declara. Nadie
+edita archivos del otro para pedirle algo.
+
+**Turno del backend, en orden:** persistencia y migraciones → casos de uso →
+transporte y OpenAPI. Las cuatro decisiones abiertas registradas en el canal
+bloquean el primer paso: el motor de base de datos y el alcance multiusuario
+no son detalles de implementación que el backend deba elegir solo.
+
+**Turno del frontend, sin bloqueo:** ya puede escribir sus adaptadores contra
+los tipos congelados. Lo que todavía no existe es el transporte, así que no
+hay OpenAPI del que generar un cliente ni URL que llamar.
