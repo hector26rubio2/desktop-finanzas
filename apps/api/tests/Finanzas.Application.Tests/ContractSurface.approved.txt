@@ -136,16 +136,6 @@ class Finanzas.Contracts.Common.DateRangeDto
     DateOnly End { get; init; }
     DateOnly Start { get; init; }
 
-class Finanzas.Contracts.Common.ErrorDto
-    string Code { get; init; }
-    IReadOnlyList<Finanzas.Contracts.Common.ErrorFieldDto>? Fields { get; init; }
-    string Message { get; init; }
-
-class Finanzas.Contracts.Common.ErrorFieldDto
-    string Code { get; init; }
-    string Field { get; init; }
-    string Message { get; init; }
-
 class Finanzas.Contracts.Common.MoneyDto
     string Amount { get; init; }
     string Currency { get; init; }
@@ -165,9 +155,85 @@ class Finanzas.Contracts.Common.PageRequestDto
 class Finanzas.Contracts.Common.PercentageDto
     string Rate { get; init; }
 
+class Finanzas.Contracts.Common.ProblemDetailsDto
+    string Code { get; init; }
+    string? Detail { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Common.ProblemFieldDto>? Errors { get; init; }
+    string? Instance { get; init; }
+    int Status { get; init; }
+    string Title { get; init; }
+    string Type { get; init; }
+
+class Finanzas.Contracts.Common.ProblemFieldDto
+    string Code { get; init; }
+    string Field { get; init; }
+    string Message { get; init; }
+
 enum Finanzas.Contracts.Common.SortDirectionDto
     Ascending = 0
     Descending = 1
+
+enum Finanzas.Contracts.Identity.CapabilityDto
+    ExportData = 256
+    IssueSettlements = 128
+    ManageAccounts = 4
+    ManageCards = 8
+    ManageInvestments = 32
+    ManageMembers = 512
+    ManageOrganization = 1024
+    ManagePeople = 16
+    ManageRecurrences = 64
+    None = 0
+    RecordMovements = 2
+    ViewLedger = 1
+
+class Finanzas.Contracts.Identity.ChangeMemberCapabilitiesRequest
+    IReadOnlyList<Finanzas.Contracts.Identity.CapabilityDto> Capabilities { get; init; }
+
+class Finanzas.Contracts.Identity.CreateOrganizationRequest
+    string BaseCurrency { get; init; }
+    string Name { get; init; }
+    string Slug { get; init; }
+
+class Finanzas.Contracts.Identity.InviteMemberRequest
+    IReadOnlyList<Finanzas.Contracts.Identity.CapabilityDto> Capabilities { get; init; }
+    string? DisplayName { get; init; }
+    string Email { get; init; }
+
+class Finanzas.Contracts.Identity.MembershipDto
+    IReadOnlyList<Finanzas.Contracts.Identity.CapabilityDto> Capabilities { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Identity.CapabilityDto> EffectiveCapabilities { get; init; }
+    Guid Id { get; init; }
+    Guid Organization { get; init; }
+    Finanzas.Contracts.Identity.MembershipStatusDto Status { get; init; }
+    Finanzas.Contracts.Identity.UserDto User { get; init; }
+
+enum Finanzas.Contracts.Identity.MembershipStatusDto
+    Active = 2
+    Invited = 1
+    Suspended = 3
+
+class Finanzas.Contracts.Identity.OrganizationDto
+    string BaseCurrency { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
+    string Name { get; init; }
+    string Slug { get; init; }
+
+class Finanzas.Contracts.Identity.SessionDto
+    IReadOnlyList<Finanzas.Contracts.Identity.CapabilityDto> Capabilities { get; init; }
+    DateTimeOffset ExpiresAt { get; init; }
+    Finanzas.Contracts.Identity.OrganizationDto Organization { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Identity.OrganizationDto> Organizations { get; init; }
+    Finanzas.Contracts.Identity.UserDto User { get; init; }
+
+class Finanzas.Contracts.Identity.UserDto
+    string DisplayName { get; init; }
+    string Email { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
 
 class Finanzas.Contracts.Investments.AddValuationRequest
     DateOnly Date { get; init; }

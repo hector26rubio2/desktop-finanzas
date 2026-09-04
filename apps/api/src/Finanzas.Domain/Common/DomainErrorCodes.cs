@@ -12,6 +12,15 @@ public static class DomainErrorCodes
     public const string RequiredValue = "domain.required_value";
     public const string OutOfRange = "domain.out_of_range";
 
+    // Organizaciones, personas y membresías
+    public const string OrganizationInvalidSlug = "organization.invalid_slug";
+    public const string UserInvalidEmail = "user.invalid_email";
+    public const string MembershipWithoutCapabilities = "membership.without_capabilities";
+    public const string MembershipCapabilityMissing = "membership.capability_missing";
+    public const string MembershipNotInvited = "membership.not_invited";
+    public const string MembershipAlreadySuspended = "membership.already_suspended";
+    public const string MembershipNotSuspended = "membership.not_suspended";
+
     // Dinero y moneda
     public const string InvalidCurrency = "money.invalid_currency";
     public const string CurrencyMismatch = "money.currency_mismatch";

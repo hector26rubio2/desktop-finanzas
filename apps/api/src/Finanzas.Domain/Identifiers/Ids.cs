@@ -7,6 +7,33 @@ namespace Finanzas.Domain.Identifiers;
 /// una cuenta donde se espera el de una tarjeta, defecto habitual cuando todo
 /// es <c>string</c> como en el esquema heredado.
 /// </summary>
+public readonly record struct OrganizationId(Guid Value) : IEntityId
+{
+    public static OrganizationId New() => new(Guid.NewGuid());
+
+    public bool IsEmpty => Value == Guid.Empty;
+
+    public override string ToString() => Value.ToString("D");
+}
+
+public readonly record struct UserId(Guid Value) : IEntityId
+{
+    public static UserId New() => new(Guid.NewGuid());
+
+    public bool IsEmpty => Value == Guid.Empty;
+
+    public override string ToString() => Value.ToString("D");
+}
+
+public readonly record struct MembershipId(Guid Value) : IEntityId
+{
+    public static MembershipId New() => new(Guid.NewGuid());
+
+    public bool IsEmpty => Value == Guid.Empty;
+
+    public override string ToString() => Value.ToString("D");
+}
+
 public readonly record struct AccountId(Guid Value) : IEntityId
 {
     public static AccountId New() => new(Guid.NewGuid());

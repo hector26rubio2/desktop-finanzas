@@ -1,6 +1,7 @@
 using ContractsAccounts = Finanzas.Contracts.Accounts;
 using ContractsCategories = Finanzas.Contracts.Categories;
 using ContractsCommon = Finanzas.Contracts.Common;
+using ContractsIdentity = Finanzas.Contracts.Identity;
 using ContractsInvestments = Finanzas.Contracts.Investments;
 using ContractsLedger = Finanzas.Contracts.Ledger;
 using ContractsObligations = Finanzas.Contracts.Obligations;
@@ -11,6 +12,7 @@ using DomainCategories = Finanzas.Domain.Categories;
 using DomainInvestments = Finanzas.Domain.Investments;
 using DomainLedger = Finanzas.Domain.Ledger;
 using DomainObligations = Finanzas.Domain.Obligations;
+using DomainOrganizations = Finanzas.Domain.Organizations;
 using DomainPurchases = Finanzas.Domain.Purchases;
 using DomainRecurrences = Finanzas.Domain.Recurrences;
 
@@ -55,6 +57,8 @@ public class EnumParityTests
         (typeof(ContractsRecurrences.RecurrenceKindDto), typeof(DomainRecurrences.RecurrenceKind)),
         (typeof(ContractsRecurrences.RecurrenceFrequencyDto), typeof(DomainRecurrences.RecurrenceFrequency)),
         (typeof(ContractsPurchases.ShareBasisDto), typeof(DomainPurchases.ShareBasis)),
+        (typeof(ContractsIdentity.CapabilityDto), typeof(DomainOrganizations.Capability)),
+        (typeof(ContractsIdentity.MembershipStatusDto), typeof(DomainOrganizations.MembershipStatus)),
     ];
 
     /// <summary>

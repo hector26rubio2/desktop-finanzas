@@ -20,7 +20,12 @@
 | Categoría en neutros         | Prohibida. Evita el doble conteo en reportes                       | Acordada  |
 | `DebtPosition`               | No expone ningún "neto" deuda propia ↔ por cobrar                  | Acordada  |
 | Dinero en el contrato        | `string` en cultura invariante, **nunca** `number`                 | Acordada  |
-| Errores en el transporte     | Estado HTTP + `ErrorDto`; sin envoltorio `Result<T>`               | Acordada  |
+| Errores en el transporte     | **Problem Details (RFC 9457)** + extensión `code`; sin `Result<T>` | Acordada 04-09 |
+| Motor de persistencia        | **PostgreSQL** con migraciones reproducibles                       | Acordada 04-09 |
+| Alcance                      | **Multiusuario**: organizaciones, membresías y capacidades         | Acordada 04-09 |
+| Autorización                 | Por capacidades efectivas. **Nunca por nombre de rol**             | Acordada 04-09 |
+| Aislamiento entre organizaciones | En la frontera de persistencia, no en cada agregado            | Acordada 04-09 |
+| Paginación                   | Por página y tamaño, con total. **No** por cursor                  | Acordada 04-09 |
 | `MovementKindSpecDto`        | La tabla de invariantes viaja **como dato** al frontend            | Acordada  |
 | Filtros y paginación         | DTOs en `Contracts`, no query strings armados en el cliente        | Acordada  |
 
@@ -57,7 +62,14 @@ Ningún agente edita una ruta cuyo propietario sea otro. Los cambios en
 - [x] **Contratos congelados** (2026-09-04). 106 tipos públicos en
       `Finanzas.Contracts`, congelados con prueba de instantánea de superficie.
       `dotnet test`: **223/223 en verde**, 0 advertencias. Detalle en §5.
-- [ ] Esquema y migraciones.
+- [x] Multiusuario en el dominio (2026-09-04). `Organization`, `User`,
+      `Membership` y `Capability`; 27 pruebas nuevas. Total del dominio:
+      **225/225 en verde**.
+- [x] Contrato ajustado a las decisiones del 04-09: `ProblemDetailsDto`
+      sustituye a `ErrorDto`, y `Finanzas.Contracts.Identity` publica sesión,
+      organización, membresías y capacidades. Instantánea regenerada y
+      revisada. `dotnet test`: **252/252 en verde**.
+- [ ] Esquema y migraciones **en PostgreSQL**, con aislamiento por organización.
 - [ ] Casos de uso.
 - [ ] Transporte local.
 
@@ -109,11 +121,12 @@ primero el registro de decisiones del plan.
 
 ### 5.1 Alcance
 
-`Finanzas.Contracts` publica 106 tipos en doce espacios de nombres:
+`Finanzas.Contracts` publica 115 tipos en trece espacios de nombres:
 
 | Espacio de nombres | Qué cubre                                                             |
 | ------------------ | --------------------------------------------------------------------- |
-| `Common`           | `MoneyDto`, `ConvertedMoneyDto`, `CurrencyDto`, `PercentageDto`, `ErrorDto`, paginación y rango de fechas |
+| `Common`           | `MoneyDto`, `ConvertedMoneyDto`, `CurrencyDto`, `PercentageDto`, `ProblemDetailsDto`, paginación y rango de fechas |
+| `Identity`         | Sesión, organización, persona, membresías y capacidades               |
 | `Ledger`           | `MovementDto`, `OperationDto`, `MovementKindSpecDto`, peticiones de alta, reclasificación y reverso, filtro y consulta |
 | `Accounts`         | Cuenta, saldo proyectado y sus peticiones                              |
 | `Categories`       | Categoría y sus peticiones                                             |
@@ -143,8 +156,13 @@ primero el registro de decisiones del plan.
    restarlas en la interfaz contradice la regla financiera 3.
 6. **Las proyecciones no son movimientos.** `ProjectedOccurrenceDto` no tiene id
    de ledger y ningún saldo la incluye.
-7. **Errores por código.** Se ramifica sobre `ErrorDto.Code`; `Message` es texto
-   para humanos y su redacción puede cambiar.
+7. **Errores en Problem Details.** Se ramifica sobre `ProblemDetailsDto.Code`;
+   `Type` es ese mismo código en forma de URI (`urn:finanzas:` más el código),
+   como exige el RFC 9457. `Title` y `Detail` son texto para humanos y su
+   redacción puede cambiar.
+8. **La organización no viaja en cada DTO**, viaja en `SessionDto`. El servidor
+   acota cada consulta a la organización activa: el aislamiento no depende de
+   que el cliente envíe el campo correcto.
 
 ### 5.3 Cómo se congela
 
@@ -175,6 +193,9 @@ espejo o como propio del transporte.
 - El contrato se derivó del dominio, no de los casos de uso, que aún no
   existen. Es previsible que al escribirlos falte algún campo de lectura;
   faltarán campos, no cambiará la forma del dinero ni de los errores.
+- `ErrorDto` **ya no existe**: lo sustituyó `ProblemDetailsDto` el 04-09, antes
+  de que nadie escribiera un cliente contra él. Anunciado en
+  `docs/agents/CONTRACT_HANDOFF.md`.
 - No hay todavía tipos de transporte para escenarios y simuladores (§W12): se
   añadirán cuando el dominio los tenga.
 - `Finanzas.Application` sigue vacío salvo el marcador de proyecto.
@@ -204,3 +225,55 @@ no son detalles de implementación que el backend deba elegir solo.
 **Turno del frontend, sin bloqueo:** ya puede escribir sus adaptadores contra
 los tipos congelados. Lo que todavía no existe es el transporte, así que no
 hay OpenAPI del que generar un cliente ni URL que llamar.
+
+## 7. Multiusuario: dónde vive el aislamiento (2026-09-04)
+
+### 7.1 La decisión
+
+Los agregados financieros —movimiento, cuenta, tarjeta, obligación,
+posición— **no** llevan `OrganizationId`. La organización se exige en la
+frontera de persistencia: cada repositorio recibe la organización activa y
+ninguna consulta se puede escribir sin ella.
+
+### 7.2 Por qué, y qué se pierde
+
+Poner el campo en cada agregado parece más seguro, pero la garantía sería la
+misma promesa repetida cuarenta veces: basta que un caso de uso olvide
+asignarlo para escribir en la organización equivocada, y nada lo detendría.
+Acotar en la consulta se comprueba una vez, en integración, contra una base de
+datos real: se crean dos organizaciones, se escribe en una y se verifica que la
+otra no ve absolutamente nada.
+
+Lo que se pierde es que el compilador no obliga a pensar en la organización al
+escribir un caso de uso. Se compensa con dos cosas: los repositorios no exponen
+ningún método sin ámbito, y las pruebas de aislamiento son requisito para dar
+por terminada la persistencia.
+
+El precio de equivocarse aquí es que una persona vea el dinero de otra, así que
+esta decisión no se cambia sin pruebas que la respalden.
+
+### 7.3 Capacidades, no roles
+
+`Membership.EffectiveCapabilities` es lo único contra lo que se autoriza.
+Ninguna parte del sistema pregunta si alguien "es administrador": los conjuntos
+de `CapabilitySets` son plantillas para escribir una membresía, no roles que se
+consulten después. En cuanto el código pregunta por un rol, cambiar los permisos
+de una persona exige tocar código en lugar de datos.
+
+Una membresía invitada o suspendida no tiene ninguna capacidad efectiva, pero
+conserva las escritas: suspender corta el acceso sin perder qué tenía la
+persona, y reactivar se lo devuelve tal cual.
+
+Lo que el dominio **no** puede garantizar es que una organización conserve al
+menos un miembro con `ManageMembers`: esa regla mira todas las membresías a la
+vez y le toca a la capa de aplicación antes de suspender o rebajar a la última.
+Queda anotado aquí para que no se descubra el día que alguien se deje fuera de
+su propia organización.
+
+### 7.4 Lo que falta
+
+- Persistencia: columna `organization_id` en cada tabla, índices que la
+  encabecen y pruebas de aislamiento entre dos organizaciones.
+- Autenticación: fuera del dominio y todavía sin decidir. El contrato no lleva
+  credenciales y no las llevará.
+- La sesión aún no existe como caso de uso; `SessionDto` describe su forma.
