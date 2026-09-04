@@ -1,0 +1,233 @@
+class Finanzas.Contracts.Common.ConvertedMoneyDto
+    Finanzas.Contracts.Common.MoneyDto Base { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Original { get; init; }
+    string Rate { get; init; }
+    DateOnly RateAsOf { get; init; }
+
+class Finanzas.Contracts.Common.CurrencyDto
+    string Code { get; init; }
+    bool IsBase { get; init; }
+    int MinorUnits { get; init; }
+
+class Finanzas.Contracts.Common.DateRangeDto
+    DateOnly End { get; init; }
+    DateOnly Start { get; init; }
+
+class Finanzas.Contracts.Common.ErrorDto
+    string Code { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Common.ErrorFieldDto>? Fields { get; init; }
+    string Message { get; init; }
+
+class Finanzas.Contracts.Common.ErrorFieldDto
+    string Code { get; init; }
+    string Field { get; init; }
+    string Message { get; init; }
+
+class Finanzas.Contracts.Common.MoneyDto
+    string Amount { get; init; }
+    string Currency { get; init; }
+
+class Finanzas.Contracts.Common.PageDto<T>
+    bool HasNext { get; }
+    IReadOnlyList<T> Items { get; init; }
+    int Page { get; init; }
+    int Size { get; init; }
+    int Total { get; init; }
+    int TotalPages { get; }
+
+class Finanzas.Contracts.Common.PageRequestDto
+    int Page { get; init; }
+    int Size { get; init; }
+
+class Finanzas.Contracts.Common.PercentageDto
+    string Rate { get; init; }
+
+enum Finanzas.Contracts.Common.SortDirectionDto
+    Ascending = 0
+    Descending = 1
+
+enum Finanzas.Contracts.Ledger.CashFlowDto
+    Inflow = 1
+    None = 0
+    Outflow = 2
+
+class Finanzas.Contracts.Ledger.CreateCardPaymentRequest
+    Guid Account { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    Guid Card { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    string? IdempotencyKey { get; init; }
+
+class Finanzas.Contracts.Ledger.CreateMovementRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    Finanzas.Contracts.Ledger.EconomicEffectDto Effect { get; init; }
+    Finanzas.Contracts.Ledger.CashFlowDto Flow { get; init; }
+    string? IdempotencyKey { get; init; }
+    Finanzas.Contracts.Ledger.MovementKindDto Kind { get; init; }
+    Finanzas.Contracts.Ledger.MovementLinksDto Links { get; init; }
+    string? Rate { get; init; }
+    DateOnly? RateAsOf { get; init; }
+
+class Finanzas.Contracts.Ledger.CreateTransferRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    Guid DestinationAccount { get; init; }
+    string? IdempotencyKey { get; init; }
+    Guid SourceAccount { get; init; }
+
+enum Finanzas.Contracts.Ledger.EconomicEffectDto
+    Expense = 2
+    Income = 1
+    Neutral = 0
+
+class Finanzas.Contracts.Ledger.LinkRefDto
+    Guid Id { get; init; }
+    string Name { get; init; }
+
+class Finanzas.Contracts.Ledger.MovementDto
+    Finanzas.Contracts.Common.ConvertedMoneyDto Amount { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    Finanzas.Contracts.Ledger.EconomicEffectDto Effect { get; init; }
+    Finanzas.Contracts.Ledger.CashFlowDto Flow { get; init; }
+    Guid Id { get; init; }
+    Finanzas.Contracts.Ledger.MovementKindDto Kind { get; init; }
+    Finanzas.Contracts.Ledger.MovementLinkNamesDto LinkNames { get; init; }
+    Finanzas.Contracts.Ledger.MovementLinksDto Links { get; init; }
+    Finanzas.Contracts.Ledger.MovementOriginDto Origin { get; init; }
+    Guid? ReversalOf { get; init; }
+    Guid? ReversedBy { get; init; }
+
+class Finanzas.Contracts.Ledger.MovementFilterDto
+    IReadOnlyList<Guid>? Accounts { get; init; }
+    IReadOnlyList<Guid>? Cards { get; init; }
+    IReadOnlyList<Guid>? Categories { get; init; }
+    IReadOnlyList<Guid>? Counterparties { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.EconomicEffectDto>? Effects { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.CashFlowDto>? Flows { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementKindDto>? Kinds { get; init; }
+    string? MaxAmountBase { get; init; }
+    string? MinAmountBase { get; init; }
+    IReadOnlyList<Guid>? Obligations { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementOriginDto>? Origins { get; init; }
+    IReadOnlyList<Guid>? Positions { get; init; }
+    Finanzas.Contracts.Common.DateRangeDto? Range { get; init; }
+    IReadOnlyList<Guid>? Recurrences { get; init; }
+    Finanzas.Contracts.Ledger.ReversalFilterDto Reversals { get; init; }
+    string? Text { get; init; }
+    bool? Uncategorized { get; init; }
+
+enum Finanzas.Contracts.Ledger.MovementKindDto
+    CardFee = 23
+    CardInterest = 22
+    CardPayment = 21
+    CardPurchase = 20
+    Expense = 2
+    Income = 1
+    InvestmentBuy = 32
+    InvestmentContribution = 30
+    InvestmentDividend = 34
+    InvestmentFee = 35
+    InvestmentSell = 33
+    InvestmentWithdrawal = 31
+    LoanAdjustment = 44
+    LoanCharge = 41
+    LoanDisbursement = 40
+    LoanInterest = 42
+    LoanRepayment = 43
+    TransferIn = 11
+    TransferOut = 10
+
+class Finanzas.Contracts.Ledger.MovementKindSpecDto
+    IReadOnlyList<Finanzas.Contracts.Ledger.EconomicEffectDto> AllowedEffects { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.CashFlowDto> AllowedFlows { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementLinkDto> ExactlyOneOfLinks { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementLinkDto> ForbiddenLinks { get; init; }
+    bool IsAlwaysNeutral { get; init; }
+    Finanzas.Contracts.Ledger.MovementKindDto Kind { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementLinkDto> RequiredLinks { get; init; }
+
+enum Finanzas.Contracts.Ledger.MovementLinkDto
+    Account = 2
+    Card = 4
+    Category = 8
+    Counterparty = 16
+    None = 0
+    Obligation = 32
+    Operation = 1
+    Position = 128
+    Recurrence = 64
+    SharedPurchase = 256
+
+class Finanzas.Contracts.Ledger.MovementLinkNamesDto
+    Finanzas.Contracts.Ledger.LinkRefDto? Account { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Card { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Category { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Counterparty { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Obligation { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Position { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto? Recurrence { get; init; }
+
+class Finanzas.Contracts.Ledger.MovementLinksDto
+    Guid? Account { get; init; }
+    Guid? Card { get; init; }
+    Guid? Category { get; init; }
+    Guid? Counterparty { get; init; }
+    Guid? Obligation { get; init; }
+    Guid? Operation { get; init; }
+    Guid? Position { get; init; }
+    Guid? Recurrence { get; init; }
+    Guid? SharedPurchase { get; init; }
+
+enum Finanzas.Contracts.Ledger.MovementOriginDto
+    Import = 2
+    Manual = 0
+    RecurrenceMaterialization = 1
+    ScenarioConfirmation = 3
+
+class Finanzas.Contracts.Ledger.MovementQueryDto
+    Finanzas.Contracts.Common.SortDirectionDto Direction { get; init; }
+    Finanzas.Contracts.Ledger.MovementFilterDto? Filter { get; init; }
+    Finanzas.Contracts.Common.PageRequestDto? Page { get; init; }
+    Finanzas.Contracts.Ledger.MovementSortFieldDto SortBy { get; init; }
+
+enum Finanzas.Contracts.Ledger.MovementSortFieldDto
+    AmountBase = 1
+    CreatedAt = 2
+    Date = 0
+    Kind = 3
+
+class Finanzas.Contracts.Ledger.OperationDto
+    DateTimeOffset CreatedAt { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    Guid Id { get; init; }
+    Finanzas.Contracts.Ledger.OperationKindDto Kind { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Ledger.MovementDto> Legs { get; init; }
+
+enum Finanzas.Contracts.Ledger.OperationKindDto
+    CardPayment = 2
+    InvestmentTrade = 5
+    LoanDisbursement = 3
+    LoanPayment = 4
+    Other = 99
+    SharedPurchase = 6
+    Transfer = 1
+
+class Finanzas.Contracts.Ledger.ReclassifyMovementRequest
+    Guid? Category { get; init; }
+    string? Description { get; init; }
+
+enum Finanzas.Contracts.Ledger.ReversalFilterDto
+    ExcludePairs = 1
+    Include = 0
+    OnlyReversed = 2
+
+class Finanzas.Contracts.Ledger.ReverseMovementRequest
+    DateOnly Date { get; init; }
+    string? Reason { get; init; }
