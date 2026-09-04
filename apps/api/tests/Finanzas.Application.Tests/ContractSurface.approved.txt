@@ -1,3 +1,126 @@
+class Finanzas.Contracts.Accounts.AccountBalanceDto
+    Finanzas.Contracts.Ledger.LinkRefDto Account { get; init; }
+    DateOnly AsOf { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Balance { get; init; }
+
+class Finanzas.Contracts.Accounts.AccountDto
+    DateTimeOffset CreatedAt { get; init; }
+    string Currency { get; init; }
+    Guid Id { get; init; }
+    string? Institution { get; init; }
+    bool IsActive { get; init; }
+    bool IsDefault { get; init; }
+    Finanzas.Contracts.Accounts.AccountKindDto Kind { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+
+enum Finanzas.Contracts.Accounts.AccountKindDto
+    Cash = 1
+    Checking = 2
+    Other = 99
+    Savings = 3
+    Wallet = 4
+
+class Finanzas.Contracts.Accounts.CreateAccountRequest
+    string Currency { get; init; }
+    string? Institution { get; init; }
+    bool IsDefault { get; init; }
+    Finanzas.Contracts.Accounts.AccountKindDto Kind { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+
+class Finanzas.Contracts.Accounts.UpdateAccountRequest
+    string? Institution { get; init; }
+    bool IsActive { get; init; }
+    bool IsDefault { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+
+class Finanzas.Contracts.Cards.BillingCycleDto
+    int PaymentDueDay { get; init; }
+    int StatementDay { get; init; }
+
+class Finanzas.Contracts.Cards.BillingPeriodDto
+    DateOnly DueDate { get; init; }
+    Finanzas.Contracts.Common.DateRangeDto Range { get; init; }
+    DateOnly StatementDate { get; init; }
+
+class Finanzas.Contracts.Cards.CardStatusDto
+    DateOnly AsOf { get; init; }
+    Finanzas.Contracts.Common.MoneyDto AvailableCredit { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Card { get; init; }
+    Finanzas.Contracts.Cards.BillingPeriodDto CurrentPeriod { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Debt { get; init; }
+    Finanzas.Contracts.Common.MoneyDto MinimumPayment { get; init; }
+    Finanzas.Contracts.Common.PercentageDto Utilization { get; init; }
+
+class Finanzas.Contracts.Cards.CardTermsDto
+    Finanzas.Contracts.Common.PercentageDto CashAdvanceApr { get; init; }
+    Finanzas.Contracts.Common.PercentageDto DeferredDefaultApr { get; init; }
+    int GracePeriodDays { get; init; }
+    Finanzas.Contracts.Common.PercentageDto InternationalPurchaseApr { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? MinimumPaymentFloor { get; init; }
+    Finanzas.Contracts.Common.PercentageDto MinimumPaymentRate { get; init; }
+    Finanzas.Contracts.Common.PercentageDto PurchaseApr { get; init; }
+
+class Finanzas.Contracts.Cards.CreateCreditCardRequest
+    Finanzas.Contracts.Common.MoneyDto CreditLimit { get; init; }
+    string Currency { get; init; }
+    Finanzas.Contracts.Cards.BillingCycleDto Cycle { get; init; }
+    string? Issuer { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Cards.CardTermsDto Terms { get; init; }
+
+class Finanzas.Contracts.Cards.CreditCardDto
+    DateTimeOffset CreatedAt { get; init; }
+    Finanzas.Contracts.Common.MoneyDto CreditLimit { get; init; }
+    string Currency { get; init; }
+    Finanzas.Contracts.Cards.BillingCycleDto Cycle { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
+    string? Issuer { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Cards.CardTermsDto Terms { get; init; }
+
+class Finanzas.Contracts.Cards.UpdateCreditCardRequest
+    Finanzas.Contracts.Common.MoneyDto CreditLimit { get; init; }
+    Finanzas.Contracts.Cards.BillingCycleDto Cycle { get; init; }
+    bool IsActive { get; init; }
+    string? Issuer { get; init; }
+    string? LastFour { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Cards.CardTermsDto Terms { get; init; }
+
+class Finanzas.Contracts.Categories.CategoryDto
+    string Color { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    string Icon { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
+    string Name { get; init; }
+    Guid? Parent { get; init; }
+    Finanzas.Contracts.Categories.CategoryTypeDto Type { get; init; }
+
+enum Finanzas.Contracts.Categories.CategoryTypeDto
+    Expense = 2
+    Income = 1
+
+class Finanzas.Contracts.Categories.CreateCategoryRequest
+    string Color { get; init; }
+    string Icon { get; init; }
+    string Name { get; init; }
+    Guid? Parent { get; init; }
+    Finanzas.Contracts.Categories.CategoryTypeDto Type { get; init; }
+
+class Finanzas.Contracts.Categories.UpdateCategoryRequest
+    string Color { get; init; }
+    string Icon { get; init; }
+    bool IsActive { get; init; }
+    string Name { get; init; }
+    Guid? Parent { get; init; }
+
 class Finanzas.Contracts.Common.ConvertedMoneyDto
     Finanzas.Contracts.Common.MoneyDto Base { get; init; }
     Finanzas.Contracts.Common.MoneyDto Original { get; init; }
@@ -45,6 +168,95 @@ class Finanzas.Contracts.Common.PercentageDto
 enum Finanzas.Contracts.Common.SortDirectionDto
     Ascending = 0
     Descending = 1
+
+class Finanzas.Contracts.Investments.AddValuationRequest
+    DateOnly Date { get; init; }
+    string? Reference { get; init; }
+    Finanzas.Contracts.Investments.ValuationSourceDto Source { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Value { get; init; }
+
+class Finanzas.Contracts.Investments.CreateInvestmentPositionRequest
+    string Currency { get; init; }
+    string? Institution { get; init; }
+    string InstrumentType { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Investments.RiskLevelDto Risk { get; init; }
+    string? Symbol { get; init; }
+
+class Finanzas.Contracts.Investments.InvestmentOperationDto
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    Guid Movement { get; init; }
+    string? Quantity { get; init; }
+    Finanzas.Contracts.Investments.InvestmentOperationTypeDto Type { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? UnitPrice { get; init; }
+
+enum Finanzas.Contracts.Investments.InvestmentOperationTypeDto
+    Buy = 3
+    Contribution = 1
+    Dividend = 5
+    Fee = 6
+    Sell = 4
+    Withdrawal = 2
+
+class Finanzas.Contracts.Investments.InvestmentPositionDto
+    DateOnly AsOf { get; init; }
+    Finanzas.Contracts.Common.MoneyDto CostBasis { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    string Currency { get; init; }
+    Guid Id { get; init; }
+    string? Institution { get; init; }
+    string InstrumentType { get; init; }
+    bool IsActive { get; init; }
+    Finanzas.Contracts.Investments.ValuationDto? LatestValuation { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? MarketValue { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Common.MoneyDto NetContributions { get; init; }
+    string Quantity { get; init; }
+    Finanzas.Contracts.Investments.RiskLevelDto Risk { get; init; }
+    string? Symbol { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? UnrealizedGain { get; init; }
+
+class Finanzas.Contracts.Investments.PortfolioSummaryDto
+    DateOnly AsOf { get; init; }
+    Finanzas.Contracts.Common.MoneyDto CostBasis { get; init; }
+    Finanzas.Contracts.Common.MoneyDto MarketValue { get; init; }
+    int PositionsWithoutValuation { get; init; }
+    Finanzas.Contracts.Common.MoneyDto UnrealizedGain { get; init; }
+
+class Finanzas.Contracts.Investments.RegisterInvestmentOperationRequest
+    Guid? Account { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    string? IdempotencyKey { get; init; }
+    string? Quantity { get; init; }
+    Finanzas.Contracts.Investments.InvestmentOperationTypeDto Type { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? UnitPrice { get; init; }
+
+enum Finanzas.Contracts.Investments.RiskLevelDto
+    High = 3
+    Low = 1
+    Medium = 2
+
+class Finanzas.Contracts.Investments.UpdateInvestmentPositionRequest
+    string InstrumentType { get; init; }
+    bool IsActive { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Investments.RiskLevelDto Risk { get; init; }
+    string? Symbol { get; init; }
+
+class Finanzas.Contracts.Investments.ValuationDto
+    DateOnly Date { get; init; }
+    Guid Id { get; init; }
+    string? Reference { get; init; }
+    Finanzas.Contracts.Investments.ValuationSourceDto Source { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Value { get; init; }
+
+enum Finanzas.Contracts.Investments.ValuationSourceDto
+    Manual = 3
+    MarketPrice = 1
+    Statement = 2
 
 enum Finanzas.Contracts.Ledger.CashFlowDto
     Inflow = 1
@@ -231,3 +443,347 @@ enum Finanzas.Contracts.Ledger.ReversalFilterDto
 class Finanzas.Contracts.Ledger.ReverseMovementRequest
     DateOnly Date { get; init; }
     string? Reason { get; init; }
+
+class Finanzas.Contracts.Obligations.ChangeInterestPolicyRequest
+    DateOnly EffectiveFrom { get; init; }
+    Finanzas.Contracts.Obligations.InterestPolicyDto Policy { get; init; }
+
+class Finanzas.Contracts.Obligations.CreateObligationRequest
+    Guid? Account { get; init; }
+    Finanzas.Contracts.Obligations.PaymentAllocationRuleDto AllocationRule { get; init; }
+    bool AllowsOverpayment { get; init; }
+    Guid? Card { get; init; }
+    Guid Counterparty { get; init; }
+    string Currency { get; init; }
+    string? Description { get; init; }
+    Finanzas.Contracts.Obligations.ObligationDirectionDto Direction { get; init; }
+    DateOnly? DueOn { get; init; }
+    Finanzas.Contracts.Obligations.InterestPolicyDto? InterestPolicy { get; init; }
+    DateOnly OpenedOn { get; init; }
+    Finanzas.Contracts.Obligations.ObligationOriginDto Origin { get; init; }
+
+class Finanzas.Contracts.Obligations.InterestPolicyDto
+    Finanzas.Contracts.Obligations.InterestPolicyKindDto Kind { get; init; }
+    Finanzas.Contracts.Obligations.RatePeriodDto Period { get; init; }
+    Finanzas.Contracts.Common.PercentageDto Rate { get; init; }
+
+enum Finanzas.Contracts.Obligations.InterestPolicyKindDto
+    FixedRate = 1
+    InheritedFromCard = 3
+    None = 0
+    PeriodicRate = 2
+
+class Finanzas.Contracts.Obligations.InterestPolicyTermDto
+    DateOnly EffectiveFrom { get; init; }
+    Finanzas.Contracts.Obligations.InterestPolicyDto Policy { get; init; }
+
+enum Finanzas.Contracts.Obligations.ObligationDirectionDto
+    Payable = 2
+    Receivable = 1
+
+class Finanzas.Contracts.Obligations.ObligationDto
+    Guid? Account { get; init; }
+    Finanzas.Contracts.Obligations.PaymentAllocationRuleDto AllocationRule { get; init; }
+    bool AllowsOverpayment { get; init; }
+    Guid? Card { get; init; }
+    DateOnly? ClosedThrough { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Counterparty { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    string Currency { get; init; }
+    string? Description { get; init; }
+    Finanzas.Contracts.Obligations.ObligationDirectionDto Direction { get; init; }
+    DateOnly? DueOn { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Obligations.ObligationEntryDto> Entries { get; init; }
+    Guid Id { get; init; }
+    Finanzas.Contracts.Common.MoneyDto InterestOutstanding { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Obligations.InterestPolicyTermDto> InterestPolicies { get; init; }
+    DateOnly OpenedOn { get; init; }
+    Finanzas.Contracts.Obligations.ObligationOriginDto Origin { get; init; }
+    Finanzas.Contracts.Common.MoneyDto PrincipalOutstanding { get; init; }
+    Finanzas.Contracts.Obligations.ObligationStatusDto Status { get; init; }
+    Finanzas.Contracts.Common.MoneyDto TotalOutstanding { get; init; }
+
+class Finanzas.Contracts.Obligations.ObligationEntryDto
+    DateTimeOffset CreatedAt { get; init; }
+    DateOnly Date { get; init; }
+    Guid Id { get; init; }
+    Finanzas.Contracts.Common.MoneyDto InterestDelta { get; init; }
+    Guid? Movement { get; init; }
+    string? Note { get; init; }
+    Finanzas.Contracts.Common.MoneyDto PrincipalDelta { get; init; }
+    Guid? ReversalOf { get; init; }
+    Guid? ReversedBy { get; init; }
+    Finanzas.Contracts.Obligations.ObligationEntryTypeDto Type { get; init; }
+
+enum Finanzas.Contracts.Obligations.ObligationEntryTypeDto
+    Adjustment = 5
+    Charge = 2
+    Closure = 7
+    Disbursement = 1
+    Interest = 3
+    Payment = 4
+    Reversal = 6
+
+enum Finanzas.Contracts.Obligations.ObligationOriginDto
+    Adjustment = 3
+    CardPurchase = 1
+    DirectLoan = 2
+
+enum Finanzas.Contracts.Obligations.ObligationStatusDto
+    Cancelled = 3
+    Open = 1
+    Settled = 2
+
+class Finanzas.Contracts.Obligations.PaymentAllocationDto
+    Finanzas.Contracts.Common.MoneyDto Excess { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Interest { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Principal { get; init; }
+
+enum Finanzas.Contracts.Obligations.PaymentAllocationRuleDto
+    InterestFirst = 2
+    Manual = 4
+    PrincipalFirst = 1
+    Proportional = 3
+
+enum Finanzas.Contracts.Obligations.RatePeriodDto
+    Annual = 1
+    Daily = 3
+    Monthly = 2
+
+class Finanzas.Contracts.Obligations.RegisterAdjustmentRequest
+    DateOnly Date { get; init; }
+    Finanzas.Contracts.Common.MoneyDto InterestDelta { get; init; }
+    string Note { get; init; }
+    Finanzas.Contracts.Common.MoneyDto PrincipalDelta { get; init; }
+
+class Finanzas.Contracts.Obligations.RegisterChargeRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? IdempotencyKey { get; init; }
+    string? Note { get; init; }
+    Guid? SharedPurchase { get; init; }
+
+class Finanzas.Contracts.Obligations.RegisterDisbursementRequest
+    Guid Account { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? IdempotencyKey { get; init; }
+    string? Note { get; init; }
+
+class Finanzas.Contracts.Obligations.RegisterInterestRequest
+    Guid? Account { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? IdempotencyKey { get; init; }
+    string? Note { get; init; }
+
+class Finanzas.Contracts.Obligations.RegisterPaymentRequest
+    Guid Account { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateOnly Date { get; init; }
+    string? IdempotencyKey { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? Interest { get; init; }
+    string? Note { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? Principal { get; init; }
+
+class Finanzas.Contracts.Obligations.ReverseObligationEntryRequest
+    DateOnly Date { get; init; }
+    Guid Entry { get; init; }
+    string? Reason { get; init; }
+
+class Finanzas.Contracts.Obligations.SettleObligationRequest
+    DateOnly Date { get; init; }
+    string? Note { get; init; }
+
+class Finanzas.Contracts.People.CounterpartyDto
+    string? Alias { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    string DisplayName { get; init; }
+    string? Email { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
+    string? Notes { get; init; }
+    string? Phone { get; init; }
+
+class Finanzas.Contracts.People.CreateCounterpartyRequest
+    string? Alias { get; init; }
+    string DisplayName { get; init; }
+    string? Email { get; init; }
+    string? Notes { get; init; }
+    string? Phone { get; init; }
+
+class Finanzas.Contracts.People.DebtPositionDto
+    DateOnly AsOf { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Counterparty { get; init; }
+    Finanzas.Contracts.Common.MoneyDto OwnDebt { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Receivable { get; init; }
+
+class Finanzas.Contracts.People.UpdateCounterpartyRequest
+    string? Alias { get; init; }
+    string DisplayName { get; init; }
+    string? Email { get; init; }
+    bool IsActive { get; init; }
+    string? Notes { get; init; }
+    string? Phone { get; init; }
+
+class Finanzas.Contracts.Purchases.AssignShareRequest
+    Finanzas.Contracts.Purchases.ShareBasisDto Basis { get; init; }
+    Guid Counterparty { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? FixedAmount { get; init; }
+    Finanzas.Contracts.Common.PercentageDto? Percent { get; init; }
+
+class Finanzas.Contracts.Purchases.CreateSharedPurchaseRequest
+    string? Description { get; init; }
+    Guid PurchaseMovement { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Purchases.AssignShareRequest> Shares { get; init; }
+
+class Finanzas.Contracts.Purchases.PurchaseAllocationDto
+    Finanzas.Contracts.Common.MoneyDto AssignedTotal { get; init; }
+    Finanzas.Contracts.Common.MoneyDto HolderPortion { get; init; }
+    Finanzas.Contracts.Common.MoneyDto RoundingAdjustment { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Purchases.ResolvedShareDto> Shares { get; init; }
+
+class Finanzas.Contracts.Purchases.PurchaseShareDto
+    Finanzas.Contracts.Purchases.ShareBasisDto Basis { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Counterparty { get; init; }
+    Finanzas.Contracts.Common.MoneyDto? FixedAmount { get; init; }
+    Guid? Obligation { get; init; }
+    Finanzas.Contracts.Common.PercentageDto? Percent { get; init; }
+
+class Finanzas.Contracts.Purchases.ResolvedShareDto
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    Finanzas.Contracts.Common.MoneyDto RoundingAdjustment { get; init; }
+    Finanzas.Contracts.Purchases.PurchaseShareDto Share { get; init; }
+
+enum Finanzas.Contracts.Purchases.ShareBasisDto
+    FixedAmount = 3
+    Full = 1
+    Percentage = 2
+
+class Finanzas.Contracts.Purchases.SharedPurchaseDto
+    Finanzas.Contracts.Purchases.PurchaseAllocationDto Allocation { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Card { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    DateOnly Date { get; init; }
+    string? Description { get; init; }
+    Guid Id { get; init; }
+    Guid PurchaseMovement { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Total { get; init; }
+
+class Finanzas.Contracts.Recurrences.CreateRecurrenceRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    Finanzas.Contracts.Ledger.MovementKindDto MovementTemplate { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceScheduleDto Schedule { get; init; }
+    Finanzas.Contracts.Ledger.MovementLinksDto Target { get; init; }
+
+class Finanzas.Contracts.Recurrences.CreateRecurringTransferRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    Guid DestinationAccount { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceScheduleDto Schedule { get; init; }
+    Guid SourceAccount { get; init; }
+
+class Finanzas.Contracts.Recurrences.MaterializeRecurrenceRequest
+    Finanzas.Contracts.Common.MoneyDto? Amount { get; init; }
+    string? IdempotencyKey { get; init; }
+    DateOnly Occurrence { get; init; }
+
+class Finanzas.Contracts.Recurrences.ProjectedOccurrenceDto
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceKindDto Kind { get; init; }
+    DateOnly Occurrence { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Recurrence { get; init; }
+
+class Finanzas.Contracts.Recurrences.RecurrenceDto
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    DateTimeOffset CreatedAt { get; init; }
+    Guid? DestinationAccount { get; init; }
+    Guid Id { get; init; }
+    bool IsActive { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceKindDto Kind { get; init; }
+    IReadOnlyList<DateOnly> MaterializedOccurrences { get; init; }
+    Finanzas.Contracts.Ledger.MovementKindDto? MovementTemplate { get; init; }
+    string Name { get; init; }
+    DateOnly? NextOccurrence { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceScheduleDto Schedule { get; init; }
+    Guid? SourceAccount { get; init; }
+    Finanzas.Contracts.Ledger.MovementLinksDto Target { get; init; }
+
+enum Finanzas.Contracts.Recurrences.RecurrenceFrequencyDto
+    Daily = 1
+    Monthly = 3
+    Weekly = 2
+    Yearly = 4
+
+enum Finanzas.Contracts.Recurrences.RecurrenceKindDto
+    SingleMovement = 1
+    Transfer = 2
+
+class Finanzas.Contracts.Recurrences.RecurrenceMaterializationDto
+    IReadOnlyList<Guid> Movements { get; init; }
+    DateOnly Occurrence { get; init; }
+    Guid? Operation { get; init; }
+
+class Finanzas.Contracts.Recurrences.RecurrenceScheduleDto
+    int? DayOfMonth { get; init; }
+    DayOfWeek? DayOfWeek { get; init; }
+    DateOnly? End { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceFrequencyDto Frequency { get; init; }
+    int Interval { get; init; }
+    DateOnly Start { get; init; }
+
+class Finanzas.Contracts.Recurrences.UpdateRecurrenceRequest
+    Finanzas.Contracts.Common.MoneyDto Amount { get; init; }
+    bool IsActive { get; init; }
+    string Name { get; init; }
+    Finanzas.Contracts.Recurrences.RecurrenceScheduleDto Schedule { get; init; }
+
+class Finanzas.Contracts.Reporting.CategoryTotalDto
+    Finanzas.Contracts.Ledger.LinkRefDto Category { get; init; }
+    int MovementCount { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Total { get; init; }
+    Finanzas.Contracts.Categories.CategoryTypeDto Type { get; init; }
+
+class Finanzas.Contracts.Reporting.DashboardDto
+    IReadOnlyList<Finanzas.Contracts.Accounts.AccountBalanceDto> Accounts { get; init; }
+    DateOnly AsOf { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Cards.CardStatusDto> Cards { get; init; }
+    Finanzas.Contracts.Reporting.PeriodResultDto Period { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Reporting.CategoryTotalDto> TopCategories { get; init; }
+
+class Finanzas.Contracts.Reporting.PeriodResultDto
+    Finanzas.Contracts.Common.MoneyDto Expense { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Income { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Net { get; init; }
+    Finanzas.Contracts.Common.DateRangeDto Period { get; init; }
+
+class Finanzas.Contracts.Settlements.IssueSettlementRequest
+    Guid Counterparty { get; init; }
+    string Currency { get; init; }
+    DateOnly CutOff { get; init; }
+    Finanzas.Contracts.Common.DateRangeDto Period { get; init; }
+
+class Finanzas.Contracts.Settlements.SettlementDto
+    Finanzas.Contracts.Common.MoneyDto Adjustments { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Charges { get; init; }
+    Finanzas.Contracts.Common.MoneyDto ClosingBalance { get; init; }
+    Finanzas.Contracts.Ledger.LinkRefDto Counterparty { get; init; }
+    string Currency { get; init; }
+    DateOnly CutOff { get; init; }
+    int FormulaVersion { get; init; }
+    Guid Id { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Interest { get; init; }
+    DateTimeOffset IssuedAt { get; init; }
+    IReadOnlyList<Finanzas.Contracts.Settlements.SettlementLineDto> Lines { get; init; }
+    Finanzas.Contracts.Common.MoneyDto OpeningBalance { get; init; }
+    Finanzas.Contracts.Common.MoneyDto Payments { get; init; }
+    Finanzas.Contracts.Common.DateRangeDto Period { get; init; }
+
+class Finanzas.Contracts.Settlements.SettlementLineDto
+    DateOnly Date { get; init; }
+    Guid Entry { get; init; }
+    Finanzas.Contracts.Common.MoneyDto InterestDelta { get; init; }
+    Guid Obligation { get; init; }
+    Finanzas.Contracts.Common.MoneyDto PrincipalDelta { get; init; }
+    Finanzas.Contracts.Obligations.ObligationEntryTypeDto Type { get; init; }

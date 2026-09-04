@@ -54,10 +54,20 @@ Ningún agente edita una ruta cuyo propietario sea otro. Los cambios en
       patas con materialización atómica e idempotente en `Recurrence`.
       Estado tras los ajustes: `dotnet test`, **198/198 en verde**, 0 errores y
       0 advertencias en la solución completa.
+- [x] **Contratos congelados** (2026-09-04). 106 tipos públicos en
+      `Finanzas.Contracts`, congelados con prueba de instantánea de superficie.
+      `dotnet test`: **223/223 en verde**, 0 advertencias. Detalle en §5.
 - [ ] Esquema y migraciones.
 - [ ] Casos de uso.
-- [ ] Contratos congelados.
 - [ ] Transporte local.
+
+> **Cambio de orden respecto al plan inicial.** Los contratos se congelaron
+> antes que el esquema y los casos de uso. Razón: "el frontend arranca al
+> congelar `Contracts`" (§1), así que mientras el contrato no existiera el
+> trabajo de interfaz estaba bloqueado y el de persistencia no. El contrato se
+> deriva del dominio, que ya está cerrado y probado, no de los casos de uso.
+> Si al escribirlos aparece un campo que falta, se pide como propuesta y se
+> confirma junto con la instantánea actualizada.
 
 ### Dirección de dependencias (invariante arquitectónica)
 
@@ -94,3 +104,77 @@ primero el registro de decisiones del plan.
 9. **Toda liquidación conserva versión, fecha de corte y entradas usadas.**
 10. **Las proyecciones no son garantías** y jamás se materializan como
     movimientos sin confirmación explícita.
+
+## 5. Contrato congelado (2026-09-04)
+
+### 5.1 Alcance
+
+`Finanzas.Contracts` publica 106 tipos en doce espacios de nombres:
+
+| Espacio de nombres | Qué cubre                                                             |
+| ------------------ | --------------------------------------------------------------------- |
+| `Common`           | `MoneyDto`, `ConvertedMoneyDto`, `CurrencyDto`, `PercentageDto`, `ErrorDto`, paginación y rango de fechas |
+| `Ledger`           | `MovementDto`, `OperationDto`, `MovementKindSpecDto`, peticiones de alta, reclasificación y reverso, filtro y consulta |
+| `Accounts`         | Cuenta, saldo proyectado y sus peticiones                              |
+| `Categories`       | Categoría y sus peticiones                                             |
+| `People`           | Persona y `DebtPositionDto`                                            |
+| `Cards`            | Tarjeta, ciclo, condiciones y `CardStatusDto`                          |
+| `Obligations`      | Obligación, entradas, política de interés, reparto de abonos           |
+| `Investments`      | Posición, operaciones, valoraciones y resumen de patrimonio            |
+| `Recurrences`      | Recurrente, calendario, materialización y ocurrencia proyectada        |
+| `Purchases`        | Compra compartida y reparto entre personas                             |
+| `Settlements`      | Liquidación por persona y periodo                                      |
+| `Reporting`        | Resultado del periodo, totales por categoría y `DashboardDto`          |
+
+### 5.2 Reglas del transporte que el frontend debe respetar
+
+1. **El dinero es texto.** Cultura invariante, punto decimal, sin separador de
+   miles, con la escala exacta de la moneda. Los decimales de cada código los
+   publica `CurrencyDto`: `COP` opera con **0**. Parsear a `number` de
+   JavaScript para hacer aritmética reintroduce el error que el backend evita.
+2. **El signo no está en el importe.** `Amount` siempre es positivo; el sentido
+   lo dan `Flow` (caja) y `Effect` (resultado), que son ejes independientes.
+3. **Las invariantes viajan como dato.** El formulario dinámico se construye
+   con `MovementKindSpecDto`, no con una tabla reescrita en TypeScript.
+   Tampoco sustituye la validación: la palabra final es del servidor.
+4. **Los anulados siguen contando.** `ReversalFilterDto` decide qué se muestra,
+   nunca qué suma. El par original + reverso vale cero.
+5. **No hay neto de deuda.** `DebtPositionDto` publica las dos caras separadas y
+   restarlas en la interfaz contradice la regla financiera 3.
+6. **Las proyecciones no son movimientos.** `ProjectedOccurrenceDto` no tiene id
+   de ledger y ningún saldo la incluye.
+7. **Errores por código.** Se ramifica sobre `ErrorDto.Code`; `Message` es texto
+   para humanos y su redacción puede cambiar.
+
+### 5.3 Cómo se congela
+
+`tests/Finanzas.Application.Tests/ContractSurface.approved.txt` guarda la
+superficie pública completa —tipos, miembros de enum, propiedades con su
+nulabilidad y sus accesores—. `ContractSurfaceTests` la compara en cada
+ejecución. Congelar no es no cambiar nunca: es que no se pueda cambiar por
+accidente mientras otro agente construye contra estos tipos.
+
+Comprobado que la instantánea tiene mordida: quitarle el interrogante a
+`MovementDto.Description` la rompe señalando la línea exacta.
+
+`EnumParityTests` cubre el otro riesgo. Como `Contracts` no referencia a
+`Domain`, los 21 enums espejo viven por duplicado; la prueba compara nombre y
+valor de cada par y exige que todo enum nuevo del contrato se declare como
+espejo o como propio del transporte.
+
+### 5.4 Cómo se pide un cambio de contrato
+
+1. Se describe el campo que falta y el caso de uso que lo necesita.
+2. El agente backend lo aplica en `Finanzas.Contracts`.
+3. Se borra `ContractSurface.approved.txt`, se ejecutan las pruebas para
+   regenerarla y **se revisa el `diff`**: esa revisión es el punto de todo esto.
+4. El cambio de contrato y la instantánea actualizada van en el mismo *commit*.
+
+### 5.5 Deuda y riesgos conocidos
+
+- El contrato se derivó del dominio, no de los casos de uso, que aún no
+  existen. Es previsible que al escribirlos falte algún campo de lectura;
+  faltarán campos, no cambiará la forma del dinero ni de los errores.
+- No hay todavía tipos de transporte para escenarios y simuladores (§W12): se
+  añadirán cuando el dominio los tenga.
+- `Finanzas.Application` sigue vacío salvo el marcador de proyecto.
