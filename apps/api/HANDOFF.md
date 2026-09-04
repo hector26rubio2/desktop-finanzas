@@ -13,6 +13,16 @@
 | Base de datos real           | Intacta. No se migra ni se toca en esta fase                      | Acordada  |
 | Orden de trabajo             | Backend primero; frontend arranca al congelar `Contracts`         | Acordada  |
 | Precisión monetaria          | `decimal`, nunca `double`/`real`                                   | Acordada  |
+| Decimales de COP             | **0** (uso cotidiano colombiano), no los 2 de ISO 4217             | Acordada  |
+| Pago de préstamo             | **Dos movimientos**: capital (neutro) + interés (gasto)            | Acordada  |
+| Transferencias recurrentes   | **Requeridas.** Materializan dos patas atómicamente                | Acordada  |
+| Cierre de obligación         | `ObligationEntry` tipo `Closure`, importe cero, **sin** movimiento | Acordada  |
+| Categoría en neutros         | Prohibida. Evita el doble conteo en reportes                       | Acordada  |
+| `DebtPosition`               | No expone ningún "neto" deuda propia ↔ por cobrar                  | Acordada  |
+| Dinero en el contrato        | `string` en cultura invariante, **nunca** `number`                 | Acordada  |
+| Errores en el transporte     | Estado HTTP + `ErrorDto`; sin envoltorio `Result<T>`               | Acordada  |
+| `MovementKindSpecDto`        | La tabla de invariantes viaja **como dato** al frontend            | Acordada  |
+| Filtros y paginación         | DTOs en `Contracts`, no query strings armados en el cliente        | Acordada  |
 
 ## 2. Registro de ownership
 
@@ -22,7 +32,7 @@
 | `apps/api/src/Finanzas.Application/**`    | Agente backend | Casos de uso, comandos, consultas             |
 | `apps/api/src/Finanzas.Infrastructure/**` | Agente backend | SQLite, migraciones, repositorios             |
 | `apps/api/src/Finanzas.Host/**`           | Agente backend | Transporte local                              |
-| `apps/api/src/Finanzas.Contracts/**`      | **Integrador**     | Congelado tras W11. Cambios por propuesta     |
+| `apps/api/src/Finanzas.Contracts/**`      | Agente backend | **Transferido** el 2026-09-03. Se congela con prueba de instantánea de superficie |
 | `apps/api/Finanzas.slnx`                  | **Integrador**     | Alta de proyectos                             |
 | `apps/api/HANDOFF.md`                     | **Integrador**     | Este archivo                                  |
 | `electron/local-data/**`                  | **Integrador**     | Backend heredado. No se modifica en esta fase |
@@ -35,7 +45,15 @@ Ningún agente edita una ruta cuyo propietario sea otro. Los cambios en
 
 - [x] Esqueleto de solución creado y compilando (`dotnet build`, 0 errores, 0 advertencias).
 - [x] Referencias entre proyectos cableadas según la dirección de dependencias.
-- [ ] Modelo de dominio.
+- [x] Modelo de dominio. 35 archivos; verificado por el integrador: build limpio y
+      165/165 pruebas en `Finanzas.Domain.Tests`. Mutación independiente sobre
+      `MovementKindSpec` (declarar el pago de tarjeta como gasto) detectada por
+      4 pruebas, dos de ellas nombradas por la regla 2. La suite tiene mordida.
+- [x] Ajustes post-revisión aplicados: `COP` con 0 decimales en `Currency` (con
+      reparto entero en `Money.Allocate`) y transferencias recurrentes de dos
+      patas con materialización atómica e idempotente en `Recurrence`.
+      Estado tras los ajustes: `dotnet test`, **198/198 en verde**, 0 errores y
+      0 advertencias en la solución completa.
 - [ ] Esquema y migraciones.
 - [ ] Casos de uso.
 - [ ] Contratos congelados.
