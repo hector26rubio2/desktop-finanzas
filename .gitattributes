@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.exe binary
+*.dll binary
+*.blockmap binary
+pnpm-lock.yaml -diff
